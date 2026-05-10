@@ -63,14 +63,14 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-400 to-orange-300 py-10 px-4 md:px-8">
+    <main className="min-h-screen bg-gradient-to-br from-purple-500 via-gray-400 to-orange-200 py-10 px-4 md:px-8">
       {/* CONTAINER: Tämä tuo tilan sivuille ja keskittää sisällön */}
       <div className="max-w-6xl mx-auto w-full">
         
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-sm">
-            Työhakemukset
+          <h1 className="text-4xl md:text-5xl font-mono text-white drop-shadow-sm font-">
+            Omat hakemukset
           </h1>
 
           {/* STAT CARDS */}
@@ -107,7 +107,7 @@ export default function Home() {
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`px-6 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 ${
+            className={`px-6 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center cursor-pointer gap-2 ${
               showForm 
                 ? 'bg-rose-500 text-white hover:bg-rose-600' 
                 : 'bg-emerald-500 text-white hover:bg-emerald-400'
