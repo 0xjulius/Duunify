@@ -306,7 +306,7 @@ export default function ApplicationCard({
             <StatusBadge status={app.status} />
             <button
               onClick={() => setEditing(true)}
-              className="text-[12px] font-medium text-slate-400 transition-colors hover:text-violet-600 cursor-pointer"
+              className="text-[12px] font-medium text-slate-400 transition-colors hover:text-violet-600 cursor-pointer hover:underline"
             >
               Muuta tilaa
             </button>
@@ -353,7 +353,7 @@ export default function ApplicationCard({
         {description.length > 850 && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:underline"
+            className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:underline cursor-pointer"
           >
             {expanded ? 'Näytä vähemmän' : 'Lue lisää'}
             <svg

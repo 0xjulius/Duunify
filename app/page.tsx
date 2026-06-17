@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 import AddApplicationForm from '@/components/AddApplicationForm'
 import ApplicationCard from '@/components/ApplicationCard'
+import Sidebar from '@/components/Sidebar'
+
 
 type Application = {
   id: string
@@ -62,64 +65,95 @@ export default function Home() {
     Tarjous: applications.filter(a => a.status === 'Tarjous').length,
   }
 
+  const greeting =
+  new Date().getHours() < 12
+    ? 'Hyvää huomenta'
+    : new Date().getHours() < 18
+    ? 'Hyvää iltapäivää'
+        : 'Hyvää iltaa'
+  
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-500 via-gray-400 to-orange-200 py-10 px-4 md:px-8">
-      {/* CONTAINER: Tämä tuo tilan sivuille ja keskittää sisällön */}
-      <div className="max-w-6xl mx-auto w-full">
-        
+  <main className="min-h-screen flex bg-slate-100">
+    <Sidebar />
+
+    <div className="flex-1 overflow-auto">
+      <div className="p-8">
+
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <h1 className="text-4xl md:text-5xl font-mono text-white drop-shadow-sm font-">
-            Omat hakemukset
-          </h1>
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900">
+              {greeting} 👋
+            </h1>
 
-          {/* STAT CARDS */}
-          <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider">
-            <p className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-sm">
-              Haettu <span className="ml-1 text-blue-100">{stats.Haettu}</span>
-            </p>
-            <p className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-sm">
-              Haastattelu <span className="ml-1 text-amber-100">{stats.Haastattelu}</span>
-            </p>
-            <p className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-sm">
-              Hylätty <span className="ml-1 text-rose-100">{stats.Hylätty}</span>
-            </p>
-            <p className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 shadow-sm">
-              Tarjous <span className="ml-1 text-emerald-100">{stats.Tarjous}</span>
+            <p className="text-slate-500 mt-1">
+              Tässä näkymässä näet kaikki hakemuksesi ja niiden tilat. Pidä kirjaa työnhaustasi ja seuraa edistymistäsi helposti!
             </p>
           </div>
-        </div>
 
-            {/* TOP BAR: Search and Add */}
+          {/* STATS */}
+          <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider ">
+            <p className="bg-blue-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm ">
+              Haettu <span>{stats.Haettu}</span>
+            </p>
+
+            <p className="bg-yellow-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm text-black">
+              Haastattelu <span>{stats.Haastattelu}</span>
+            </p>
+
+            <p className="bg-red-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+              Hylätty <span>{stats.Hylätty}</span>
+            </p>
+
+            <p className="bg-green-500 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+              Tarjous <span>{stats.Tarjous}</span>
+            </p>
+          </div>
+          </div>
+          
+
+        {/* SEARCH + BUTTON */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative flex-1 group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-500/50 group-focus-within:text-pink-500 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <div className="relative flex-1">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
             </div>
+
             <input
               type="text"
               placeholder="Hae yritystä tai tehtävää..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/60 border border-white/40 p-4 pl-12 rounded-2xl text-gray-800 placeholder-gray-500 backdrop-blur-2xl focus:bg-white/80 focus:outline-none focus:ring-2 focus:ring-pink-400/50 transition-all shadow-xl"
+              className="w-full bg-white border border-slate-200 p-4 pl-12 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
             />
           </div>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`px-6 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center cursor-pointer gap-2 ${
-              showForm 
-                ? 'bg-rose-500 text-white hover:bg-rose-600' 
-                : 'bg-emerald-500 text-white hover:bg-emerald-400'
+            className={`px-6 py-4 rounded-2xl font-semibold transition-all cursor-pointer ${
+              showForm
+                ? 'bg-red-500 text-white hover:bg-red-600'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
             }`}
           >
             {showForm ? '✕ Sulje' : '+ Lisää hakemus'}
           </button>
         </div>
 
-        {/* FORM SECTION */}
+        {/* FORM */}
         {showForm && (
-          <div className="mb-10 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="mb-10">
             <AddApplicationForm
               onSuccess={() => {
                 fetchApplications()
@@ -129,7 +163,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* LIST SECTION */}
+        {/* APPLICATIONS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filtered.length > 0 ? (
             filtered.map((app) => (
@@ -140,12 +174,29 @@ export default function Home() {
               />
             ))
           ) : (
-            <div className="col-span-full py-20 text-center bg-white/10 backdrop-blur-sm rounded-3xl border border-white/10">
-              <p className="text-white/60 text-lg font-medium">Ei löytynyt hakemuksia.</p>
-            </div>
+            <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-slate-200">
+              <div className="col-span-full">
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                    Ei hakemuksia vielä
+                  </h2>
+
+                  <p className="text-slate-500 mb-6">
+                   Aloita lisäämällä ensimmäinen hakemuksesi. Pidä kirjaa työnhaustasi ja seuraa edistymistäsi helposti.
+                  </p>
+
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium"
+                  >
+                    + Lisää ensimmäinen hakemus
+                  </button>
+                </div>
+              </div>
           )}
         </div>
+
       </div>
-    </main>
+    </div>
+  </main>
   )
 }

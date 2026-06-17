@@ -2,6 +2,7 @@
  
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
  
 const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   FULL_TIME: 'Kokoaikainen',
@@ -62,7 +63,7 @@ export default function AddApplicationForm({
       if (data.validThrough) setValidThrough(data.validThrough.split('T')[0])
     } catch (error) {
       console.log(error)
-      alert('Tietojen haku epäonnistui')
+      toast.error('Tietojen haku epäonnistui')
     }
  
     setLoadingJob(false)
@@ -93,9 +94,13 @@ export default function AddApplicationForm({
  
     if (error) {
       console.error(error)
-      alert('Virhe tallennuksessa: ' + error.message)
+      toast.error('Virhe tallennuksessa: ' + error.message)
       return
     }
+
+    toast.success('🎉 Hakemus tallennettu!', {
+      description: `${company} • ${jobTitle}`,
+    })
  
     // Reset
     setCompany('')
@@ -114,19 +119,24 @@ export default function AddApplicationForm({
   }
  
   const inputStyle =
-    'w-full p-3 rounded-xl border border-pink-100 bg-white/50 focus:bg-white focus:ring-2 focus:ring-pink-300 outline-none transition-all placeholder:text-gray-400 text-gray-800'
- 
+  'w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition'
   const labelStyle =
-    'text-sm font-semibold text-pink-700 ml-1 mb-1 block'
+    'block text-sm font-medium text-slate-700 mb-2'
  
   return (
     <form
       onSubmit={addApplication}
-      className="max-w-4xl mx-auto p-6 md:p-8 bg-white/60 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/20"
+      className=" bg-white border border-slate-200 rounded-3xl p-8 shadow-sm "
     >
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 px-1">
-        Lisää uusi työhakemus
-      </h2>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-slate-900">
+          Uusi hakemus
+        </h2>
+
+        <p className="text-slate-500 mt-1">
+          Seuraa uutta työmahdollisuutta.
+        </p>
+      </div>
  
       {/* URL AUTOFILL */}
       <div className="mb-6">
