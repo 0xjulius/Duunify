@@ -223,10 +223,10 @@ export default function ApplicationCard({
         <div className="flex items-center gap-3">
           <CompanyAvatar company={app.company} />
           <div>
-            <h2 className="text-[15px] font-semibold leading-snug text-slate-900">
+            <h2 className="text-[17px] font-semibold leading-snug text-slate-900">
               {app.company}
             </h2>
-            <p className="text-[13px] text-slate-500">{app.job_title}</p>
+            <p className="text-[14px] text-slate-500">{app.job_title}</p>
           </div>
         </div>
 
@@ -306,7 +306,7 @@ export default function ApplicationCard({
             <StatusBadge status={app.status} />
             <button
               onClick={() => setEditing(true)}
-              className="text-[12px] font-medium text-slate-400 transition-colors hover:text-violet-600 cursor-pointer hover:underline"
+              className="text-[13px] font-medium text-slate-400 transition-colors hover:text-violet-600 cursor-pointer hover:underline"
             >
               Muuta tilaa
             </button>
@@ -315,7 +315,7 @@ export default function ApplicationCard({
                 href={app.job_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 hover:underline"
+                className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-violet-600 hover:underline"
               >
                 Avaa ilmoitus
                 <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
@@ -330,7 +330,7 @@ export default function ApplicationCard({
       {/* Notes */}
       {app.notes && (
         <div className="mt-4 rounded-xl border-l-2 border-violet-300 bg-slate-50 py-2.5 pl-3.5 pr-3">
-          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          <p className="mb-0.5 text-[13px] font-semibold uppercase tracking-widest text-slate-400">
             Muistiinpanot
           </p>
           <p className="text-[13px] leading-relaxed text-slate-600">{app.notes}</p>
@@ -340,11 +340,11 @@ export default function ApplicationCard({
         {/* Description */}
     {description && (
       <div className="mt-4">
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
           Työpaikkakuvaus
         </p>
         {/* whitespace-pre-wrap säilyttää rivivälit, formatDescription hoitaa boldaukset */}
-        <div className="text-[13px] leading-relaxed text-slate-600 whitespace-pre-wrap">
+        <div className="text-[14px] leading-relaxed text-slate-600 whitespace-pre-wrap">
           {expanded 
             ? formatDescription(description) 
             : formatDescription(`${description.slice(0, 850)}…`)

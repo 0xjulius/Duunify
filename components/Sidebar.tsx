@@ -1,81 +1,243 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import {
   LayoutDashboard,
   Briefcase,
   BarChart3,
   Settings,
+  Calendar,
   UserCircle2,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 export default function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar");
+
+    if (saved === "collapsed") {
+      setCollapsed(true);
+    }
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+
+    return () =>
+      window.removeEventListener(
+        "resize",
+        handleResize
+      );
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "sidebar",
+      collapsed ? "collapsed" : "expanded"
+    );
+  }, [collapsed]);
+
+  const sidebarCollapsed =
+    isMobile || collapsed;
+
   return (
-    <aside className="w-64 min-w-64 h-screen sticky top-0 bg-white border-r border-slate-200 flex flex-col">
+    <aside
+      className={`
+        ${
+          sidebarCollapsed
+            ? "w-20"
+            : "w-64"
+        }
+        min-h-screen
+        sticky
+        top-0
+        bg-white/80
+        backdrop-blur-xl
+        border-r
+        border-slate-200
+        flex
+        flex-col
+        transition-all
+        duration-300
+      `}
+    >
+      {/* HEADER */}
+      <div className="relative h-20 flex items-center px-5 border-b border-slate-200">
 
-      {/* Logo */}
-      <div className="h-20 flex items-center px-6 border-b border-slate-200">
-        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold">
-          J
-        </div>
+        {!sidebarCollapsed && (
+          <div className="ml-3">
+            <h1 className="text-lg font-bold text-slate-900">
+              Duunify
+            </h1>
 
-        <div className="ml-3">
-          <h1 className="text-lg font-bold text-slate-900">
-            Duunify
-          </h1>
+            <p className="text-xs text-slate-500">
+              Työhakemusten hallinta
+            </p>
+          </div>
+        )}
 
-          <p className="text-xs text-slate-500">
-            Työhakemusten hallintatyökalu
-          </p>
-        </div>
+        {!isMobile && (
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="
+              absolute
+              right-5
+              top-1/2
+              -translate-y-1/2
+              p-2
+              rounded-lg
+              hover:bg-slate-100
+              transition
+              text-slate-500
+            "
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={18} />
+            ) : (
+              <PanelLeftClose size={18} />
+            )}
+          </button>
+        )}
+
       </div>
 
-      {/* Navigation */}
+      {/* NAVIGATION */}
       <nav className="flex-1 p-4">
+
         <div className="space-y-1">
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-medium transition cursor-pointer">
-            <LayoutDashboard size={18} />
-            Koontinäyttö
-          </button>
+          <SidebarItem
+            icon={<LayoutDashboard size={18} />}
+            label="Koontinäyttö"
+            active
+            collapsed={sidebarCollapsed}
+          />
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-            <Briefcase size={18} />
-            Hakemukset
-          </button>
+          <SidebarItem
+            icon={<Briefcase size={18} />}
+            label="Hakemukset"
+            collapsed={sidebarCollapsed}
+          />
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-            <BarChart3 size={18} />
-            Tilastot
-          </button>
+          <SidebarItem
+            icon={<Calendar size={18} />}
+            label="Kalenteri"
+            collapsed={sidebarCollapsed}
+          />
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-            <Settings size={18} />
-            Asetukset
-          </button>
+          <SidebarItem
+            icon={<BarChart3 size={18} />}
+            label="Tilastot"
+            collapsed={sidebarCollapsed}
+          />
 
         </div>
+
       </nav>
 
-      {/* User Card */}
+      {/* SETTINGS */}
+      <div className="px-4 pb-2">
+
+        <SidebarItem
+          icon={<Settings size={18} />}
+          label="Asetukset"
+          collapsed={sidebarCollapsed}
+        />
+
+      </div>
+
+      {/* USER */}
       <div className="p-4 border-t border-slate-200">
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50">
+
+        <div
+          className={`
+            flex items-center
+            ${
+              sidebarCollapsed
+                ? "justify-center"
+                : "gap-3"
+            }
+            p-3
+            rounded-2xl
+            bg-slate-50
+          `}
+        >
           <UserCircle2
             size={42}
             className="text-slate-400"
           />
 
-          <div className="min-w-0">
-            <p className="font-medium text-slate-900 truncate">
-              John Doe
-            </p>
+          {!sidebarCollapsed && (
+            <div className="min-w-0">
+              <p className="font-medium text-slate-900 truncate">
+                John Doe
+              </p>
 
-            <p className="text-sm text-slate-500 truncate">
-              john@example.com
-            </p>
-          </div>
+              <p className="text-sm text-slate-500 truncate">
+                john@example.com
+              </p>
+            </div>
+          )}
+
         </div>
+
       </div>
 
     </aside>
+  );
+}
+
+function SidebarItem({
+  icon,
+  label,
+  active = false,
+  collapsed,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+  collapsed: boolean;
+}) {
+  return (
+    <button
+      className={`
+        w-full
+        flex
+        items-center
+        ${
+          collapsed
+            ? "justify-center"
+            : "gap-3"
+        }
+        px-4
+        py-3
+        rounded-xl
+        transition
+        relative
+
+        ${
+          active
+            ? "bg-indigo-50 text-indigo-600 font-medium"
+            : "text-slate-600 hover:bg-slate-100"
+        }
+      `}
+    >
+      {icon}
+
+      {!collapsed && (
+        <span>
+          {label}
+        </span>
+      )}
+    </button>
   );
 }

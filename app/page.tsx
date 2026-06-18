@@ -77,7 +77,10 @@ export default function Home() {
     <Sidebar />
 
     <div className="flex-1 overflow-auto">
-      <div className="p-8">
+      <div className="p-8 bg-gradient-to-br
+from-violet-50
+via-pink-50
+to-sky-50">
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -164,7 +167,7 @@ export default function Home() {
         )}
 
         {/* APPLICATIONS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
           {filtered.length > 0 ? (
             filtered.map((app) => (
               <ApplicationCard
