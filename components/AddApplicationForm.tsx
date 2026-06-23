@@ -126,9 +126,9 @@ export default function AddApplicationForm({
   return (
     <form
       onSubmit={addApplication}
-      className=" bg-white border border-slate-200 rounded-3xl p-8 shadow-sm "
+      className=" bg-white border border-slate-200 rounded-3xl p-8 shadow-sm w-full xl:w-4/5 xl:mx-auto"
     >
-      <div className="mb-8">
+      <div className="mb-8 ">
         <h2 className="text-2xl font-bold text-slate-900">
           Uusi hakemus
         </h2>
@@ -153,15 +153,15 @@ export default function AddApplicationForm({
             type="button"
             onClick={autofillFromUrl}
             disabled={loadingJob || !jobUrl}
-            className="px-5 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition flex items-center gap-1.5"
+            className=" p-4 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition flex items-center gap-1.5"
           >
             {loadingJob ? (
               <>
-                <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full" />
+                <span className="animate-spin inline-block w-5 h-3.5 border-2 border-white/30 border-t-white rounded-full" />
                 Haetaan...
               </>
             ) : (
-              'Auto'
+              'Hae tiedot'
             )}
           </button>
         </div>
