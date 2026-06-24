@@ -1,79 +1,150 @@
-'use client'
- 
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
- 
+"use client";
+
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+
 const EMPLOYMENT_TYPE_FI: Record<string, string> = {
-  FULL_TIME: 'Kokoaikainen',
-  PART_TIME: 'Osa-aikainen',
-  CONTRACTOR: 'Toimeksiantaja',
-  TEMPORARY: 'Määräaikainen',
-  INTERN: 'Harjoittelija',
-  VOLUNTEER: 'Vapaaehtoinen',
-  PER_DIEM: 'Päivätyö',
-  OTHER: 'Muu',
-}
- 
+  FULL_TIME: "Kokoaikainen",
+  PART_TIME: "Osa-aikainen",
+  CONTRACTOR: "Toimeksiantaja",
+  TEMPORARY: "Määräaikainen",
+  INTERN: "Harjoittelija",
+  VOLUNTEER: "Vapaaehtoinen",
+  PER_DIEM: "Päivätyö",
+  OTHER: "Muu",
+};
+
 export default function AddApplicationForm({
   onSuccess,
 }: {
-  onSuccess: () => void
+  onSuccess: () => void;
 }) {
-  const [loading, setLoading] = useState(false)
-  const [loadingJob, setLoadingJob] = useState(false)
- 
-  const [company, setCompany] = useState('')
-  const [jobTitle, setJobTitle] = useState('')
-  const [location, setLocation] = useState('')
-  const [status, setStatus] = useState('Haettu')
-  const [notes, setNotes] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [loadingJob, setLoadingJob] = useState(false);
+
+  const [company, setCompany] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [status, setStatus] = useState("Haettu");
+  const [notes, setNotes] = useState("");
   const [appliedDate, setAppliedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  )
-  const [jobDescription, setJobDescription] = useState('')
-  const [jobUrl, setJobUrl] = useState('')
- 
+    new Date().toISOString().split("T")[0],
+  );
+  const [jobDescription, setJobDescription] = useState("");
+  const [jobUrl, setJobUrl] = useState("");
+
   // New fields
-  const [salaryMin, setSalaryMin] = useState<string>('')
-  const [salaryMax, setSalaryMax] = useState<string>('')
-  const [employmentType, setEmploymentType] = useState<string>('')
-  const [validThrough, setValidThrough] = useState<string>('')
- 
+  const [salaryMin, setSalaryMin] = useState<string>("");
+  const [salaryMax, setSalaryMax] = useState<string>("");
+  const [employmentType, setEmploymentType] = useState<string>("");
+  const [validThrough, setValidThrough] = useState<string>("");
+
   async function autofillFromUrl() {
-    if (!jobUrl) return
-    setLoadingJob(true)
- 
-    try {
-      const response = await fetch('/api/parse-job', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: jobUrl }),
-      })
- 
-      const data = await response.json()
- 
-      if (data.company) setCompany(data.company)
-      if (data.title) setJobTitle(data.title)
-      if (data.location) setLocation(data.location)
-      if (data.description) setJobDescription(data.description)
-      if (data.salaryMin) setSalaryMin(String(data.salaryMin))
-      if (data.salaryMax) setSalaryMax(String(data.salaryMax))
-      if (data.employmentType) setEmploymentType(data.employmentType)
-      if (data.validThrough) setValidThrough(data.validThrough.split('T')[0])
-    } catch (error) {
-      console.log(error)
-      toast.error('Tietojen haku epäonnistui')
+    if (loadingJob) return;
+
+    if (!jobUrl) {
+      toast.error("Anna työpaikkailmoituksen URL");
+      return;
     }
- 
-    setLoadingJob(false)
+
+    try {
+      const parsed = new URL(jobUrl);
+
+      const allowed = [
+        "duunitori.fi",
+        "www.duunitori.fi",
+        "tyomarkkinatori.fi",
+        "www.tyomarkkinatori.fi",
+      ];
+
+      if (!allowed.includes(parsed.hostname)) {
+        toast.error("Tuettuja sivustoja ovat Duunitori ja Työmarkkinatori");
+        return;
+      }
+    } catch {
+      toast.error("Virheellinen URL");
+      return;
+    }
+
+    setLoadingJob(true);
+
+    try {
+      const response = await fetch("/api/parse-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: jobUrl }),
+      });
+
+      const data = await response.json();
+
+      if (data.company) setCompany(data.company);
+      if (data.title) setJobTitle(data.title);
+      if (data.location) setLocation(data.location);
+      if (data.description) setJobDescription(data.description);
+      if (data.salaryMin) setSalaryMin(String(data.salaryMin));
+      if (data.salaryMax) setSalaryMax(String(data.salaryMax));
+      if (data.employmentType) setEmploymentType(data.employmentType);
+      if (data.validThrough) setValidThrough(data.validThrough.split("T")[0]);
+    } catch (error) {
+      console.log(error);
+      toast.error("Tietojen haku epäonnistui");
+    }
+
+    setLoadingJob(false);
   }
- 
+
   async function addApplication(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
- 
-    const { error } = await supabase.from('applications').insert([
+    e.preventDefault();
+
+    if (loading) return;
+
+    setLoading(true);
+
+    if (company.length > 60) {
+      toast.error("Yrityksen nimi liian pitkä, max 60 merkkiä");
+      return;
+    }
+
+    if (location.length > 30) {
+      toast.error("Sijainti-kenttä liian pitkä, max 30 merkkiä");
+      return;
+    }
+
+    if (jobTitle.length > 150) {
+      toast.error("Työtehtävä liian pitkä, max 150 merkkiä");
+      return;
+    }
+
+    if (notes.length > 5000) {
+      toast.error("Liikaa muistiinpanoja, max 5000 merkkiä");
+      return;
+    }
+
+    if (jobDescription.length > 15000) {
+      toast.error("Työpaikkakuvaus liian pitkä, max 15000 merkkiä");
+      return;
+    }
+
+    const minSalary = salaryMin ? Number(salaryMin) : null;
+    const maxSalary = salaryMax ? Number(salaryMax) : null;
+
+    if (minSalary && maxSalary && minSalary > maxSalary) {
+      toast.error("Minimipalkka ei voi olla suurempi kuin maksimipalkka");
+      return;
+    }
+
+    if (salaryMin.length > 10) {
+      toast.error("Minimipalkka liian pitkä, max 10 merkkiä");
+      return;
+    }
+
+    if (salaryMax.length > 10) {
+      toast.error("Maksimipalkka liian pitkä, max 10 merkkiä");
+      return;
+    }
+
+    const { error } = await supabase.from("applications").insert([
       {
         company,
         job_title: jobTitle,
@@ -88,56 +159,51 @@ export default function AddApplicationForm({
         employment_type: employmentType || null,
         valid_through: validThrough || null,
       },
-    ])
- 
-    setLoading(false)
- 
+    ]);
+
+    setLoading(false);
+
     if (error) {
-      console.error(error)
-      toast.error('Virhe tallennuksessa: ' + error.message)
-      return
+      console.error(error);
+      toast.error("Virhe tallennuksessa: " + error.message);
+      return;
     }
 
-    toast.success('🎉 Hakemus tallennettu!', {
+    toast.success("🎉 Hakemus tallennettu!", {
       description: `${company} • ${jobTitle}`,
-    })
- 
+    });
+
     // Reset
-    setCompany('')
-    setJobTitle('')
-    setLocation('')
-    setStatus('Haettu')
-    setNotes('')
-    setJobDescription('')
-    setJobUrl('')
-    setSalaryMin('')
-    setSalaryMax('')
-    setEmploymentType('')
-    setValidThrough('')
- 
-    onSuccess()
+    setCompany("");
+    setJobTitle("");
+    setLocation("");
+    setStatus("Haettu");
+    setNotes("");
+    setJobDescription("");
+    setJobUrl("");
+    setSalaryMin("");
+    setSalaryMax("");
+    setEmploymentType("");
+    setValidThrough("");
+
+    onSuccess();
   }
- 
+
   const inputStyle =
-  'w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition'
-  const labelStyle =
-    'block text-sm font-medium text-slate-700 mb-2'
- 
+    "w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
+  const labelStyle = "block text-sm font-medium text-slate-700 mb-2";
+
   return (
     <form
       onSubmit={addApplication}
       className=" bg-white border border-slate-200 rounded-3xl p-8 shadow-sm w-full xl:w-4/5 xl:mx-auto"
     >
       <div className="mb-8 ">
-        <h2 className="text-2xl font-bold text-slate-900">
-          Uusi hakemus
-        </h2>
+        <h2 className="text-2xl font-bold text-slate-900">Uusi hakemus</h2>
 
-        <p className="text-slate-500 mt-1">
-          Seuraa uutta työmahdollisuutta.
-        </p>
+        <p className="text-slate-500 mt-1">Seuraa uutta työmahdollisuutta.</p>
       </div>
- 
+
       {/* URL AUTOFILL */}
       <div className="mb-6">
         <label className={labelStyle}>Hakuilmoituksen linkki</label>
@@ -161,14 +227,13 @@ export default function AddApplicationForm({
                 Haetaan...
               </>
             ) : (
-              'Hae tiedot'
+              "Hae tiedot"
             )}
           </button>
         </div>
       </div>
- 
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- 
         {/* LEFT COLUMN */}
         <div className="space-y-4">
           <div>
@@ -182,7 +247,7 @@ export default function AddApplicationForm({
               required
             />
           </div>
- 
+
           <div>
             <label className={labelStyle}>Työtehtävä *</label>
             <input
@@ -194,7 +259,7 @@ export default function AddApplicationForm({
               required
             />
           </div>
- 
+
           <div>
             <label className={labelStyle}>Paikkakunta</label>
             <input
@@ -205,7 +270,7 @@ export default function AddApplicationForm({
               className={inputStyle}
             />
           </div>
- 
+
           <div>
             <label className={labelStyle}>Työsuhteen tyyppi</label>
             <select
@@ -222,7 +287,7 @@ export default function AddApplicationForm({
             </select>
           </div>
         </div>
- 
+
         {/* RIGHT COLUMN */}
         <div className="space-y-4">
           <div>
@@ -234,7 +299,7 @@ export default function AddApplicationForm({
               className={inputStyle}
             />
           </div>
- 
+
           <div>
             <label className={labelStyle}>Hakemuksen tila</label>
             <select
@@ -248,7 +313,7 @@ export default function AddApplicationForm({
               <option>Tarjous</option>
             </select>
           </div>
- 
+
           <div>
             <label className={labelStyle}>Haku päättyy</label>
             <input
@@ -258,7 +323,7 @@ export default function AddApplicationForm({
               className={inputStyle}
             />
           </div>
- 
+
           <div>
             <label className={labelStyle}>Palkka (€ / kk)</label>
             <div className="flex items-center gap-2">
@@ -282,7 +347,7 @@ export default function AddApplicationForm({
             </div>
           </div>
         </div>
- 
+
         {/* NOTES — full width */}
         <div className="md:col-span-2">
           <label className={labelStyle}>Muistiinpanot</label>
@@ -293,7 +358,7 @@ export default function AddApplicationForm({
             className={`${inputStyle} h-[100px] resize-none`}
           />
         </div>
- 
+
         {/* DESCRIPTION — full width */}
         <div className="md:col-span-2">
           <label className={labelStyle}>Työpaikkakuvaus</label>
@@ -304,9 +369,8 @@ export default function AddApplicationForm({
             className={`${inputStyle} min-h-[150px]`}
           />
         </div>
- 
       </div>
- 
+
       <button
         type="submit"
         disabled={loading}
@@ -318,10 +382,9 @@ export default function AddApplicationForm({
             Tallennetaan...
           </>
         ) : (
-          'Tallenna hakemus'
+          "Tallenna hakemus"
         )}
       </button>
     </form>
-  )
+  );
 }
- 

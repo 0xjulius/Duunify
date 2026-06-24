@@ -390,18 +390,12 @@ export default function ApplicationCard({
             <p className="text-[14px] text-slate-500">{app.job_title}</p>
           </div>
         </div>
-
         <button
-          onClick={deleteApplication}
-          disabled={loading}
-          aria-label="Poista hakemus"
-          className={`ml-2 rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
-            confirmDelete
-              ? "animate-pulse bg-red-500 text-white"
-              : "text-slate-400 hover:bg-red-50 hover:text-red-500"
-          }`}
+          onClick={() => setEditingApplication(true)}
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-violet-600"
         >
-          {loading ? "…" : confirmDelete ? "Vahvista?" : <MetaChip icon={<IconTrash />}>Poista</MetaChip>}
+          <IconEdit />
+          Muokkaa
         </button>
       </div>
 
@@ -484,14 +478,6 @@ export default function ApplicationCard({
             >
               <IconRefresh />
               Tila
-            </button>
-
-            <button
-              onClick={() => setEditingApplication(true)}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-violet-600"
-            >
-              <IconEdit />
-              Muokkaa
             </button>
 
             {app.job_url && (
@@ -584,6 +570,18 @@ export default function ApplicationCard({
               className="rounded-xl border border-slate-300 px-4 py-2 font-medium"
             >
               Peruuta
+            </button>
+            <button
+              onClick={deleteApplication}
+              disabled={loading}
+              aria-label="Poista hakemus"
+              className={`rounded-xl border border-slate-300 px-4 py-2 font-medium text-white ${
+                confirmDelete
+                  ? "animate-pulse bg-red-500 text-black"
+                  : " bg-red-400 hover:text-white hover:bg-red-500"
+              }`}
+            >
+              {loading ? "Poistetaan.." : confirmDelete ? "Vahvista?" : "Poista"}
             </button>
           </div>
         </div>
