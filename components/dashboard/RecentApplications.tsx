@@ -1,0 +1,155 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Building2, ArrowRight, AlertCircle } from "lucide-react";
+import DownloadButton from "../DownloadButton";
+
+type Application = {
+  id: string;
+  company: string;
+  job_title: string;
+  status: string;
+  created_at: string;
+};
+
+const getStatusBadgeClass = (status: string) => {
+  const s = status?.toLowerCase().trim();
+  if (["haastattelu", "interview"].includes(s))
+    return "bg-amber-50 text-amber-700 border-amber-200";
+  if (["tarjous", "offer"].includes(s))
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (["hylätty", "hylätyt", "rejected"].includes(s))
+    return "bg-red-50 text-red-700 border-red-200";
+  if (["ei vastausta", "no response"].includes(s))
+    return "bg-slate-50 text-slate-600 border-slate-200";
+  return "bg-blue-50 text-indigo-700 border-blue-200";
+};
+
+export default function RecentApplications({ data }) {
+  const [apps, setApps] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchRecent() {
+      try {
+        setErrorMsg(null);
+        const { data, error } = await supabase
+          .from("applications")
+          .select("id, company, job_title, status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        if (error) {
+          console.error("Supabase-virhe hakemuksissa:", error);
+          setErrorMsg(error.message);
+        } else if (data) {
+          setApps(data);
+        }
+      } catch (err) {
+        console.error("Yllättävä virhe:", err);
+        setErrorMsg("Yhteysvirhe tietoja haettaessa.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRecent();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] animate-pulse">
+        <div className="h-5 bg-slate-200 rounded w-1/3 mb-6" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex justify-between items-center py-3 border-b border-slate-100"
+          >
+            <div className="h-4 bg-slate-200 rounded w-1/2" />
+            <div className="h-6 bg-slate-200 rounded w-16" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50/50 p-6 shadow-sm flex flex-col h-[340px] justify-between text-red-800">
+        <div className="flex flex-col items-center justify-center flex-1 text-center gap-2">
+          <AlertCircle className="text-red-500" size={32} />
+          <h3 className="font-bold text-sm text-red-950">
+            Datan lataus epäonnistui
+          </h3>
+          <p className="text-xs text-red-700 max-w-[240px] break-words font-mono bg-white p-2 rounded border border-red-200">
+            {errorMsg}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] justify-between">
+      <div className="flex flex-col">
+        {/* Korjattu: Otsikko ja latausnappi samalle riville */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900">
+            Viimeisimmät hakemukset
+          </h2>
+          <DownloadButton data={apps} fileName="tyohakemukset_30pv" />
+        </div>
+
+        <p className="text-xs text-slate-400 mt-1">
+          Viisi viimeisintä aktiviteettiasi.
+        </p>
+
+        <div className="mt-2.5 flex flex-col">
+          {apps.length === 0 ? (
+            <p className="text-sm text-slate-400 py-12 text-center">
+              Ei vielä hakemuksia. Lisää ensimmäinen! 🚀
+            </p>
+          ) : (
+            apps.map((app) => (
+              <div
+                key={app.id}
+                className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                    <Building2 size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-slate-800 truncate leading-tight">
+                      {app.company || "Tuntematon yritys"}
+                    </h4>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                      {app.job_title || "Ei tehtävänimikettä"}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`text-[11px] font-bold px-2 py-0.5 rounded-md border capitalize flex-shrink-0 ${getStatusBadgeClass(app.status)}`}
+                >
+                  {app.status || "Haettu"}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <a
+        href="/applications"
+        className="mt-2 py-2 px-4 border border-slate-200 rounded-xl text-sm font-bold text-indigo-600 hover:bg-slate-50 flex items-center gap-1 self-start group transition-colors"
+      >
+        Näytä hakemukset{" "}
+        <ArrowRight
+          size={14}
+          className="group-hover:translate-x-0.5 transition-transform"
+        />
+      </a>
+    </div>
+  );
+}

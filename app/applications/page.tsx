@@ -70,10 +70,10 @@ export default function Home() {
     <Sidebar />
 
     <div className="flex-1 overflow-auto">
-      <div className="p-8 bg-gradient-to-br
+      <div className="p-8 max-w-400 mx-auto gap-10 bg-gradient-to-br
 from-violet-50
 via-pink-50
-to-sky-50">
+to-sky-50 ">
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -84,7 +84,7 @@ to-sky-50">
 
             <p className="text-slate-500 mt-1">
               Tässä näkymässä näet kaikki hakemuksesi ja niiden tilat. Pidä kirjaa työnhaustasi ja seuraa edistymistäsi helposti!
-            </p>
+              </p>
           </div>
 
           {/* STATS */}
