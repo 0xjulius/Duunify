@@ -70,10 +70,7 @@ export default function Home() {
     <Sidebar />
 
     <div className="flex-1 overflow-auto">
-      <div className="p-8 max-w-400 mx-auto gap-10 bg-gradient-to-br
-from-violet-50
-via-pink-50
-to-sky-50 ">
+      <div className="p-8 max-w-400 mx-auto gap-10 ">
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

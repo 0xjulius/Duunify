@@ -30,7 +30,7 @@ export default function DownloadButton({ data, fileName }: DownloadButtonProps) 
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg">
+      <button onClick={() => setIsOpen(true)} className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors">
         <Download size={18} />
       </button>
 
