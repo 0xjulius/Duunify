@@ -102,7 +102,7 @@ export default function RecentApplications({ data }) {
         </div>
 
         <p className="text-xs text-slate-400 mt-1">
-          Viisi viimeisintä aktiviteettiasi.
+          Neljä viimeisintä aktiviteettiasi.
         </p>
 
         <div className="mt-2.5 flex flex-col">
@@ -117,7 +117,7 @@ export default function RecentApplications({ data }) {
                 className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0 group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                  <div className="w-10 h-11 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
                     <Building2 size={16} />
                   </div>
                   <div className="min-w-0">
@@ -130,7 +130,7 @@ export default function RecentApplications({ data }) {
                   </div>
                 </div>
                 <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded-md border capitalize flex-shrink-0 ${getStatusBadgeClass(app.status)}`}
+                  className={`text-[11px] font-bold px-2 py-1 rounded-md border capitalize flex-shrink-0 ${getStatusBadgeClass(app.status)}`}
                 >
                   {app.status || "Haettu"}
                 </span>
@@ -139,17 +139,6 @@ export default function RecentApplications({ data }) {
           )}
         </div>
       </div>
-
-      <a
-        href="/applications"
-        className="mt-2 py-2 px-4 border border-slate-200 rounded-xl text-sm font-bold text-indigo-600 hover:bg-slate-50 flex items-center gap-1 self-start group transition-colors"
-      >
-        Näytä hakemukset{" "}
-        <ArrowRight
-          size={14}
-          className="group-hover:translate-x-0.5 transition-transform"
-        />
-      </a>
     </div>
   );
 }
