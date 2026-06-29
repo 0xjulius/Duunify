@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   LayoutDashboard,
@@ -33,10 +35,7 @@ export default function Sidebar() {
     window.addEventListener("resize", handleResize);
 
     return () =>
-      window.removeEventListener(
-        "resize",
-        handleResize
-      );
+      window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
@@ -46,16 +45,13 @@ export default function Sidebar() {
     );
   }, [collapsed]);
 
-  const sidebarCollapsed =
-    isMobile || collapsed;
+  const sidebarCollapsed = isMobile || collapsed;
 
   return (
     <aside
       className={`
         ${
-          sidebarCollapsed
-            ? "w-20"
-            : "w-64"
+          sidebarCollapsed ? "w-20" : "w-64"
         }
         min-h-screen
         sticky
@@ -72,7 +68,6 @@ export default function Sidebar() {
     >
       {/* HEADER */}
       <div className="relative h-20 flex items-center px-5 border-b border-slate-200">
-
         {!sidebarCollapsed && (
           <div className="ml-3">
             <h1 className="text-lg font-bold text-slate-900">
@@ -107,57 +102,53 @@ export default function Sidebar() {
             )}
           </button>
         )}
-
       </div>
 
       {/* NAVIGATION */}
       <nav className="flex-1 p-4">
-
         <div className="space-y-1">
-
           <SidebarItem
             icon={<LayoutDashboard size={18} />}
             label="Koontinäyttö"
-            active
+            href="/dashboard"
             collapsed={sidebarCollapsed}
           />
 
           <SidebarItem
             icon={<Briefcase size={18} />}
             label="Hakemukset"
+            href="/applications"
             collapsed={sidebarCollapsed}
           />
 
           <SidebarItem
             icon={<Calendar size={18} />}
             label="Kalenteri"
+            href="/calendar"
             collapsed={sidebarCollapsed}
           />
 
           <SidebarItem
             icon={<BarChart3 size={18} />}
             label="Tilastot"
+            href="/statistics"
             collapsed={sidebarCollapsed}
           />
-
         </div>
-
       </nav>
 
       {/* SETTINGS */}
       <div className="px-4 pb-2">
-
         <SidebarItem
           icon={<Settings size={18} />}
           label="Asetukset"
+          href="/settings"
           collapsed={sidebarCollapsed}
         />
-
       </div>
 
       {/* USER */}
       <div className="p-4 border-t border-slate-200">
-
         <div
           className={`
             flex items-center
@@ -187,11 +178,8 @@ export default function Sidebar() {
               </p>
             </div>
           )}
-
         </div>
-
       </div>
-
     </aside>
   );
 }
@@ -199,16 +187,23 @@ export default function Sidebar() {
 function SidebarItem({
   icon,
   label,
-  active = false,
+  href,
   collapsed,
 }: {
   icon: React.ReactNode;
   label: string;
-  active?: boolean;
+  href: string;
   collapsed: boolean;
 }) {
+  const pathname = usePathname();
+
+  const active =
+    pathname === href ||
+    (href !== "/" && pathname.startsWith(href));
+
   return (
-    <button
+    <Link
+      href={href}
       className={`
         w-full
         flex
@@ -222,7 +217,6 @@ function SidebarItem({
         py-3
         rounded-xl
         transition
-        relative
 
         ${
           active
@@ -233,11 +227,7 @@ function SidebarItem({
     >
       {icon}
 
-      {!collapsed && (
-        <span>
-          {label}
-        </span>
-      )}
-    </button>
+      {!collapsed && <span>{label}</span>}
+    </Link>
   );
 }
