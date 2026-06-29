@@ -80,7 +80,7 @@ to-sky-50 "
       {/* Varsinainen sisältöalue, joka täyttää loput tilasta (flex-1) */}
       <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-400 mx-auto gap-10 ">
         {/* Yläosan tervehdys */}
-        <DashboardHeader />
+              <DashboardHeader />
 
         {/* Koontinäytön sisältö */}
         <div className="flex flex-col gap-6">

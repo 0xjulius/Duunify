@@ -18,7 +18,7 @@ export default async function CalendarPage() {
     <div className="flex min-h-screen bg-slate-50">
       
       {/* Sivupalkki */}
-      <div className="w-64 flex-shrink-0 border-r border-slate-200 bg-white">
+      <div className="flex-shrink-0 border-r border-slate-200 bg-white">
         <Sidebar />
       </div>
 
@@ -38,7 +38,20 @@ export default async function CalendarPage() {
           </div>
         </main>
         
-        <Footer />
+         {/* Korjattu Footer */}
+        <footer className="p-8 border-t border-slate-200 bg-slate-50">
+          <div className="max-w-5xl mx-auto flex justify-between items-center text-sm text-slate-500">
+            <div>
+              <span className="font-bold text-slate-900">Duunify</span>
+              <span className="ml-2">© 2026 Kaikki oikeudet pidätetään.</span>
+            </div>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-slate-900">Tietosuoja</a>
+              <a href="#" className="hover:text-slate-900">Käyttöehdot</a>
+              <a href="#" className="hover:text-slate-900">Yhteystiedot</a>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

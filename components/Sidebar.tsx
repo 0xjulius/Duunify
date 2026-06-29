@@ -109,7 +109,7 @@ export default function Sidebar() {
         <div className="space-y-1">
           <SidebarItem
             icon={<LayoutDashboard size={18} />}
-            label="Koontinäyttö"
+            label="Yleiskatsaus"
             href="/dashboard"
             collapsed={sidebarCollapsed}
           />
