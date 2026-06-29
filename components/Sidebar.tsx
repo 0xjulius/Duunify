@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Briefcase,
-  BarChart3,
+  StarPlus,
   Settings,
   Calendar,
   UserCircle2,
@@ -129,9 +129,9 @@ export default function Sidebar() {
           />
 
           <SidebarItem
-            icon={<BarChart3 size={18} />}
-            label="Tilastot"
-            href="/statistics"
+            icon={<StarPlus size={18} />}
+            label="Suosikit"
+            href="/favorites"
             collapsed={sidebarCollapsed}
           />
         </div>

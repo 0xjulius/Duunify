@@ -65,7 +65,7 @@ export default function SettingsPage() {
                   </p>
                   <div className="flex flex-col md:flex-row gap-8">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-24 h-24 rounded-full bg-slate-200" />
+                      <div className="w-24 h-24 rounded-full bg-slate-200 bg-[url(https://i.pravatar.cc/96)]" />
                       <button className="text-xs border px-3 py-1.5 rounded-lg flex items-center gap-2 font-medium">
                         <Upload size={14} /> Vaihda kuva
                       </button>

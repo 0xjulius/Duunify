@@ -437,6 +437,7 @@ export default function ApplicationCard({
               onChange={(e) => setNewStatus(e.target.value)}
               className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
             >
+              <option>Tallennettu</option>
               <option>Haettu</option>
               <option>Haastattelu</option>
               <option>Hylätty</option>

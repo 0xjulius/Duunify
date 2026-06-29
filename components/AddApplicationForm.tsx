@@ -307,6 +307,7 @@ export default function AddApplicationForm({
               onChange={(e) => setStatus(e.target.value)}
               className={`${inputStyle} appearance-none cursor-pointer bg-pink-50/50`}
             >
+              <option>Tallenna</option>
               <option>Haettu</option>
               <option>Haastattelu</option>
               <option>Hylätty</option>
