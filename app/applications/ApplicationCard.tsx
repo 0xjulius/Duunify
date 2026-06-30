@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import ApplicationSheet from "@/app/applications/ApplicationSheet";
-import { Maximize2, SquarePen} from "lucide-react";
+import ApplicationSheet from "@/app/applications/ApplicationDialog";
+import { Maximize2, SquarePen } from "lucide-react";
 
 type Application = {
   id: string;
@@ -428,7 +428,7 @@ export default function ApplicationCard({
           title="Muokkaa ilmoitusta"
           className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-blue-700 transition-colors"
         >
-          <SquarePen size={16} strokeWidth={2}/>
+          <SquarePen size={16} strokeWidth={2} />
         </button>
       </div>
 
@@ -690,7 +690,7 @@ export default function ApplicationCard({
               className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-green-600 transition-colors"
               title="Avaa ilmoitus" // Aputeksti ruudunlukuohjelmia ja hover-tilaa varten
             >
-            <Maximize2 size={18} strokeWidth={2} />
+              <Maximize2 size={18} strokeWidth={2} />
             </button>
           </div>
           <ApplicationSheet open={open} onOpenChange={setOpen} app={app} />

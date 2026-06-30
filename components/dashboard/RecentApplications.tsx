@@ -2,15 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Building2, ArrowRight, AlertCircle } from "lucide-react";
+import { Building2 } from "lucide-react";
 import DownloadButton from "../DownloadButton";
 
+// Tyyppi sisältää nyt kaikki kentät, joita ApplicationDialog tarvitsee
 type Application = {
   id: string;
   company: string;
   job_title: string;
   status: string;
   created_at: string;
+  location?: string;
+  applied_date?: string;
+  job_url?: string;
+  notes?: string;
+  job_description?: string;
 };
 
 const getStatusBadgeClass = (status: string) => {
@@ -26,33 +32,28 @@ const getStatusBadgeClass = (status: string) => {
   return "bg-blue-50 text-indigo-700 border-blue-200";
 };
 
-export default function RecentApplications({ data }) {
+export default function RecentApplications({ 
+  onOpenApplication 
+}: { 
+  onOpenApplication: (app: Application) => void 
+}) {
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchRecent() {
-      try {
-        setErrorMsg(null);
-        const { data, error } = await supabase
-          .from("applications")
-          .select("id, company, job_title, status, created_at")
-          .order("created_at", { ascending: false })
-          .limit(4);
+      setLoading(true);
+      // Haetaan kaikki kentät (*) jotta dialogi saa täydelliset tiedot
+      const { data, error } = await supabase
+        .from("applications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(4);
 
-        if (error) {
-          console.error("Supabase-virhe hakemuksissa:", error);
-          setErrorMsg(error.message);
-        } else if (data) {
-          setApps(data);
-        }
-      } catch (err) {
-        console.error("Yllättävä virhe:", err);
-        setErrorMsg("Yhteysvirhe tietoja haettaessa.");
-      } finally {
-        setLoading(false);
+      if (!error && data) {
+        setApps(data);
       }
+      setLoading(false);
     }
     fetchRecent();
   }, []);
@@ -62,10 +63,7 @@ export default function RecentApplications({ data }) {
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] animate-pulse">
         <div className="h-5 bg-slate-200 rounded w-1/3 mb-6" />
         {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex justify-between items-center py-3 border-b border-slate-100"
-          >
+          <div key={i} className="flex justify-between items-center py-3 border-b border-slate-100">
             <div className="h-4 bg-slate-200 rounded w-1/2" />
             <div className="h-6 bg-slate-200 rounded w-16" />
           </div>
@@ -74,47 +72,25 @@ export default function RecentApplications({ data }) {
     );
   }
 
-  if (errorMsg) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50/50 p-6 shadow-sm flex flex-col h-[340px] justify-between text-red-800">
-        <div className="flex flex-col items-center justify-center flex-1 text-center gap-2">
-          <AlertCircle className="text-red-500" size={32} />
-          <h3 className="font-bold text-sm text-red-950">
-            Datan lataus epäonnistui
-          </h3>
-          <p className="text-xs text-red-700 max-w-[240px] break-words font-mono bg-white p-2 rounded border border-red-200">
-            {errorMsg}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] justify-between">
       <div className="flex flex-col">
-        {/* Korjattu: Otsikko ja latausnappi samalle riville */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">
-            Viimeisimmät hakemukset
-          </h2>
+          <h2 className="text-lg font-bold text-slate-900">Viimeisimmät hakemukset</h2>
           <DownloadButton data={apps} fileName="tyohakemukset_30pv" />
         </div>
 
-        <p className="text-xs text-slate-400 mt-1">
-          Neljä viimeisintä aktiviteettiasi.
-        </p>
+        <p className="text-xs text-slate-400 mt-1">Neljä viimeisintä aktiviteettiasi.</p>
 
         <div className="mt-2.5 flex flex-col">
           {apps.length === 0 ? (
-            <p className="text-sm text-slate-400 py-12 text-center">
-              Ei vielä hakemuksia. Lisää ensimmäinen! 🚀
-            </p>
+            <p className="text-sm text-slate-400 py-12 text-center">Ei vielä hakemuksia. Lisää ensimmäinen! 🚀</p>
           ) : (
             apps.map((app) => (
-              <div
+              <button
                 key={app.id}
-                className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0 group"
+                onClick={() => onOpenApplication(app)} // Välittää koko objektin dialogille
+                className="w-full flex items-center justify-between py-2 border-b border-slate-50 last:border-0 group transition-all hover:bg-slate-50 rounded-lg -mx-2 px-2 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-11 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
@@ -134,7 +110,7 @@ export default function RecentApplications({ data }) {
                 >
                   {app.status || "Haettu"}
                 </span>
-              </div>
+              </button>
             ))
           )}
         </div>
