@@ -28,30 +28,37 @@ export default function StatsCard({
   const palette = COLORS[color];
 
   return (
-    <div
-      className={`
-        group rounded-2xl border ${palette.border} bg-white p-6 shadow-sm 
-        transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-slate-300/50
-      `}
-    >
+    <div className="relative group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-300">
       <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div className="flex-1">
+          {/* Titelin koko palautettu normaaliksi, helpompi lukea */}
+          <p className="text-sm font-medium text-slate-500">
             {title}
           </p>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          {/* Value on iso, mutta ei liian massiivinen */}
+          <h2 className="mt-1 text-3xl font-bold text-slate-900">
             {value}
           </h2>
-          {subtitle && (
-            <p className="mt-1 text-xs font-medium text-slate-500 truncate">
-              {subtitle}
-            </p>
-          )}
         </div>
 
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${palette.bg} ${palette.text} flex-shrink-0 ml-4`}>
+        {/* Ikonin tausta on pehmeämpi */}
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${palette.bg} ${palette.text}`}>
           {icon}
         </div>
+      </div>
+
+      {/* Alaosa selkeämmäksi */}
+      <div className="mt-4 flex items-center gap-2">
+        {subtitle && (
+          <p className="text-sm text-slate-400">
+            {subtitle}
+          </p>
+        )}
+        {trend !== undefined && (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${trend >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+            {trend > 0 ? "+" : ""}{trend}%
+          </span>
+        )}
       </div>
     </div>
   );

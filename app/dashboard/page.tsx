@@ -12,6 +12,7 @@ import {
   XCircle,
   Calendar,
   ArrowRight,
+  Star,
 } from "lucide-react";
 import ApplicationTrendChart from "@/components/dashboard/ApplicationTrendChart";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -22,6 +23,12 @@ import LocationsChart from "@/components/dashboard/LocationsChart";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import ImpactRatingCard from "@/components/dashboard/ImpactRatingCard";
 import ConsistencyCard from "@/components/dashboard/ConsistencyCard";
+import {
+  StatsSkeleton,
+  ImpactRatingSkeleton,
+  ChartSkeleton,
+  ListSkeleton,
+} from "@/components/ui/skeletons";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -58,11 +65,12 @@ export default function DashboardPage() {
       const isFavorite = (status: string) =>
         ["suosikki", "tallennettu"].includes(status?.toLowerCase().trim());
 
-      // 1. Lasketaan kategoriat reduce-metodilla (ammattimaisempi tapa)
+      // 1. Lasketaan kategoriat reduce-metodilla
       const statsData = applications.reduce(
         (acc, app) => {
           const s = app.status?.toLowerCase().trim() || "";
-          if (isFavorite(s)) acc.favorites++;
+          if (["suosikki", "tallennettu"].includes(s))
+            acc.favorites++; // Lasketaan mukaan
           else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
           else if (["tarjous", "offer"].includes(s)) acc.offers++;
           else if (["hylätty", "hylätyt", "rejected"].includes(s))
@@ -73,7 +81,7 @@ export default function DashboardPage() {
         { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 },
       );
 
-      // 2. Lasketaan consistency (prosentteina)
+      // 2. Lasketaan consistency
       const today = new Date();
       const last7Days = Array.from({ length: 7 }).map((_, i) => {
         const d = new Date(today);
@@ -87,13 +95,22 @@ export default function DashboardPage() {
         ),
       ).length;
 
-      const consistency = Math.round((activeDaysCount / 7) * 100);
+      // 3. Päivitetään state oikeilla arvoilla
+      // Nyt 'total' sisältää vain aktiiviset hakemukset (ei suosikkeja)
+      const totalActive =
+        statsData.pending +
+        statsData.interviews +
+        statsData.offers +
+        statsData.rejected;
 
-      // 3. Päivitetään state (lisätty consistency)
       setStats({
-        ...statsData,
-        total: applications.length, // total on kaikkien määrä
-        consistency: consistency,
+        total: totalActive,
+        pending: statsData.pending,
+        offers: statsData.offers,
+        interviews: statsData.interviews,
+        rejected: statsData.rejected,
+        favorites: statsData.favorites,
+        consistency: Math.round((activeDaysCount / 7) * 100),
       });
     }
     setLoading(false);
@@ -114,39 +131,72 @@ export default function DashboardPage() {
         <DashboardHeader />
 
         <div className="flex flex-col gap-6">
-          <section className="grid gap-6 grid-cols-1 md:grid-cols-6">
+          <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
             {loading ? (
-              <div className="col-span-6 h-32 bg-slate-200 rounded-2xl animate-pulse" />
+              <>
+                {/* Skeletonit ylätasolle (2 x 6-saraketta) */}
+                <div className="md:col-span-6">
+                  <StatsSkeleton />
+                </div>
+                <div className="md:col-span-6">
+                  <StatsSkeleton />
+                </div>
+
+                {/* Skeletonit alatasolle (4 x 3-saraketta) */}
+                <div className="md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+                <div className="md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+                <div className="md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+                <div className="md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+              </>
             ) : (
               <>
-                <div className="md:col-span-3">
+                {/* Ylätaso: 2 korttia */}
+                <div className="md:col-span-6">
                   <StatsCard
                     title="Hakemukset"
                     value={stats.total}
-                    subtitle={
-                      <span className="">
-                        hakemuksia yhteensä{" "}
-                        <span className="text-slate-500 "></span>
-                      </span>
-                    }
+                    subtitle={<span>hakemuksia yhteensä</span>}
                     color="blue"
                     icon={<Briefcase className="h-6 w-6" />}
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="md:col-span-6">
                   <StatsCard
-                    title="Vireillä"
+                    title="Vireillä olevat hakemukset"
                     value={stats.pending}
                     subtitle={
                       stats.pending > 0
-                        ? `joista suosikkeja ${stats.favorites}  `
+                        ? "Meneillään olevat"
                         : "Ei aktiivisia hakuja"
                     }
                     color="amber"
                     icon={<Clock className="h-6 w-6" />}
                   />
                 </div>
-                <div className="md:col-span-2">
+
+                {/* Alataso: 4 korttia */}
+                <div className="md:col-span-3">
+                  <StatsCard
+                    title="Tallennetut"
+                    value={stats.favorites}
+                    subtitle={
+                      stats.pending > 0
+                        ? `Suosikkeja: ${stats.favorites}`
+                        : "Ei tallennuksia"
+                    }
+                    color="amber"
+                    icon={<Star className="h-6 w-6" />}
+                  />
+                </div>
+                <div className="md:col-span-3">
                   <StatsCard
                     title="Haastattelut"
                     value={stats.interviews}
@@ -155,27 +205,27 @@ export default function DashboardPage() {
                     icon={<Calendar className="h-6 w-6" />}
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-3">
                   <StatsCard
                     title="Tarjoukset"
                     value={stats.offers}
                     subtitle={
                       stats.offers > 0
                         ? "Upea saavutus! 🎉"
-                        : "Työpaikkoja etsitään.."
+                        : "Uusia ovia avautuu pian.."
                     }
                     color="green"
                     icon={<CheckCircle2 className="h-6 w-6" />}
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-3">
                   <StatsCard
                     title="Hylätyt"
                     value={stats.rejected}
                     subtitle={
                       stats.rejected === 0
                         ? "Ei vielä hylkäyksiä!"
-                        : "Jokainen vastaus on askel lähemmäs."
+                        : "Olet hakemuksen lähempänä tavoitettasi."
                     }
                     color="red"
                     icon={<XCircle className="h-6 w-6" />}
@@ -186,45 +236,81 @@ export default function DashboardPage() {
           </section>
 
           <section className="flex flex-col gap-6 mt-4">
-            {/* Ylätaso: Pienet mittarit vasemmalla pinossa, iso graafi oikealla */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Pinottu sarake: Vaikutuskyky ja Jatkuvuus */}
-              <div className="flex flex-col gap-6">
-                <ImpactRatingCard
-                  pending={stats.pending || 0}
-                  rejected={stats.rejected || 0}
-                  favorites={stats.favorites || 0}
-                />
-                <ConsistencyCard percentage={stats.consistency} />
+            {/* YLÄTASO: Grid-12 antaa täyden kontrollin */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              {/* Vasen pino: 3 saraketta leveä */}
+              <div className="md:col-span-3 flex flex-col gap-6">
+                {loading ? (
+                  <>
+                    <ImpactRatingSkeleton />
+                    <ImpactRatingSkeleton />
+                  </>
+                ) : (
+                  <>
+                    <ImpactRatingCard
+                      pending={stats.pending || 0}
+                      rejected={stats.rejected || 0}
+                      favorites={stats.favorites || 0}
+                    />
+                    <ConsistencyCard percentage={stats.consistency || 0} />
+                  </>
+                )}
               </div>
 
-              {/* Oikea puoli: Tilannekuva-graafi (md:col-span-2 tekee tästä leveän) */}
-              <div className="md:col-span-2">
-                <ApplicationsChart />
+              {/* Oikeat graafit: kumpikin vie 4.5 saraketta (yht. 9) */}
+              <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {loading ? (
+                  <>
+                    <ChartSkeleton className="h-[300px]" />
+                    <ChartSkeleton className="h-[300px]" />
+                  </>
+                ) : (
+                  <>
+                    <LocationsChart />
+                    <ApplicationsChart />
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Keskitaso: Trendit ja aktiivisuus */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ApplicationTrendChart />
+            {/* KESKITASO */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8">
+                {loading ? (
+                  <ChartSkeleton className="h-[400px]" />
+                ) : (
+                  <ApplicationTrendChart />
+                )}
               </div>
-              <ActivityHeatmap />
+              <div className="lg:col-span-4">
+                {loading ? (
+                  <ChartSkeleton className="h-[400px]" />
+                ) : (
+                  <ActivityHeatmap />
+                )}
+              </div>
             </div>
 
-            {/* Alataso: Toimenpiteet ja listaustiedot */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <RecentApplications
-                  onOpenApplication={(app) => {
-                    setSelectedApplication(app);
-                    setOpen(true);
-                  }}
-                />
+            {/* ALATASO */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8">
+                {loading ? (
+                  <ChartSkeleton className="h-[500px]" />
+                ) : (
+                  <RecentApplications
+                    onOpenApplication={(app) => {
+                      setSelectedApplication(app);
+                      setOpen(true);
+                    }}
+                  />
+                )}
               </div>
-              <div className="flex flex-col gap-6">
-                <UpcomingDeadlines />
-                <LocationsChart />
+              <div className="lg:col-span-4">
+                {loading ? (
+                  <ChartSkeleton className="h-[500px]" />
+                ) : (
+                  <UpcomingDeadlines />
+                )}
               </div>
             </div>
           </section>

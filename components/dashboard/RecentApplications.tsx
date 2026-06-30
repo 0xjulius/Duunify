@@ -76,7 +76,7 @@ export default function RecentApplications({
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] justify-between">
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Viimeisimmät hakemukset</h2>
+          <h2 className="text-lg font-bold text-slate-900">Viimeisimmät aktiviteetit</h2>
           <DownloadButton data={apps} fileName="tyohakemukset_30pv" />
         </div>
 
