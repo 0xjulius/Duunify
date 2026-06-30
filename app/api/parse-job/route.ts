@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as cheerio from "cheerio";
 import { ratelimit } from "../../../lib/ratelimit";
+import { createClient } from "@/lib/supabase-server";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -22,16 +23,20 @@ function isAllowedJobSite(url: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0] ??
-      req.headers.get("x-real-ip") ??
-      "anonymous";
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const { success } = await ratelimit.limit(ip);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { success } = await ratelimit.limit(user.id);
 
     if (!success) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
+
     const body = await req.json();
 
     if (typeof body.url !== "string") {

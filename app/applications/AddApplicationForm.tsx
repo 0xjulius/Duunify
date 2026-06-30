@@ -15,6 +15,13 @@ const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   OTHER: "Muu",
 };
 
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+const isLoggedIn = !!user;
+
+
 export default function AddApplicationForm({
   onSuccess,
 }: {
@@ -41,18 +48,21 @@ export default function AddApplicationForm({
   const [validThrough, setValidThrough] = useState<string>("");
 
   async function addHistory(
+    userId: string,
     applicationId: string,
     event: string,
     oldValue?: string,
     newValue?: string,
   ) {
     await supabase.from("application_history").insert({
+      user_id: userId,
       application_id: applicationId,
       event,
       old_value: oldValue ?? null,
       new_value: newValue ?? null,
     });
   }
+
   async function autofillFromUrl() {
     if (loadingJob) return;
 
@@ -91,6 +101,19 @@ export default function AddApplicationForm({
 
       const data = await response.json();
 
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error("Kirjaudu sisään", {
+            description:
+              "Työpaikkailmoitusten automaattinen haku vaatii kirjautumisen.",
+          });
+          return;
+        }
+
+        toast.error(data.error ?? "Tietojen haku epäonnistui");
+        return;
+      }
+
       if (data.company) setCompany(data.company);
       if (data.title) setJobTitle(data.title);
       if (data.location) setLocation(data.location);
@@ -113,6 +136,16 @@ export default function AddApplicationForm({
     if (loading) return;
 
     setLoading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      toast.error("Et ole kirjautunut sisään.");
+      setLoading(false);
+      return;
+    }
 
     if (company.length > 60) {
       toast.error("Yrityksen nimi liian pitkä, max 60 merkkiä");
@@ -166,6 +199,7 @@ export default function AddApplicationForm({
       .from("applications")
       .insert([
         {
+          user_id: user.id,
           company,
           job_title: jobTitle,
           location,
@@ -185,6 +219,7 @@ export default function AddApplicationForm({
 
     if (!error) {
       await addHistory(
+        user.id,
         data.id,
         status === "Tallennettu"
           ? "Hakemus tallennettu luonnokseksi"
@@ -250,7 +285,7 @@ export default function AddApplicationForm({
           <button
             type="button"
             onClick={autofillFromUrl}
-            disabled={loadingJob || !jobUrl}
+            disabled={!isLoggedIn || loadingJob || !jobUrl}
             className=" p-4 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition flex items-center gap-1.5"
           >
             {loadingJob ? (

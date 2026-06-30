@@ -85,11 +85,12 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
     colorClass = "text-red-400";
     statusText = "Vaatii kehitystä";
     emoji = "⚠️";
-  } else {
+  } else if (finalRating <=0.2) {
     colorClass = "text-red-500";
-    statusText = "Heikko suoritus";
-    emoji = "❗";
-  }
+    statusText = "Pystyt parempaan.";
+      emoji = "❗";
+  } 
+
   return (
     <div className="relative flex h-41.5 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="absolute right-4 top-4">
