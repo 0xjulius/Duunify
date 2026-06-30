@@ -128,7 +128,7 @@ export default function Sidebar() {
             collapsed={sidebarCollapsed}
           />
 
-          <SidebarItem
+          <SidebarItem 
             icon={<StarPlus size={18} />}
             label="Suosikit"
             href="/favorites"

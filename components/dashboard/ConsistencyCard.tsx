@@ -14,16 +14,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  Tooltip as ChartTooltip, 
-  ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip as ChartTooltip,
+  ResponsiveContainer,
 } from "recharts";
 
-export default function ConsistencyCard({ percentage }: { percentage: number }) {
+export default function ConsistencyCard({
+  percentage,
+}: {
+  percentage: number;
+}) {
   // Esimerkkidataa – voit korvata tämän dynaamisella datalla
   const data = [
     { day: "Ma", count: 1 },
@@ -67,9 +71,39 @@ export default function ConsistencyCard({ percentage }: { percentage: number }) 
     <Dialog>
       <DialogTrigger asChild>
         <div className="relative flex h-[150px] flex-row items-center justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300">
-          {/* Tekstiosio */}
+          {/* Ikonin sijoitus oikeaan yläkulmaan */}
+          <div className="absolute top-4 right-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs p-3">
+                  <p className="text-xs leading-relaxed">
+                    <strong>Työnhaun aktiivisuus</strong> kertoo, kuinka
+                    säännöllisesti olet ollut aktiivinen työnhaussa viimeisen
+                    viikon aikana.
+                    <br />
+                    <br />
+                    Aktiivisuudeksi lasketaan esimerkiksi hakemuksen
+                    lähettäminen tai työpaikan tallentaminen suosikkeihin.
+                    <br />
+                    <br />
+                    <span className="font-medium text-slate-500">
+                      Kaava: (Aktiiviset päivät / 7) × 100
+                    </span>
+                    <br />
+                    <br />
+                    Mitä korkeampi prosentti on, sitä tasaisempaa työnhakusi on.
+                    Säännöllinen aktiivisuus kasvattaa mahdollisuuksiasi löytää
+                    uusi työpaikka.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <div className="flex flex-col">
-            <h3 className="text-sm font-semibold tracking-tight text-slate-500">
+            <h3 className="text-sm font-semibold tracking-tight text-slate-500 flex items-center gap-2">
               Työnhaun aktiivisuus
             </h3>
 
@@ -121,17 +155,18 @@ export default function ConsistencyCard({ percentage }: { percentage: number }) 
               <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
               <YAxis stroke="#94a3b8" fontSize={12} />
               <ChartTooltip />
-              <Line 
-                type="monotone" 
-                dataKey="count" 
-                stroke="#6366f1" 
-                strokeWidth={3} 
-                dot={{ r: 4 }} 
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#6366f1"
+                strokeWidth={3}
+                dot={{ r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
           <p className="text-sm text-slate-500 mt-6 text-center">
-            Olet ollut aktiivinen <strong>{percentage}%</strong> ajasta viimeisen viikon aikana.
+            Olet ollut aktiivinen <strong>{percentage}%</strong> ajasta
+            viimeisen viikon aikana.
           </p>
         </div>
       </DialogContent>

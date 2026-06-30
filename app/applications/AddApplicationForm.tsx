@@ -228,10 +228,10 @@ export default function AddApplicationForm({
   return (
     <form
       onSubmit={addApplication}
-      className=" bg-white border border-slate-200 rounded-3xl p-8 shadow-sm w-full xl:w-4/5 xl:mx-auto"
+      className=" bg-white rounded-2xl p-8 shadow-sm w-full xl:w-4/5 xl:mx-auto"
     >
       <div className="mb-8 ">
-        <h2 className="text-2xl font-bold text-slate-900">Uusi hakemus</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Uusi mahdollisuus</h2>
 
         <p className="text-slate-500 mt-1">Seuraa uutta työmahdollisuutta.</p>
       </div>

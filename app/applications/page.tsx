@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import AddApplicationForm from "@/app/applications/AddApplicationForm";
 import ApplicationCard from "@/app/applications/ApplicationCard";
 import Sidebar from "@/components/Sidebar";
+import { Briefcase } from "lucide-react";
 
 type Application = {
   id: string;
@@ -75,9 +76,17 @@ export default function Home() {
           {/* HEADER */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900">Hakemukset</h1>
+              <div className="flex items-center gap-3">
+                {/* Ikonin kääre */}
+                <div className="bg-indigo-100 p-3 rounded-xl">
+                  <Briefcase className="h-8 w-8 text-indigo-600" />
+                </div>
+                <h1 className="text-4xl font-bold text-slate-900">
+                  Hakemukset
+                </h1>
+              </div>
 
-              <p className="text-slate-500 mt-1">
+              <p className="text-slate-500 mt-3 ml-0 md:ml-[56px]">
                 Tässä näkymässä näet kaikki hakemuksesi ja niiden tilat. Pidä
                 kirjaa työnhaustasi ja seuraa edistymistäsi helposti!
               </p>

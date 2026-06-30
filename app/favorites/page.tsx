@@ -1,94 +1,229 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Sidebar from '@/components/Sidebar'
-import { MapPin, Briefcase, Bookmark, MoreVertical, Search, Filter, Calendar, Clock } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import Sidebar from "@/components/Sidebar";
+import { Bookmark, Filter, Clock, Search } from "lucide-react";
+import ApplicationDialog from "@/app/applications/ApplicationDialog";
+import { Dialog, DialogContent, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
+import AddApplicationForm from "@/app/applications/AddApplicationForm"; // Tarkista polku
+
+type FavoriteJob = {
+  id: string;
+  company: string;
+  job_title: string;
+  location: string;
+  salary: string;
+  days_left?: number;
+  status: string;
+  valid_through?: string;
+  notes?: string;
+  job_description?: string;
+  job_url?: string;
+  applied_date?: string;
+};
 
 export default function SavedJobsPage() {
-  const [activeTab, setActiveTab] = useState('Kaikki')
+  const [activeTab, setActiveTab] = useState("Kaikki");
+  const [jobs, setJobs] = useState<FavoriteJob[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Modal-tila
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<FavoriteJob | null>(null);
+
+  const handleOpenJob = (job: FavoriteJob) => {
+    setSelectedJob(job);
+    setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    async function fetchFavorites() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("applications")
+        .select("*")
+        .eq("status", "Tallennettu")
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        const today = new Date().getTime();
+
+        const formattedData = data.map((job: any) => {
+          let days = 0;
+          if (job.valid_through) {
+            const deadlineDate = new Date(job.valid_through).getTime();
+            days = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+          }
+          return { ...job, days_left: days };
+        });
+        setJobs(formattedData as FavoriteJob[]);
+      }
+      setLoading(false);
+    }
+    fetchFavorites();
+  }, []);
+
+  // Dynaamiset tilastot
+  const expiringSoon = jobs.filter(
+    (j) =>
+      typeof j.days_left === "number" && j.days_left <= 7 && j.days_left > 0,
+  ).length;
+  const activePlans = jobs.filter((j) => j.status === "Aiot hakea").length;
+  const archived = jobs.filter((j) => j.status === "Arkistoitu").length;
 
   return (
+
     <main className="min-h-screen flex bg-slate-50">
       <Sidebar />
 
       <div className="flex-1 p-8 overflow-auto">
         <div className="max-w-[1500px] mx-auto">
-          
           {/* HEADER */}
           <div className="flex justify-between items-start mb-8">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <span className="bg-indigo-100 p-2 rounded-xl text-indigo-600"><Bookmark /></span> 
-                Tallentut työpaikat
+                <span className="bg-indigo-100 p-3 rounded-xl text-amber-600">
+                  <Bookmark className="h-8 w-8 text-amber-600" />
+                </span>
+                Tallennetut työpaikat
               </h1>
-              <p className="text-slate-500 mt-2">Työpaikat, jotka haluat hakea myöhemmin.</p>
+              <p className="text-slate-500 mt-2">
+                Työpaikat, jotka haluat hakea myöhemmin.
+              </p>
             </div>
             <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-xl font-medium"><Filter size={18}/> Suodattimet</button>
-              <button className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-semibold">+ Tallenna työpaikka</button>
+              <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white rounded-xl font-medium">
+                <Filter size={18} /> Suodattimet
+              </button>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-semibold"
+              >
+                + Tallenna työpaikka
+              </button>
             </div>
           </div>
 
-          {/* STATS */}
+          {/* STATS - Dynaaminen */}
           <div className="grid grid-cols-4 gap-4 mb-8">
-            {[ { title: 'Tallennettua työpaikkaa', val: '18', sub: '+4 viime viikolla' }, { title: 'Päättyy pian', val: '5', sub: 'Seuraavan 7 päivän aikana' }, { title: 'Aiot hakea', val: '12', sub: 'Merkitty aktiiviseksi' }, { title: 'Arkistoitu', val: '3', sub: 'Piilotetut työpaikat' } ].map((s, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 className="text-slate-500 text-sm">{s.title}</h3>
-                <p className="text-2xl font-bold mt-1">{s.val}</p>
-                <p className="text-xs text-indigo-600 mt-2 font-medium">{s.sub}</p>
-              </div>
-            ))}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-slate-500 text-sm">
+                Tallennettua työpaikkaa
+              </h3>
+              <p className="text-2xl font-bold mt-1">{jobs.length}</p>
+              <p className="text-xs text-indigo-600 mt-2 font-medium">
+                +4 viime viikolla
+              </p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-slate-500 text-sm">Päättyy pian</h3>
+              <p className="text-2xl font-bold mt-1">{expiringSoon}</p>
+              <p className="text-xs text-indigo-600 mt-2 font-medium">
+                Seuraavan 7 päivän aikana
+              </p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-slate-500 text-sm">Aiot hakea</h3>
+              <p className="text-2xl font-bold mt-1">{activePlans}</p>
+              <p className="text-xs text-indigo-600 mt-2 font-medium">
+                Merkitty aktiiviseksi
+              </p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-slate-500 text-sm">Arkistoitu</h3>
+              <p className="text-2xl font-bold mt-1">{archived}</p>
+              <p className="text-xs text-indigo-600 mt-2 font-medium">
+                Piilotetut työpaikat
+              </p>
+            </div>
           </div>
 
           {/* MAIN CONTENT AREA */}
           <div className="flex gap-8">
             <div className="flex-1">
-              {/* TABS */}
               <div className="flex gap-2 mb-6">
-                {['Kaikki 18', 'Aiot hakea 12', 'Päättyy pian 5', 'Arkistoitu 3'].map(tab => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-xl font-medium ${activeTab === tab ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200'}`}>
-                    {tab}
-                  </button>
-                ))}
+                {["Kaikki", "Aiot hakea", "Päättyy pian", "Arkistoitu"].map(
+                  (tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-4 py-2 rounded-xl font-medium ${activeTab === tab ? "bg-slate-900 text-white" : "bg-white border border-slate-200"}`}
+                    >
+                      {tab}
+                    </button>
+                  ),
+                )}
               </div>
 
-              {/* LIST */}
               <div className="bg-white rounded-2xl border border-slate-200 divide-y">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div className="flex gap-4">
-                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-semibold bg-sky-100 text-sky-700">G</div>
-                      <div>
-                        <h4 className="font-bold">Frontend Developer</h4>
-                        <p className="text-sm text-slate-500">Google • Helsinki, Suomi</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">4 500 – 6 000 € / kk</p>
-                      <p className="text-sm text-amber-600 flex items-center gap-1 justify-end"><Clock size={14}/> 7 päivää jäljellä</p>
-                    </div>
+                {loading ? (
+                  <div className="p-12 text-center text-slate-500">
+                    Ladataan työpaikkoja...
                   </div>
-                ))}
+                ) : (
+                  jobs.map((job) => (
+                    <button
+                      key={job.id}
+                      onClick={() => handleOpenJob(job)}
+                      className="w-full p-6 flex items-center justify-between hover:bg-slate-50 transition-colors text-left border-b last:border-0"
+                    >
+                      <div className="flex gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-semibold bg-sky-100 text-sky-700">
+                          {job.company?.[0] || "G"}
+                        </div>
+                        <div>
+                          <h4 className="font-bold">{job.job_title}</h4>
+                          <p className="text-sm text-slate-500">
+                            {job.company} • {job.location}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold">{job.salary}</p>
+                        <p className="text-sm text-amber-600 flex items-center gap-1 justify-end">
+                          <Clock size={14} /> {job.days_left ?? 0} päivää
+                          jäljellä
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
-            {/* RIGHT SIDEBAR */}
             <div className="w-80 space-y-6">
               <div className="bg-white p-6 rounded-2xl border border-slate-200">
-                <input className="w-full p-3 border rounded-xl mb-4" placeholder="Hae tallennetuista..." />
-                <h3 className="font-bold mb-4">Suodata työpaikkoja</h3>
-                <select className="w-full p-3 border rounded-xl mb-4"><option>Kaikki sijainnit</option></select>
-                <button className="w-full py-2 border rounded-xl text-slate-500">Tyhjennä suodattimet</button>
-              </div>
-              <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
-                <h4 className="font-bold flex items-center gap-2 mb-2"><span className="text-indigo-600">💡</span> Vinkki</h4>
-                <p className="text-sm text-indigo-900">Merkise työpaikka "Aiot hakea", kun olet valmis hakemaan sen. Näet ne helposti erikseen.</p>
+                <div className="flex items-center gap-2 text-slate-400 border rounded-xl p-3 mb-4">
+                  <Search size={18} />
+                  <input
+                    className="w-full bg-transparent outline-none text-sm"
+                    placeholder="Hae tallennetuista..."
+                  />
+                </div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
+
+      <ApplicationDialog
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        app={selectedJob}
+      />
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogPortal>
+          <DialogOverlay className="bg-black/50 backdrop-blur-sm" />
+          <DialogContent className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] !p-0 !border-none !bg-transparent !shadow-none !max-w-[1000px] !w-full [&>button]:hidden outline-none"
+          style={{ border: 'none', boxShadow: 'none' }}>
+            <div className="bg-none !border-none m-4">
+              <AddApplicationForm onSuccess={() => setIsAddModalOpen(false)} />
+            </div>
+          </DialogContent>
+        </DialogPortal>
+      </Dialog>
     </main>
-  )
+  );
 }

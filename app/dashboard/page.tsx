@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
 import Sidebar from "@/components/Sidebar";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
@@ -188,9 +189,17 @@ export default function DashboardPage() {
                     title="Tallennetut"
                     value={stats.favorites}
                     subtitle={
-                      stats.pending > 0
-                        ? `Suosikkeja: ${stats.favorites}`
-                        : "Ei tallennuksia"
+                      <span className="flex items-center gap-2">
+                        {stats.pending > 0
+                          ? ``
+                          : ""}
+                        <Link
+                          href="/favorites"
+                          className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:underline font-medium"
+                        >
+                          Katso suosikit <ArrowRight className="h-3 w-3"/>
+                        </Link>
+                      </span>
                     }
                     color="amber"
                     icon={<Star className="h-6 w-6" />}
@@ -305,7 +314,7 @@ export default function DashboardPage() {
                   />
                 )}
               </div>
-              <div className="lg:col-span-4">
+              <div className="lg:col-span-4 mb-10">
                 {loading ? (
                   <ChartSkeleton className="h-[500px]" />
                 ) : (

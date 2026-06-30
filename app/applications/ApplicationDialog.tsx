@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Link as LinkIcon, FileText, X } from "lucide-react";
+import { Calendar, MapPin, Link as LinkIcon, FileText, X, Clock } from "lucide-react";
 
 // Määritellään Application-tyyppi, jotta "any" poistuu
-type Application = {
+type ApplicationData = {
   company: string;
   job_title: string;
   status: string;
@@ -20,12 +20,14 @@ type Application = {
   job_url?: string;
   notes?: string;
   job_description?: string;
+  salary?: string; // Lisätty suosikeista
+  days_left?: number; // Lisätty suosikeista
 };
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  app: Application | null; // Sallitaan null
+  application: any;
 };
 
 export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
@@ -36,7 +38,9 @@ export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
       <DialogContent className="!max-w-4xl !w-[90vw] !max-h-[90vh] p-0 overflow-hidden flex flex-col">
         {/* Yläpalkki */}
         <div className="flex items-center justify-between p-6 border-b border-slate-100 flex-shrink-0 bg-white">
-          <DialogTitle className="text-2xl md:text-3xl font-bold text-slate-900 p-2">{app.company}</DialogTitle>
+          <DialogTitle className="text-2xl md:text-3xl font-bold text-slate-900 p-2">
+            {app.company}
+          </DialogTitle>
           <DialogClose asChild>
             <Button
               variant="ghost"
@@ -60,20 +64,22 @@ export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
                 <Badge variant="secondary" className="capitalize">
                   {app.status || "Haettu"}
                 </Badge>
-                
+
                 {app.location && (
                   <span className="flex items-center gap-1">
                     <MapPin size={16} /> {app.location}
                   </span>
                 )}
-                
+
                 {app.applied_date && (
                   <span className="flex items-center gap-1">
                     <Calendar size={16} />{" "}
                     {new Date(app.applied_date).toLocaleDateString("fi-FI")}
                   </span>
                 )}
+
               </div>
+
             </div>
 
             {app.job_url && (
@@ -86,13 +92,28 @@ export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
                 <LinkIcon size={16} /> Avaa työpaikkailmoitus
               </a>
             )}
+                                          {app.valid_through && (
+                  <div className="flex items-center gap-2 text-sm text-slate-500 mt-2">
+                    <Clock size={16} />
+                    <span>
+                      Päättyy:{" "}
+                      {new Date(app.valid_through).toLocaleDateString(
+                        "fi-FI",
+                      )}
+                    </span>
+                  </div>
+                )}
 
             <div className="space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
                 <FileText size={18} /> Muistiinpanot
               </h3>
               <div className="p-4 bg-slate-50 rounded-xl text-slate-600 border border-slate-100">
-                {app.notes || <span className="italic text-slate-400">Ei muistiinpanoja</span>}
+                {app.notes || (
+                  <span className="italic text-slate-400">
+                    Ei muistiinpanoja
+                  </span>
+                )}
               </div>
             </div>
 
