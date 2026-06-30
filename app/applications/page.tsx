@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-import AddApplicationForm from "@/components/AddApplicationForm";
-import ApplicationCard from "@/components/ApplicationCard";
+import AddApplicationForm from "@/app/applications/AddApplicationForm";
+import ApplicationCard from "@/app/applications/ApplicationCard";
 import Sidebar from "@/components/Sidebar";
 
 type Application = {

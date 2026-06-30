@@ -40,6 +40,19 @@ export default function AddApplicationForm({
   const [employmentType, setEmploymentType] = useState<string>("");
   const [validThrough, setValidThrough] = useState<string>("");
 
+  async function addHistory(
+    applicationId: string,
+    event: string,
+    oldValue?: string,
+    newValue?: string,
+  ) {
+    await supabase.from("application_history").insert({
+      application_id: applicationId,
+      event,
+      old_value: oldValue ?? null,
+      new_value: newValue ?? null,
+    });
+  }
   async function autofillFromUrl() {
     if (loadingJob) return;
 
@@ -103,26 +116,31 @@ export default function AddApplicationForm({
 
     if (company.length > 60) {
       toast.error("Yrityksen nimi liian pitkä, max 60 merkkiä");
+      setLoading(false);
       return;
     }
 
     if (location.length > 30) {
       toast.error("Sijainti-kenttä liian pitkä, max 30 merkkiä");
+      setLoading(false);
       return;
     }
 
     if (jobTitle.length > 150) {
       toast.error("Työtehtävä liian pitkä, max 150 merkkiä");
+      setLoading(false);
       return;
     }
 
     if (notes.length > 5000) {
       toast.error("Liikaa muistiinpanoja, max 5000 merkkiä");
+      setLoading(false);
       return;
     }
 
     if (jobDescription.length > 15000) {
       toast.error("Työpaikkakuvaus liian pitkä, max 15000 merkkiä");
+      setLoading(false);
       return;
     }
 
@@ -144,23 +162,37 @@ export default function AddApplicationForm({
       return;
     }
 
-    const { error } = await supabase.from("applications").insert([
-      {
-        company,
-        job_title: jobTitle,
-        location,
-        status,
-        notes,
-        applied_date: appliedDate,
-        job_description: jobDescription,
-        job_url: jobUrl,
-        salary_min: salaryMin ? Number(salaryMin) : null,
-        salary_max: salaryMax ? Number(salaryMax) : null,
-        employment_type: employmentType || null,
-        valid_through: validThrough || null,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("applications")
+      .insert([
+        {
+          company,
+          job_title: jobTitle,
+          location,
+          status,
+          notes,
+          applied_date: appliedDate,
+          job_description: jobDescription,
+          job_url: jobUrl,
+          salary_min: salaryMin ? Number(salaryMin) : null,
+          salary_max: salaryMax ? Number(salaryMax) : null,
+          employment_type: employmentType || null,
+          valid_through: validThrough || null,
+        },
+      ])
+      .select()
+      .single();
 
+    if (!error) {
+      await addHistory(
+        data.id,
+        status === "Tallennettu"
+          ? "Hakemus tallennettu luonnokseksi"
+          : "Hakemus lähetetty",
+        null,
+        status,
+      );
+    }
     setLoading(false);
 
     if (error) {
@@ -307,7 +339,7 @@ export default function AddApplicationForm({
               onChange={(e) => setStatus(e.target.value)}
               className={`${inputStyle} appearance-none cursor-pointer bg-pink-50/50`}
             >
-              <option>Tallenna</option>
+              <option>Tallennettu</option>
               <option>Haettu</option>
               <option>Haastattelu</option>
               <option>Hylätty</option>

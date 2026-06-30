@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import ApplicationSheet from "@/app/applications/ApplicationSheet";
+import { Maximize2, SquarePen} from "lucide-react";
 
 type Application = {
   id: string;
@@ -221,27 +223,6 @@ const IconClock = () => (
   </svg>
 );
 
-const IconEdit = () => (
-  <svg
-    className="h-3 w-3 shrink-0"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M11 4H5a2 2 0 00-2 2v13a2 2 0 002 2h13a2 2 0 002-2v-6"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-    />
-  </svg>
-);
-
 const IconRefresh = () => (
   <svg
     className="h-3 w-3 shrink-0"
@@ -309,18 +290,59 @@ export default function ApplicationCard({
       setTimeout(() => setConfirmDelete(false), 3000);
       return;
     }
+
     setLoading(true);
+
+    await supabase.from("application_history").insert({
+      application_id: app.id,
+      event: "Hakemus poistettu",
+    });
+
     await supabase.from("applications").delete().eq("id", app.id);
+
     setLoading(false);
     onChange();
   }
 
   async function saveStatus() {
     setLoading(true);
-    await supabase
+
+    const previousStatus = app.status;
+
+    const { error } = await supabase
       .from("applications")
-      .update({ status: newStatus })
+      .update({
+        status: newStatus,
+      })
       .eq("id", app.id);
+
+    if (!error) {
+      let event = "Tila muuttui";
+
+      if (previousStatus === "Tallennettu" && newStatus === "Haettu") {
+        event = "Hakemus lähetetty";
+      } else if (previousStatus === "Haettu" && newStatus === "Tallennettu") {
+        event = "Hakemus palautettu luonnokseksi";
+      } else if (newStatus === "Haastattelu") {
+        event = "Haastattelukutsu saatu";
+      } else if (newStatus === "Tarjous") {
+        event = "Työtarjous saatu";
+      } else if (newStatus === "Hylätty") {
+        event = "Hakemus hylätty";
+      } else if (newStatus === "Peruttu") {
+        event = "Hakemus peruttu";
+      } else if (newStatus === "Ei vastausta") {
+        event = "Ei vastausta työnantajalta";
+      }
+
+      await supabase.from("application_history").insert({
+        application_id: app.id,
+        event,
+        old_value: previousStatus,
+        new_value: newStatus,
+      });
+    }
+
     setLoading(false);
     setEditingStatus(false);
     onChange();
@@ -344,9 +366,16 @@ export default function ApplicationCard({
 
     if (error) {
       console.error(error);
+      setLoading(false);
       return;
     }
 
+    await supabase.from("application_history").insert({
+      application_id: app.id,
+      event: "Hakemuksen tietoja muokattu",
+    });
+
+    setLoading(false);
     setEditingApplication(false);
     onChange();
   }
@@ -370,10 +399,11 @@ export default function ApplicationCard({
     (deadlineDate.getTime() - Date.now()) / 86_400_000 <= 3;
 
   const appliedDate = formatDate(app.applied_date);
+  const [open, setOpen] = useState(false);
 
   return (
     <div
-      className={`relative rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+      className={`relative flex flex-col h-full rounded-2xl border pb-[52px] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isOffer
           ? "border-emerald-300 ring-1 ring-emerald-200"
           : "border-slate-200"
@@ -381,7 +411,10 @@ export default function ApplicationCard({
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div
+          onClick={() => setOpen(true)}
+          className="cursor-pointer flex items-center gap-3"
+        >
           <CompanyAvatar company={app.company} />
           <div>
             <h2 className="text-[17px] font-semibold leading-snug text-slate-900">
@@ -392,15 +425,15 @@ export default function ApplicationCard({
         </div>
         <button
           onClick={() => setEditingApplication(true)}
-          className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-violet-600"
+          title="Muokkaa ilmoitusta"
+          className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-blue-700 transition-colors"
         >
-          <IconEdit />
-          Muokkaa
+          <SquarePen size={16} strokeWidth={2}/>
         </button>
       </div>
 
       {/* Meta chips */}
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2 ">
         {app.location && <MetaChip icon={<IconPin />}>{app.location}</MetaChip>}
         {appliedDate && (
           <MetaChip icon={<IconCalendar />}>Haettu {appliedDate}</MetaChip>
@@ -427,7 +460,6 @@ export default function ApplicationCard({
 
       {/* Divider */}
       <div className="my-4 border-t border-slate-100" />
-
       {/* Status row */}
       <div className="flex items-center gap-2.5">
         {editingStatus ? (
@@ -486,21 +518,20 @@ export default function ApplicationCard({
                 href={app.job_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-auto inline-flex items-center gap-1 text-[13px] font-medium text-violet-600 hover:underline"
+                className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 hover:underline shrink-0"
               >
-                Avaa ilmoitus
+                Avaa linkki
                 <svg
                   className="h-3 w-3"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
                   viewBox="0 0 24 24"
-                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6m0 0v6m0-6L10 14"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                   />
                 </svg>
               </a>
@@ -582,19 +613,26 @@ export default function ApplicationCard({
                   : " bg-red-400 hover:text-white hover:bg-red-500"
               }`}
             >
-              {loading ? "Poistetaan.." : confirmDelete ? "Vahvista?" : "Poista"}
+              {loading
+                ? "Poistetaan.."
+                : confirmDelete
+                  ? "Vahvista?"
+                  : "Poista"}
             </button>
           </div>
         </div>
       )}
 
-      {/* Notes */}
+      {/* Notes - Renderöidään vain, jos sisältöä on */}
       {app.notes && (
-        <div className="mt-4 rounded-xl border-l-2 border-violet-300 bg-slate-50 py-2.5 pl-3.5 pr-3">
+        <div
+          onClick={() => setOpen(true)}
+          className="cursor-pointer mt-4 rounded-xl border-l-2 border-violet-300 bg-slate-50 py-2.5 pl-3.5 pr-3"
+        >
           <p className="mb-0.5 text-[13px] font-semibold uppercase tracking-widest text-slate-400">
             Muistiinpanot
           </p>
-          <p className="text-[13px] leading-relaxed text-slate-600">
+          <p className="text-[13px] leading-relaxed text-slate-600 line-clamp-2 overflow-hidden">
             {app.notes}
           </p>
         </div>
@@ -602,19 +640,28 @@ export default function ApplicationCard({
 
       {/* Description */}
       {description && (
-        <div className="mt-4">
+        <div
+          onClick={() => setOpen(true)}
+          className="mt-4 cursor-pointer flex-1"
+        >
           <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
             Työpaikkakuvaus
           </p>
-          {/* whitespace-pre-wrap säilyttää rivivälit, formatDescription hoitaa boldaukset */}
-          <div className="text-[14px] leading-relaxed text-slate-600 whitespace-pre-wrap">
+          {/* Dynaaminen line-clamp: 6 riviä jos ei muistiinpanoja, 3 riviä jos on */}
+          <div
+            className={`text-[14px] leading-relaxed text-slate-600 whitespace-pre-wrap overflow-hidden ${app.notes ? "line-clamp-3" : "line-clamp-6"}`}
+          >
             {expanded
               ? formatDescription(description)
               : formatDescription(`${description.slice(0, 850)}…`)}
           </div>
+
           {description.length > 850 && (
             <button
-              onClick={() => setExpanded(!expanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
               className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:underline cursor-pointer"
             >
               {expanded ? "Näytä vähemmän" : "Lue lisää"}
@@ -633,6 +680,20 @@ export default function ApplicationCard({
               </svg>
             </button>
           )}
+
+          <div className="absolute bottom-5 right-5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
+              className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-green-600 transition-colors"
+              title="Avaa ilmoitus" // Aputeksti ruudunlukuohjelmia ja hover-tilaa varten
+            >
+            <Maximize2 size={18} strokeWidth={2} />
+            </button>
+          </div>
+          <ApplicationSheet open={open} onOpenChange={setOpen} app={app} />
         </div>
       )}
     </div>
