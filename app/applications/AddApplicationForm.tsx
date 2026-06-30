@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import LoginModal from "@/components/LoginModal";
 
 const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   FULL_TIME: "Kokoaikainen",
@@ -21,7 +22,6 @@ const {
 
 const isLoggedIn = !!user;
 
-
 export default function AddApplicationForm({
   onSuccess,
 }: {
@@ -29,6 +29,7 @@ export default function AddApplicationForm({
 }) {
   const [loading, setLoading] = useState(false);
   const [loadingJob, setLoadingJob] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -102,15 +103,20 @@ export default function AddApplicationForm({
       const data = await response.json();
 
       if (!response.ok) {
+        // 1. Jos käyttäjä ei ole kirjautunut, avataan modaali
         if (response.status === 401) {
           toast.error("Kirjaudu sisään", {
             description:
-              "Työpaikkailmoitusten automaattinen haku vaatii kirjautumisen.",
+              "Jatka kirjautumalla käyttääksesi automaattista hakua.",
           });
+          setShowLoginModal(true);
           return;
         }
 
-        toast.error(data.error ?? "Tietojen haku epäonnistui");
+        // 2. Jos kyseessä on jokin muu virhe (esim. 500), näytetään vain virheilmoitus
+        toast.error("Virhe", {
+          description: "Tapahtui odottamaton virhe. Yritä myöhemmin uudelleen.",
+        });
         return;
       }
 
@@ -437,6 +443,10 @@ export default function AddApplicationForm({
             className={`${inputStyle} min-h-[150px]`}
           />
         </div>
+              <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
       </div>
 
       <button
@@ -453,6 +463,7 @@ export default function AddApplicationForm({
           "Tallenna hakemus"
         )}
       </button>
+
     </form>
   );
 }

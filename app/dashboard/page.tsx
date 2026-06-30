@@ -24,6 +24,7 @@ import LocationsChart from "@/components/dashboard/LocationsChart";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import ImpactRatingCard from "@/components/dashboard/ImpactRatingCard";
 import ConsistencyCard from "@/components/dashboard/ConsistencyCard";
+import LoginModal from "@/components/LoginModal";
 import {
   StatsSkeleton,
   ImpactRatingSkeleton,
@@ -44,6 +45,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(true);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -324,6 +326,10 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
+        <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+      />
       </main>
     </div>
   );
