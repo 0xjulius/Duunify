@@ -104,15 +104,15 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-3">
                 {/* Ikonin kääre */}
-                <div className="bg-indigo-100 p-3 rounded-xl">
-                  <Briefcase className="h-8 w-8 text-indigo-600" />
+                <div className="bg-gradient-to-br from-indigo-200 to-violet-600  p-3 rounded-xl">
+                  <Briefcase className="h-10 w-10 text-white" />
                 </div>
                 <h1 className="text-4xl font-bold text-slate-900">
                   Hakemukset
                 </h1>
               </div>
 
-              <p className="text-slate-500 mt-3 ml-0 md:ml-[56px]">
+              <p className="text-slate-500 mt-3 ml-5 md:ml-[37px]">
                 Tässä näkymässä näet kaikki hakemuksesi ja niiden tilat. Pidä
                 kirjaa työnhaustasi ja seuraa edistymistäsi helposti!
               </p>

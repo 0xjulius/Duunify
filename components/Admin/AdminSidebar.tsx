@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Briefcase, ArrowLeft, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  ArrowLeft,
+  ShieldCheck,
+  SquareActivity,
+} from "lucide-react";
 
 export default function AdminSidebar({ adminName }: { adminName: string }) {
   const pathname = usePathname();
@@ -11,6 +18,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
     { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/admin" },
     { icon: Users, label: "Käyttäjät", href: "/admin/users" },
     { icon: Briefcase, label: "Hakemukset", href: "/admin/applications" },
+    { icon: SquareActivity, label: "Tapahtumaloki", href: "/admin/logs" },
   ];
 
   return (
@@ -19,7 +27,9 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
         <ShieldCheck size={20} className="text-[#6D67F2]" />
         <div>
           <h1 className="text-sm font-bold text-slate-900">Duunify Admin</h1>
-          <p className="text-xs text-slate-400 truncate max-w-[160px]">{adminName}</p>
+          <p className="text-xs text-slate-400 truncate max-w-[160px]">
+            {adminName}
+          </p>
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import {
   CalendarPlus,
   Activity,
   CalendarRange,
+  Bookmark,
 } from "lucide-react";
 
 type EventType =
@@ -217,6 +218,7 @@ export default function HistoryClient({ items }: { items: HistoryItem[] }) {
     <div className="max-w-4xl mx-auto">
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Toimintaloki</h1>
+        
         <p className="text-slate-500 mt-1">
           Kaikki hakemuksiisi liittyvät tapahtumat yhdessä paikassa.
         </p>

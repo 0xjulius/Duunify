@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
+import { createLog } from "@/lib/logger";
 
 export default function LoginModal({ isOpen, onClose }) {
   const router = useRouter();
@@ -29,6 +30,13 @@ export default function LoginModal({ isOpen, onClose }) {
 
     if (error) {
       toast.error(translateAuthError(error.message));
+      await createLog({
+        action: "login_failed",
+        details: `Failed login attempt for email: ${email}`,
+        category: "auth",
+        status: "failure"
+      });
+      setLoading(false);
       return;
     }
 

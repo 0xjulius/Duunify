@@ -56,12 +56,12 @@ export default function DashboardHeader() {
 
       {/* Otsikko ja ikoni */}
       <div className="flex items-center gap-4">
-        <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3.5 rounded-2xl shadow-md">
-          <LayoutDashboard className="h-9 w-9 text-white" />
+        <div className="bg-gradient-to-br from-indigo-200 to-violet-600 p-3.5 rounded-2xl shadow-md">
+          <LayoutDashboard className="h-10 w-10 text-white" />
         </div>
 
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Koontinäyttö</h2>
+          <h2 className="text-3xl font-bold text-slate-900">Yleiskatsaus</h2>
           <p className="mt-1 text-slate-500 text-[17px]">
             Työnhakusi yhdellä silmäyksellä
           </p>

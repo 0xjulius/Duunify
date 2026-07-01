@@ -102,8 +102,8 @@ export default function SavedJobsPage() {
           <div className="flex justify-between items-start mb-8">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <span className="bg-indigo-100 p-3 rounded-xl text-amber-600">
-                  <Bookmark className="h-8 w-8 text-amber-600" />
+                <span className="bg-gradient-to-br from-indigo-200 to-violet-600  p-3 rounded-xl text-amber-600">
+                  <Bookmark className="h-10 w-10 text-white" />
                 </span>
                 Tallennetut työpaikat
               </h1>

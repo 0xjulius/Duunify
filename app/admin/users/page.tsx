@@ -1,6 +1,6 @@
 // app/admin/users/page.tsx
 import { createClient } from "@/lib/supabase-server";
-import UsersTable from "@/components/admin/UsersTable";
+import UsersTable from "@/components/Admin/UsersTable";
 
 export default async function AdminUsersPage() {
   const supabase = await createClient();
