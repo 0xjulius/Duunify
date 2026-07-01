@@ -83,6 +83,21 @@ export default function LoginModal({
 
     toast.success("Tarkista sähköpostisi.");
   }
+  function BrandPanel({
+    side,
+    serial,
+    eyebrow,
+    heading,
+    tagline,
+    footer,
+  }: {
+    side: string;
+    serial: string;
+    eyebrow: string;
+    heading: string;
+    tagline: string;
+    footer: React.ReactNode; // Tällä varmistetaan, että Quote-komponentti hyväksytään
+  });
 
   return (
     <div
