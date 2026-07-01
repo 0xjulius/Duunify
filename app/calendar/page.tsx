@@ -3,6 +3,9 @@ import CalendarClient from "@/components/calendar/CalendarClient";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 
+// Palvelinkomponenteissa dynaamisuus pakotetaan näin:
+export const dynamic = "force-dynamic";
+
 export default async function CalendarPage() {
   const supabase = await createClient();
   const {
@@ -13,9 +16,11 @@ export default async function CalendarPage() {
     redirect("/login");
   }
 
+  // KORJAUS: Haetaan vain tämän kirjautuneen käyttäjän kalenteritapahtumat
   const { data: applications, error } = await supabase
     .from("applications")
-    .select("id, company, job_title, valid_through, status");
+    .select("id, company, job_title, valid_through, status")
+    .eq("user_id", user.id); // <--- LISÄTTY TURVALLISUUSSUODATUS
 
   if (error) {
     console.error("Virhe haettaessa hakemuksia:", error);

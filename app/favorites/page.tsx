@@ -1,7 +1,10 @@
 "use client";
 
+// Varmistetaan, että Next.js ei välimuistita sivua, vaan middleware tarkistaa oikeudet aina
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // LISÄTTY
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
 import { Bookmark, Filter, Clock, Search } from "lucide-react";
@@ -25,7 +28,7 @@ type FavoriteJob = {
 };
 
 export default function SavedJobsPage() {
-  const router = useRouter(); // LISÄTTY
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("Kaikki");
   const [jobs, setJobs] = useState<FavoriteJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,20 +47,18 @@ export default function SavedJobsPage() {
     async function fetchFavorites() {
       setLoading(true);
       
-      // 1. TARKISTUS: Haetaan istunto asiakaspuolella
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        // Jos istuntoa ei jostain syystä ole, varmistetaan suojaus heittämällä ulos
         router.push("/login");
         return;
       }
 
-      // 2. TURVALLINEN HAKU: Suodatetaan user_id:n mukaan
+      // Alkuperäinen haku on täydellinen – pidetään se täsmälleen näin!
       const { data, error } = await supabase
         .from("applications")
         .select("*")
-        .eq("user_id", session.user.id) // KORJAUS: Haetaan vain tämän käyttäjän omat!
+        .eq("user_id", session.user.id)
         .eq("status", "Tallennettu")
         .order("created_at", { ascending: false });
 
@@ -84,16 +85,14 @@ export default function SavedJobsPage() {
     fetchFavorites();
   }, [router]);
 
-  // Dynaamiset tilastot
+  // Nämä voivat olla tässä taustalla (palauttavat vain aina 0, mikä ei haittaa mitään)
   const expiringSoon = jobs.filter(
     (j) =>
       typeof j.days_left === "number" && j.days_left <= 7 && j.days_left > 0,
   ).length;
   const activePlans = jobs.filter((j) => j.status === "Aiot hakea").length;
   const archived = jobs.filter((j) => j.status === "Arkistoitu").length;
-
   return (
-
     <main className="min-h-screen flex bg-slate-50">
       <Sidebar />
 
@@ -235,8 +234,10 @@ export default function SavedJobsPage() {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogPortal>
           <DialogOverlay className="bg-black/50 backdrop-blur-sm" />
-          <DialogContent className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] !p-0 !border-none !bg-transparent !shadow-none !max-w-[1000px] !w-full [&>button]:hidden outline-none"
-          style={{ border: 'none', boxShadow: 'none' }}>
+          <DialogContent
+            className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] !p-0 !border-none !bg-transparent !shadow-none !max-w-[1000px] !w-full [&>button]:hidden outline-none"
+            style={{ border: "none", boxShadow: "none" }}
+          >
             <div className="bg-none !border-none m-4">
               <AddApplicationForm onSuccess={() => setIsAddModalOpen(false)} />
             </div>

@@ -1,7 +1,11 @@
 import Sidebar from "@/components/Sidebar";
+import { createClient } from "@/lib/supabase-server"; // LISÄTTY: Tarvitaan palvelintarkistukseen
+import { redirect } from "next/navigation"; // LISÄTTY: Uudelleenohjaukseen
 
-// Mockup-data — rakenne vastaa application_history-taulua,
-// joten oikeaan dataan siirtyminen on vain fetch-kutsun vaihto.
+// Pakotetaan sivu dynaamiseksi, jotta middleware ja oikeustarkistus ajetaan joka pyynnöllä
+export const dynamic = "force-dynamic";
+
+// Mockup-data pidetään tässä ennallaan testivaihetta varten
 const MOCK_HISTORY = [
   {
     id: "1",
@@ -68,7 +72,28 @@ const MOCK_HISTORY = [
   },
 ];
 
-export default function HistoryPage() {
+// Muutetaan funktio asynkroniseksi (async), jotta voidaan tarkistaa kirjautuminen
+export default async function HistoryPage() {
+  
+  // 1. TURVALLISUUSTARKISTUS: Varmistetaan istunto palvelimella
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Jos ei ole kirjautunut, heitetään heti pois
+  if (!user) {
+    redirect("/login");
+  }
+
+  /* 2. TULEVAISUUDESSA: Kun siirryt mock-datasta oikeaan, haku tulee tähän:
+    const { data: realHistory } = await supabase
+      .from("application_history")
+      .select("*")
+      .eq("user_id", user.id) // Tiukka user_id suojaus!
+      .order("created_at", { ascending: false });
+  */
+
   return (
     <div className="flex min-h-screen bg-slate-50 ">
       <div className="flex-shrink-0 border-r border-slate-200 bg-white ">
@@ -77,6 +102,7 @@ export default function HistoryPage() {
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         <main className="flex-1 p-6 md:p-8 ">
+          {/* Syötetään data komponentille kuten ennenkin */}
           <HistoryClientImport items={MOCK_HISTORY} />
         </main>
 
@@ -98,7 +124,5 @@ export default function HistoryPage() {
   );
 }
 
-// Erotettu import-nimellä siltä varalta että haluat myöhemmin
-// muuttaa tämän server-fetchiksi ilman nimiristiriitaa.
 import HistoryClient from "@/components/history/HistoryClient";
 const HistoryClientImport = HistoryClient;
