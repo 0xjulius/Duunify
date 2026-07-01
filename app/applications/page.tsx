@@ -21,6 +21,7 @@ type Application = {
   job_url?: string;
 };
 
+
 export default function Home() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -47,6 +48,13 @@ export default function Home() {
   useEffect(() => {
     fetchApplications();
   }, []);
+
+  useEffect(() => {
+  supabase.auth.getUser().then(({ data }) => {
+    console.log("CURRENT USER", data.user);
+  });
+}, []);
+
 
   async function deleteApplication(id: string) {
     await supabase.from("applications").delete().eq("id", id);

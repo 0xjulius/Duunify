@@ -1,203 +1,276 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Briefcase,
+  Zap,
+  Calendar,
+  Star,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
+import LoginModal from "@/components/LoginModal";
 
-import AddApplicationForm from "@/app/applications/AddApplicationForm";
-import ApplicationCard from "@/app/applications/ApplicationCard";
-import Sidebar from "@/components/Sidebar";
-
-type Application = {
-  id: string;
-  company: string;
-  job_title: string;
-  location: string;
-  status: string;
-  notes: string;
-  applied_date: string;
-  job_description: string;
-  job_url?: string;
-};
-
-export default function Home() {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState("");
-
-  async function fetchApplications() {
-    const { data, error } = await supabase
-      .from("applications")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    setApplications(data || []);
-  }
-
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  async function deleteApplication(id: string) {
-    await supabase.from("applications").delete().eq("id", id);
-
-    fetchApplications();
-  }
-
-  const filtered = applications.filter(
-    (app) =>
-      app.company.toLowerCase().includes(search.toLowerCase()) ||
-      app.job_title.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const stats = {
-    Haettu: applications.filter((a) => a.status === "Haettu").length,
-    Haastattelu: applications.filter((a) => a.status === "Haastattelu").length,
-    Hylätty: applications.filter((a) => a.status === "Hylätty").length,
-    Tarjous: applications.filter((a) => a.status === "Tarjous").length,
-  };
-
-  const greeting =
-    new Date().getHours() < 12
-      ? "Hyvää huomenta"
-      : new Date().getHours() < 18
-        ? "Hyvää iltapäivää"
-        : "Hyvää iltaa";
+export default function LandingPage() {
+  const [showLogin, setShowLogin] = useState(false);
 
   return (
-    <main className="min-h-screen flex bg-slate-100">
-      <Sidebar />
+    <div className="min-h-screen bg-white">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+        .duunify-modal { font-family: 'Inter', sans-serif; }
+        .duunify-display { font-family: 'Space Grotesk', sans-serif; }
+        .duunify-mono { font-family: 'JetBrains Mono', monospace; }
+      `}</style>
 
-      <div className="flex-1 overflow-auto">
-        <div
-          className="p-8 bg-gradient-to-br
-from-violet-50
-via-pink-50
-to-sky-50"
-        >
-          {/* HEADER */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-slate-900">
-                {greeting} 👋
-              </h1>
-
-              <p className="text-slate-500 mt-1">
-                Tässä näkymässä näet kaikki hakemuksesi ja niiden tilat. Pidä
-                kirjaa työnhaustasi ja seuraa edistymistäsi helposti!
-              </p>
-            </div>
-
-            {/* STATS */}
-            <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider ">
-              <p className="bg-blue-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm ">
-                Haettu <span>{stats.Haettu}</span>
-              </p>
-
-              <p className="bg-yellow-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm text-black">
-                Haastattelu <span>{stats.Haastattelu}</span>
-              </p>
-
-              <p className="bg-red-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
-                Hylätty <span>{stats.Hylätty}</span>
-              </p>
-
-              <p className="bg-green-500 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
-                Tarjous <span>{stats.Tarjous}</span>
-              </p>
-            </div>
+      {/* NAV */}
+      <header className="duunify-modal sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
+            <span className="duunify-display font-bold text-slate-900">
+              Duunify
+            </span>
           </div>
 
-          {/* SEARCH + BUTTON */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-              </div>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="#ominaisuudet" className="hover:text-slate-900">
+              Ominaisuudet
+            </a>
+            <a href="#miten-toimii" className="hover:text-slate-900">
+              Miten toimii
+            </a>
+          </nav>
 
-              <input
-                type="text"
-                placeholder="Hae yritystä tai tehtävää..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white border border-slate-200 p-4 pl-12 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
-              />
-            </div>
-
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowForm(!showForm)}
-              className={`px-6 py-4 rounded-2xl font-semibold transition-all cursor-pointer ${
-                showForm
-                  ? "bg-red-500 text-white hover:bg-red-600"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
+              onClick={() => setShowLogin(true)}
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2"
             >
-              {showForm ? "✕ Sulje" : "+ Lisää hakemus"}
+              Kirjaudu sisään
+            </button>
+            <button
+              onClick={() => setShowLogin(true)}
+              className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+            >
+              Aloita ilmaiseksi
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="duunify-modal relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(30,27,75,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(30,27,75,0.6) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
+          <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#6D67F2]" />
+            Nyt Duunitori ja Työmarkkinatori -tuki
+          </div>
+
+          <h1 className="duunify-display mt-6 text-4xl md:text-6xl font-bold tracking-tight text-slate-900 max-w-3xl mx-auto">
+            Pidä kaikki työhakemuksesi{" "}
+            <span className="text-[#6D67F2]">yhdessä paikassa</span>
+          </h1>
+
+          <p className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+            Lopeta hakemusten seuraaminen Excelissä. Tallenna, järjestä ja
+            muistuta itseäsi jokaisesta hakemuksesta — automaattisella
+            tietojen haulla suoraan työpaikkailmoituksesta.
+          </p>
+
+          <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => setShowLogin(true)}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 text-white font-bold px-7 py-3.5 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+            >
+              Aloita ilmaiseksi
+              <ArrowRight size={18} />
+            </button>
+            <button
+              onClick={() => setShowLogin(true)}
+              className="w-full sm:w-auto font-semibold text-slate-700 px-7 py-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 transition"
+            >
+              Kirjaudu sisään
             </button>
           </div>
 
-          {/* FORM */}
-          {showForm && (
-            <div className="mb-10">
-              <AddApplicationForm
-                onSuccess={() => {
-                  fetchApplications();
-                  setShowForm(false);
-                }}
-              />
-            </div>
-          )}
+          <p className="mt-5 text-xs text-slate-400">
+            Ei luottokorttia. Ei sitoutumista.
+          </p>
+        </div>
+      </section>
 
-          {/* APPLICATIONS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-            {filtered.length > 0 ? (
-              filtered.map((app) => (
-                <ApplicationCard
-                  key={app.id}
-                  app={app}
-                  onChange={fetchApplications}
-                />
-              ))
-            ) : (
-              <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-slate-200">
-                <div className="col-span-full">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                    Ei hakemuksia vielä
-                  </h2>
+      {/* FEATURES */}
+      <section id="ominaisuudet" className="duunify-modal py-20 md:py-28">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center max-w-xl mx-auto mb-16">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+              Kaikki mitä tarvitset hakuprosessiin
+            </h2>
+            <p className="mt-4 text-slate-500">
+              Suunniteltu suomalaista työnhakua varten.
+            </p>
+          </div>
 
-                  <p className="text-slate-500 mb-6">
-                    Aloita lisäämällä ensimmäinen hakemuksesi. Pidä kirjaa
-                    työnhaustasi ja seuraa edistymistäsi helposti.
-                  </p>
-
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium"
-                  >
-                    + Lisää ensimmäinen hakemus
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <FeatureCard
+              icon={<Zap size={20} />}
+              title="Automaattinen täyttö"
+              description="Liitä linkki Duunitorista tai Työmarkkinatorista, ja tiedot täyttyvät puolestasi."
+            />
+            <FeatureCard
+              icon={<Briefcase size={20} />}
+              title="Hakemusten seuranta"
+              description="Näe yhdellä silmäyksellä missä vaiheessa jokainen hakemuksesi on."
+            />
+            <FeatureCard
+              icon={<Calendar size={20} />}
+              title="Määräajat ja muistutukset"
+              description="Älä koskaan missaa hakuajan päättymistä tai haastattelua."
+            />
+            <FeatureCard
+              icon={<Star size={20} />}
+              title="Suosikit"
+              description="Merkitse kiinnostavimmat mahdollisuudet ja palaa niihin myöhemmin."
+            />
           </div>
         </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="miten-toimii" className="duunify-modal py-20 md:py-28 bg-slate-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center max-w-xl mx-auto mb-16">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+              Kolme askelta
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <StepCard
+              number="01"
+              title="Liitä linkki"
+              description="Kopioi työpaikkailmoituksen URL Duunitorista tai Työmarkkinatorista."
+            />
+            <StepCard
+              number="02"
+              title="Tarkista tiedot"
+              description="Yritys, tehtävä, palkka ja kuvaus täyttyvät automaattisesti — muokkaa tarpeen mukaan."
+            />
+            <StepCard
+              number="03"
+              title="Seuraa etenemistä"
+              description="Päivitä tilaa hakemuksen edetessä ja saa muistutukset ajoissa."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="duunify-modal py-20 md:py-28">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+            Valmis järjestämään työnhakusi?
+          </h2>
+          <p className="mt-4 text-slate-500">
+            Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa haltuun.
+          </p>
+          <button
+            onClick={() => setShowLogin(true)}
+            className="mt-8 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
+            style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+          >
+            Aloita ilmaiseksi
+            <ArrowRight size={18} />
+          </button>
+
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 size={16} className="text-emerald-500" />
+              Ilmainen käyttää
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 size={16} className="text-emerald-500" />
+              Ei mainoksia
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="duunify-modal border-t border-slate-100 py-10">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+          <div>
+            <span className="font-bold text-slate-900">Duunify</span>
+            <span className="ml-2">© 2026 Kaikki oikeudet pidätetään.</span>
+          </div>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-slate-900">
+              Tietosuoja
+            </a>
+            <a href="#" className="hover:text-slate-900">
+              Käyttöehdot
+            </a>
+            <a href="#" className="hover:text-slate-900">
+              Yhteystiedot
+            </a>
+          </div>
+        </div>
+      </footer>
+
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
+    </div>
+  );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="p-6 rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition">
+      <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
+        {icon}
       </div>
-    </main>
+      <h3 className="font-bold text-slate-900 mb-1.5">{title}</h3>
+      <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function StepCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-slate-100">
+      <span className="duunify-mono text-2xl font-bold text-[#6D67F2]/30">
+        {number}
+      </span>
+      <h3 className="font-bold text-slate-900 mt-3 mb-1.5">{title}</h3>
+      <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+    </div>
   );
 }

@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardStats();

@@ -1,34 +1,38 @@
 "use client";
 
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { fi } from 'date-fns/locale';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { fi } from "date-fns/locale";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { UnifiedEvent, EVENT_COLORS, EVENT_TYPE_LABELS } from "@/lib/calendar";
 
-// 1. Suomenkielinen lokalisaatio
 const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek,
   getDay,
-  locales: { 'fi': fi },
+  locales: { fi },
 });
 
-export default function CalendarView({ applications = [] }) {
-  // 2. Muunnetaan sovelluksen data kalenterin event-muotoon
-  const events = applications.map((app) => ({
-    title: `${app.company} | ${app.job_title}`,
-    start: new Date(app.created_at), // Varmista että tämä on oikea päivämääräkenttä
-    end: new Date(app.created_at),
+export default function CalendarView({
+  events,
+  onSelectEvent,
+}: {
+  events: UnifiedEvent[];
+  onSelectEvent: (event: UnifiedEvent) => void;
+}) {
+  const calendarEvents = events.map((e) => ({
+    ...e,
+    start: e.date,
+    end: e.date,
   }));
 
   return (
     <div className="h-[600px] w-full">
       <Calendar
         localizer={localizer}
-        events={events}
+        events={calendarEvents}
         culture="fi"
-        // 3. Suomennokset napeille ja näkymille
         messages={{
           today: "Tänään",
           previous: "Edellinen",
@@ -37,10 +41,39 @@ export default function CalendarView({ applications = [] }) {
           week: "Viikko",
           day: "Päivä",
           agenda: "Agenda",
+          noEventsInRange: "Ei tapahtumia tällä aikavälillä.",
         }}
-        // 4. Custom toolbarin tyyli (matchaa tiedostoon image_cd85bd.png)
+        onSelectEvent={(e: any) => onSelectEvent(e)}
+        eventPropGetter={(event: any) => {
+          const colors = EVENT_COLORS[event.type as keyof typeof EVENT_COLORS];
+          return {
+            style: {
+              backgroundColor: colors.bg,
+              color: colors.text,
+              border: `1px solid ${colors.dot}33`,
+              borderRadius: "8px",
+              fontSize: "12px",
+              fontWeight: 600,
+            },
+          };
+        }}
+        titleAccessor={(e: any) =>
+          e.type === "deadline" ? `⏰ ${e.subtitle}` : `${e.title}`
+        }
         className="text-sm"
       />
+
+      <div className="flex gap-4 mt-4 flex-wrap">
+        {Object.entries(EVENT_COLORS).map(([type, colors]) => (
+          <div key={type} className="flex items-center gap-1.5 text-xs text-slate-500">
+            <span
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: colors.dot }}
+            />
+            {EVENT_TYPE_LABELS[type as keyof typeof EVENT_TYPE_LABELS]}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -163,3 +163,28 @@ h6 {
     @apply font-sans;
   }
 }
+.duunify-toast {
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.duunify-toast [data-icon] svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.duunify-toast[data-type="success"] [data-icon] svg {
+  color: #10b981;
+}
+
+.duunify-toast[data-type="error"] [data-icon] svg {
+  color: #f43f5e;
+}
+
+.duunify-toast[data-type="warning"] [data-icon] svg {
+  color: #f59e0b;
+}
+
+.duunify-toast[data-type="loading"] [data-icon] svg {
+  color: #6d67f2;
+}

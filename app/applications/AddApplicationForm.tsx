@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import LoginModal from "@/components/LoginModal";
@@ -16,12 +16,6 @@ const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   OTHER: "Muu",
 };
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-
-const isLoggedIn = !!user;
-
 export default function AddApplicationForm({
   onSuccess,
 }: {
@@ -30,7 +24,22 @@ export default function AddApplicationForm({
   const [loading, setLoading] = useState(false);
   const [loadingJob, setLoadingJob] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
+  useEffect(() => {
+  supabase.auth.getUser().then(({ data }) => {
+    setUser(data.user);
+  });
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setUser(session?.user ?? null);
+  });
+
+  return () => subscription.unsubscribe();
+  }, []);
+  
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
@@ -65,6 +74,14 @@ export default function AddApplicationForm({
   }
 
   async function autofillFromUrl() {
+    if (!user) {
+      toast.error("Kirjaudu sisään", {
+        description: "Kirjaudu sisään käyttääksesi automaattista hakua.",
+      });
+
+      setShowLoginModal(true);
+      return;
+    }
     if (loadingJob) return;
 
     if (!jobUrl) {
@@ -291,7 +308,7 @@ export default function AddApplicationForm({
           <button
             type="button"
             onClick={autofillFromUrl}
-            disabled={!isLoggedIn || loadingJob || !jobUrl}
+            disabled={loadingJob || !jobUrl}
             className=" p-4 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition flex items-center gap-1.5"
           >
             {loadingJob ? (
@@ -443,10 +460,17 @@ export default function AddApplicationForm({
             className={`${inputStyle} min-h-[150px]`}
           />
         </div>
-              <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-      />
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={() => {
+            setShowLoginModal(false);
+
+            supabase.auth.getUser().then(({ data }) => {
+              setUser(data.user);
+            });
+          }}
+        />
       </div>
 
       <button
@@ -463,7 +487,6 @@ export default function AddApplicationForm({
           "Tallenna hakemus"
         )}
       </button>
-
     </form>
   );
 }

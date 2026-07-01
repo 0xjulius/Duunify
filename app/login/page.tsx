@@ -1,23 +1,23 @@
+// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 
-export default function LoginModal({ isOpen, onClose }) {
-  const router = useRouter();
-  const [mode, setMode] = useState("login"); // "login" | "register"
+export default function LoginPage() {
+  const [mode, setMode] = useState<"login" | "register">("login");
   const flipped = mode === "register";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-
-  if (!isOpen) return null;
+  const router = useRouter();
 
   async function login() {
+    if (loading) return;
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -33,13 +33,12 @@ export default function LoginModal({ isOpen, onClose }) {
     }
 
     toast.success("Tervetuloa takaisin 👋");
-
-    onClose();
     router.push("/dashboard");
     router.refresh();
   }
 
   async function register() {
+    if (loading) return;
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -64,12 +63,8 @@ export default function LoginModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{
-        background: "rgba(13, 11, 38, 0.7)",
-        backdropFilter: "blur(6px)",
-      }}
-      onClick={onClose}
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: "#F4F4FB" }}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
@@ -84,23 +79,15 @@ export default function LoginModal({ isOpen, onClose }) {
           transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
         }
         .duunify-card-inner.is-flipped { transform: rotateY(180deg); }
-        /* Both faces share the same grid cell, so the card auto-sizes to
-           whichever face (login or register) is taller — nothing clips. */
         .duunify-face-stack { grid-area: 1 / 1; min-width: 0; }
         .duunify-face {
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
         }
         .duunify-face-back { transform: rotateY(180deg); }
-        .duunify-perforation {
-          background-image: radial-gradient(circle, rgba(13,11,38,0) 0, rgba(13,11,38,0) 3px, transparent 3px);
-        }
       `}</style>
 
-      <div
-        className="duunify-modal duunify-perspective w-full max-w-4xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="duunify-modal duunify-perspective w-full max-w-4xl">
         <div className={`duunify-card-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ---------- FRONT FACE: brand left / login right ---------- */}
           <div
@@ -132,7 +119,10 @@ export default function LoginModal({ isOpen, onClose }) {
                 <Divider label="tai" />
                 <form
                   className="space-y-3"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    login();
+                  }}
                 >
                   <TextField
                     label="Sähköpostiosoite"
@@ -178,7 +168,10 @@ export default function LoginModal({ isOpen, onClose }) {
                 <Divider label="tai" />
                 <form
                   className="space-y-3"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    register();
+                  }}
                 >
                   <TextField
                     label="Koko nimi"
@@ -202,9 +195,9 @@ export default function LoginModal({ isOpen, onClose }) {
                     onChange={setPassword}
                   />
                   <PrimaryButton
-                      label="Luo tunnus"
-                      onClick={register}
-                      loading={loading}
+                    label="Luo tunnus"
+                    onClick={register}
+                    loading={loading}
                   />
                 </form>
                 <SwitchLine
@@ -241,6 +234,14 @@ function BrandPanel({
   tagline,
   footer,
   className = "",
+}: {
+  side: "left" | "right";
+  serial: string;
+  eyebrow: string;
+  heading: string;
+  tagline: string;
+  footer: React.ReactNode;
+  className?: string;
 }) {
   return (
     <div
@@ -250,7 +251,6 @@ function BrandPanel({
           "linear-gradient(165deg, #211A5C 0%, #181440 55%, #120F33 100%)",
       }}
     >
-      {/* faint blueprint grid texture, not a generic blur-blob */}
       <div
         className="absolute inset-0 opacity-[0.07]"
         style={{
@@ -276,7 +276,6 @@ function BrandPanel({
 
       <div className="relative z-10">{footer}</div>
 
-      {/* stamp seal, lower corner — a wink at "job ticket" */}
       <div
         className={`absolute bottom-8 ${side === "left" ? "right-8" : "left-8"} hidden md:flex`}
       >
@@ -292,8 +291,7 @@ function BrandPanel({
   );
 }
 
-function Perforation({ side }) {
-  // Dashed seam with punch-hole notches, evoking a torn ticket stub.
+function Perforation({ side }: { side: "left" | "right" }) {
   const edgeClass =
     side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2";
   return (
@@ -308,7 +306,15 @@ function Perforation({ side }) {
   );
 }
 
-function FormShell({ heading, sub, children }) {
+function FormShell({
+  heading,
+  sub,
+  children,
+}: {
+  heading: string;
+  sub: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="max-w-sm w-full mx-auto space-y-5">
       <div>
@@ -322,7 +328,7 @@ function FormShell({ heading, sub, children }) {
   );
 }
 
-function GoogleButton({ label }) {
+function GoogleButton({ label }: { label: string }) {
   return (
     <button
       type="button"
@@ -351,7 +357,7 @@ function GoogleButton({ label }) {
   );
 }
 
-function Divider({ label }) {
+function Divider({ label }: { label: string }) {
   return (
     <div className="relative py-1">
       <div className="absolute inset-0 flex items-center">
@@ -366,7 +372,19 @@ function Divider({ label }) {
   );
 }
 
-function TextField({ label, type, placeholder, value, onChange }) {
+function TextField({
+  label,
+  type,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <label className="block">
       <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">
@@ -383,13 +401,21 @@ function TextField({ label, type, placeholder, value, onChange }) {
   );
 }
 
-function PrimaryButton({ label, onClick, loading }) {
+function PrimaryButton({
+  label,
+  onClick,
+  loading,
+}: {
+  label: string;
+  onClick: () => void;
+  loading: boolean;
+}) {
   return (
     <button
       onClick={onClick}
       disabled={loading}
       type="submit"
-      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99]"
+      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99] disabled:opacity-60"
       style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
     >
       {loading ? "Odota..." : label}
@@ -397,7 +423,15 @@ function PrimaryButton({ label, onClick, loading }) {
   );
 }
 
-function SwitchLine({ prompt, action, onClick }) {
+function SwitchLine({
+  prompt,
+  action,
+  onClick,
+}: {
+  prompt: string;
+  action: string;
+  onClick: () => void;
+}) {
   return (
     <p className="text-center text-[13.5px] text-slate-600 pt-1">
       {prompt}{" "}
@@ -412,7 +446,15 @@ function SwitchLine({ prompt, action, onClick }) {
   );
 }
 
-function Quote({ text, name, role }) {
+function Quote({
+  text,
+  name,
+  role,
+}: {
+  text: string;
+  name: string;
+  role: string;
+}) {
   return (
     <div className="bg-white/[0.06] p-5 rounded-2xl border border-white/10">
       <p className="text-white/90 text-[14px] italic leading-relaxed">
@@ -422,7 +464,9 @@ function Quote({ text, name, role }) {
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500" />
         <div>
           <p className="text-[12.5px] font-bold leading-tight">{name}</p>
-          <p className="text-[11px] text-indigo-200/70 leading-tight">{role}</p>
+          <p className="text-[11px] text-indigo-200/70 leading-tight">
+            {role}
+          </p>
         </div>
       </div>
     </div>
