@@ -91,7 +91,7 @@ export default function ApplicationTrendChart({
     const { data: applications, error } = await supabase
       .from("applications")
       .select("applied_date")
-      .gte("applied_date", format(startOfPreviousPeriod, "yyyy-MM-dd"))
+      .gte("applied_date", format(subDays(new Date(), 30), "yyyy-MM-dd"))
       .order("applied_date");
 
     if (error) {

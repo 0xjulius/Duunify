@@ -112,7 +112,7 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
                 <br />
                 <br />
                 <span className="font-medium text-slate-500">
-                  Kaava: (Vireillä olevat − Suosikit) / Hylätyt
+                  Kaava: Vireillä olevat / Hylätyt
                 </span>
                 <br />
                 Suosikkeja ei lasketa mukaan, koska ne ovat vasta talteen

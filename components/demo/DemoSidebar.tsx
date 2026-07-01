@@ -14,6 +14,7 @@ import {
   PanelLeftOpen,
   LogOut,
   Sparkles,
+  SquareActivity,
 } from "lucide-react";
 import { DEMO_USER } from "@/lib/demo-data";
 
@@ -43,9 +44,10 @@ export default function DemoSidebar() {
       <nav className="flex-1 p-4 space-y-1">
         {[
           { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
-          { icon: Briefcase, label: "Hakemukset", href: "/demo/applications" },
-          { icon: Calendar, label: "Kalenteri", href: "/demo/calendar" },
-          { icon: StarPlus, label: "Suosikit", href: "/demo/favorites" },
+          { icon: Briefcase, label: "Hakemukset", href: "#" },
+          { icon: Calendar, label: "Kalenteri", href: "#" },
+          { icon: StarPlus, label: "Suosikit", href: "#" },
+          { icon: SquareActivity, label: "Toimintaloki", href: "#" },
         ].map((item) => {
           const active = pathname === item.href;
           return (

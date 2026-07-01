@@ -21,6 +21,7 @@ import {
   XCircle,
   Calendar,
   Star,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   DEMO_APPLICATIONS,
@@ -32,20 +33,68 @@ export default function DemoDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
 
+
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 9) return "Hyvää huomenta,";
+    if (hour < 12) return "Hyvää aamupäivää,";
+    if (hour < 14) return "Hyvää päivää,";
+    if (hour < 18) return "Hyvää iltapäivää,";
+    if (hour < 22) return "Hyvää iltaa,";
+    return "Hyvää myöhäisiltaa,";
+    };
+    const greeting = getGreeting();
+    const now = new Date();
 
   return (
     <div className="flex flex-row min-h-screen bg-slate-100 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50">
       <DemoSidebar />
 
       <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-6">
-        <ApplicationDialog app={selectedApplication} open={open} onOpenChange={setOpen} />
+        <ApplicationDialog
+          app={selectedApplication}
+          open={open}
+          onOpenChange={setOpen}
+        />
 
         <DemoBanner />
-        <DashboardHeader />
+        <header className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+            {greeting}<span>Demokäyttäjä 👋</span>
+          </h1>
+
+          {/* Päivämäärä */}
+          <p className="text-slate-500 text-lg mb-6">
+            {now.toLocaleDateString("fi-FI", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}{" "}
+            • Klo {now.getHours()}:
+            {now.getMinutes().toString().padStart(2, "0")}
+          </p>
+
+          {/* Otsikko ja ikoni */}
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3.5 rounded-2xl shadow-md">
+              <LayoutDashboard className="h-10 w-10 text-white" />
+            </div>
+
+            <div>
+              <h2 className="text-3xl font-bold text-slate-900">
+                Yleiskatsaus
+              </h2>
+              <p className="mt-1 text-slate-500 text-[17px]">
+                Työnhakusi yhdellä silmäyksellä
+              </p>
+            </div>
+          </div>
+        </header>
 
         <div className="flex flex-col gap-6">
           <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
@@ -62,7 +111,11 @@ export default function DemoDashboardPage() {
               <StatsCard
                 title="Vireillä olevat hakemukset"
                 value={stats.pending}
-                subtitle={stats.pending > 0 ? "Meneillään olevat" : "Ei aktiivisia hakuja"}
+                subtitle={
+                  stats.pending > 0
+                    ? "Meneillään olevat"
+                    : "Ei aktiivisia hakuja"
+                }
                 color="amber"
                 icon={<Clock className="h-6 w-6" />}
               />
@@ -72,7 +125,11 @@ export default function DemoDashboardPage() {
               <StatsCard
                 title="Tallennetut"
                 value={stats.favorites}
-                subtitle={<span className="text-amber-600 font-medium">Katso suosikit</span>}
+                subtitle={
+                  <span className="text-amber-600 font-medium">
+                    Katso suosikit
+                  </span>
+                }
                 color="amber"
                 icon={<Star className="h-6 w-6" />}
               />
@@ -90,7 +147,11 @@ export default function DemoDashboardPage() {
               <StatsCard
                 title="Tarjoukset"
                 value={stats.offers}
-                subtitle={stats.offers > 0 ? "Upea saavutus! 🎉" : "Uusia ovia avautuu pian.."}
+                subtitle={
+                  stats.offers > 0
+                    ? "Upea saavutus! 🎉"
+                    : "Uusia ovia avautuu pian.."
+                }
                 color="green"
                 icon={<CheckCircle2 className="h-6 w-6" />}
               />
@@ -99,7 +160,11 @@ export default function DemoDashboardPage() {
               <StatsCard
                 title="Hylätyt"
                 value={stats.rejected}
-                subtitle={stats.rejected === 0 ? "Ei vielä hylkäyksiä!" : "Olet tavoitetta lähempänä."}
+                subtitle={
+                  stats.rejected === 0
+                    ? "Ei vielä hylkäyksiä!"
+                    : "Olet tavoitetta lähempänä."
+                }
                 color="red"
                 icon={<XCircle className="h-6 w-6" />}
               />
@@ -143,7 +208,11 @@ export default function DemoDashboardPage() {
                 />
               </div>
               <div className="lg:col-span-4 mb-10">
-                <UpcomingDeadlines demoApps={DEMO_APPLICATIONS.filter((a) => a.valid_through) as any} />
+                <UpcomingDeadlines
+                  demoApps={
+                    DEMO_APPLICATIONS.filter((a) => a.valid_through) as any
+                  }
+                />
               </div>
             </div>
           </section>
