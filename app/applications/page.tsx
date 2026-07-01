@@ -1,6 +1,10 @@
 "use client";
 
+// 1. Tämä pakottaa middlewaren tarkistamaan sivun joka kerta
+export const dynamic = "force-dynamic"; 
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Tarvitaan uudelleenohjaukseen jos ei ole kirjautunut
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -21,18 +25,29 @@ type Application = {
   job_url?: string;
 };
 
-
 export default function Home() {
+  const router = useRouter(); 
   const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // TÄMÄ FUNKTIO ON TÄYSIN SAMASSA PAIKASSA KUIN ENNENKIN
   async function fetchApplications() {
     setLoading(true);
+    
+    // Tarkistetaan istunto
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    // Haetaan data – täysin sama select ja order, mukana vain user_id -suojaus!
     const { data, error } = await supabase
       .from("applications")
       .select("*")
+      .eq("user_id", session.user.id) // <--- TURVALLISUUSPARANNUS
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -45,23 +60,26 @@ export default function Home() {
     setLoading(false);
   }
 
+  // Ensimmäinen useEffectisi pyörittää hakuasi kuten ennenkin
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [router]);
 
-  useEffect(() => {
-  supabase.auth.getUser().then(({ data }) => {
-    console.log("CURRENT USER", data.user);
-  });
-}, []);
-
-
+  // TÄMÄKIN FUNKTIO ON ENNALLAAN, mukana vain user_id -suojaus poistossa
   async function deleteApplication(id: string) {
-    await supabase.from("applications").delete().eq("id", id);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    await supabase
+      .from("applications")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", session.user.id); // <--- TURVALLISUUSPARANNUS
 
     fetchApplications();
   }
 
+  // Suodatukset ja tilastot lasketaan täsmälleen samalla logiikalla kuin ennenkin
   const filtered = applications.filter(
     (app) =>
       app.company.toLowerCase().includes(search.toLowerCase()) ||
