@@ -1,6 +1,7 @@
 "use client";
 
-import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { useState } from "react";
+import { Calendar, dateFnsLocalizer, View, Views } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { fi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -17,10 +18,18 @@ const localizer = dateFnsLocalizer({
 export default function CalendarView({
   events,
   onSelectEvent,
+  focusDate,
 }: {
   events: UnifiedEvent[];
   onSelectEvent: (event: UnifiedEvent) => void;
+  focusDate?: Date | null;
 }) {
+  const [date, setDate] = useState(focusDate || new Date());
+  const [view, setView] = useState<View>(Views.MONTH);
+
+  // Kun sivupalkin minikalenterista valitaan päivä, hypätään sinne
+  const displayDate = focusDate || date;
+
   const calendarEvents = events.map((e) => ({
     ...e,
     start: e.date,
@@ -33,6 +42,10 @@ export default function CalendarView({
         localizer={localizer}
         events={calendarEvents}
         culture="fi"
+        date={displayDate}
+        view={view}
+        onNavigate={(newDate) => setDate(newDate)}
+        onView={(newView) => setView(newView)}
         messages={{
           today: "Tänään",
           previous: "Edellinen",
@@ -54,6 +67,9 @@ export default function CalendarView({
               borderRadius: "8px",
               fontSize: "12px",
               fontWeight: 600,
+              opacity: event.completed ? 0.5 : 1,
+              textDecoration: event.completed ? "line-through" : "none",
+              cursor: "pointer",
             },
           };
         }}

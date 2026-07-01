@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Calendar, Plus, Search, Trash2 } from "lucide-react";
+import { Calendar, Plus, Search, Trash2, CheckCircle2 } from "lucide-react";
 import { UnifiedEvent, EVENT_COLORS, EVENT_TYPE_LABELS } from "@/lib/calendar";
 
 export default function QuickEvents({
   events,
   onAddClick,
   onDelete,
+  onSelectEvent,
 }: {
   events: UnifiedEvent[];
   onAddClick: () => void;
   onDelete: (id: string) => void;
+  onSelectEvent: (event: UnifiedEvent) => void;
 }) {
   const [query, setQuery] = useState("");
 
@@ -25,13 +27,15 @@ export default function QuickEvents({
         query
           ? (e.title + e.subtitle).toLowerCase().includes(query.toLowerCase())
           : true
-      )
-      .slice(0, 10);
+      );
   }, [events, query]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 h-full flex flex-col shadow-sm">
-      <div className="flex justify-between items-center mb-6">
+    // min-h-0 on tässä välttämätön: ilman sitä flex-lapsi ei koskaan
+    // kutistu vanhempaansa pienemmäksi, jolloin overflow-y-auto ei
+    // ikinä aktivoidu ja scrollbar ei näy.
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 h-full min-h-0 flex flex-col shadow-sm">
+      <div className="flex justify-between items-center mb-6 shrink-0">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
           <Calendar size={18} className="text-indigo-500" />
           Tulevat
@@ -44,7 +48,7 @@ export default function QuickEvents({
         </button>
       </div>
 
-      <div className="relative mb-6">
+      <div className="relative mb-6 shrink-0">
         <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
         <input
           value={query}
@@ -54,7 +58,7 @@ export default function QuickEvents({
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
         {upcoming.length === 0 && (
           <p className="text-sm text-slate-400 text-center mt-8">
             Ei tulevia tapahtumia.
@@ -66,7 +70,10 @@ export default function QuickEvents({
           return (
             <div
               key={e.id}
-              className="flex justify-between items-center p-3 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-slate-50 transition-colors group"
+              onClick={() => onSelectEvent(e)}
+              className={`flex justify-between items-center p-3 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-slate-50 transition-colors group cursor-pointer ${
+                e.completed ? "opacity-50" : ""
+              }`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -77,8 +84,15 @@ export default function QuickEvents({
                   <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
                     {EVENT_TYPE_LABELS[e.type]}
                   </p>
+                  {e.completed && (
+                    <CheckCircle2 size={11} className="text-emerald-500" />
+                  )}
                 </div>
-                <p className="text-sm font-bold text-slate-900 truncate mt-0.5">
+                <p
+                  className={`text-sm font-bold text-slate-900 truncate mt-0.5 ${
+                    e.completed ? "line-through" : ""
+                  }`}
+                >
                   {e.type === "deadline" ? e.subtitle : e.title}
                 </p>
                 {e.subtitle && e.type !== "deadline" && (
@@ -92,7 +106,10 @@ export default function QuickEvents({
                 </span>
                 {e.editable && (
                   <button
-                    onClick={() => onDelete(e.id)}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      onDelete(e.id);
+                    }}
                     className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition"
                   >
                     <Trash2 size={14} />

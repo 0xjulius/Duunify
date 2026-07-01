@@ -17,6 +17,8 @@ import {
   PanelLeftOpen,
   LogOut,
   Sparkles,
+  Activity,
+  SquareActivity,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -140,6 +142,12 @@ export default function Sidebar() {
             icon={<StarPlus size={18} />}
             label="Suosikit"
             href="/favorites"
+            collapsed={sidebarCollapsed}
+          />
+           <SidebarItem
+            icon={<SquareActivity size={18} />}
+            label="Toimintaloki"
+            href="/history"
             collapsed={sidebarCollapsed}
           />
         </div>

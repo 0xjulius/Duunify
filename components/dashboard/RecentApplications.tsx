@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { Building2 } from "lucide-react";
 import DownloadButton from "../DownloadButton";
 
-// Tyyppi sisältää nyt kaikki kentät, joita ApplicationDialog tarvitsee
 type Application = {
   id: string;
   company: string;
@@ -32,18 +31,21 @@ const getStatusBadgeClass = (status: string) => {
   return "bg-blue-50 text-indigo-700 border-blue-200";
 };
 
-export default function RecentApplications({ 
-  onOpenApplication 
-}: { 
-  onOpenApplication: (app: Application) => void 
+export default function RecentApplications({
+  onOpenApplication,
+  demoApps,
+}: {
+  onOpenApplication: (app: Application) => void;
+  demoApps?: Application[];
 }) {
-  const [apps, setApps] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [apps, setApps] = useState<Application[]>(demoApps ? demoApps.slice(0, 4) : []);
+  const [loading, setLoading] = useState(!demoApps);
 
   useEffect(() => {
+    if (demoApps) return;
+
     async function fetchRecent() {
       setLoading(true);
-      // Haetaan kaikki kentät (*) jotta dialogi saa täydelliset tiedot
       const { data, error } = await supabase
         .from("applications")
         .select("*")
@@ -56,6 +58,7 @@ export default function RecentApplications({
       setLoading(false);
     }
     fetchRecent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
@@ -89,7 +92,7 @@ export default function RecentApplications({
             apps.map((app) => (
               <button
                 key={app.id}
-                onClick={() => onOpenApplication(app)} // Välittää koko objektin dialogille
+                onClick={() => onOpenApplication(app)}
                 className="w-full flex items-center justify-between py-2 border-b border-slate-50 last:border-0 group transition-all hover:bg-slate-50 rounded-lg -mx-2 px-2 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">

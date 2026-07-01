@@ -11,12 +11,18 @@ type DeadlineApp = {
   valid_through: string;
 };
 
-export default function UpcomingDeadlines() {
-  const [apps, setApps] = useState<DeadlineApp[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function UpcomingDeadlines({
+  demoApps,
+}: {
+  demoApps?: DeadlineApp[];
+}) {
+  const [apps, setApps] = useState<DeadlineApp[]>(demoApps ? demoApps.slice(0, 4) : []);
+  const [loading, setLoading] = useState(!demoApps);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    if (demoApps) return;
+
     async function fetchDeadlines() {
       try {
         setErrorMsg(null);
@@ -28,7 +34,7 @@ export default function UpcomingDeadlines() {
           .not("valid_through", "is", null)
           .gte("valid_through", today)
           .order("valid_through", { ascending: true })
-          .limit(4); // Muutettu 4 kohdetta symmetrian vuoksi
+          .limit(4);
 
         if (error) {
           console.error("Supabase-virhe määräajoissa:", error);
@@ -44,16 +50,13 @@ export default function UpcomingDeadlines() {
       }
     }
     fetchDeadlines();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("fi-FI", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    });
+    return d.toLocaleDateString("fi-FI", { day: "numeric", month: "numeric", year: "numeric" });
   };
 
   if (loading) {
@@ -93,12 +96,8 @@ export default function UpcomingDeadlines() {
         <div className="mt-4 flex flex-col">
           {apps.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-12">
-              <p className="text-sm text-slate-400 font-medium">
-                Ei lähestyviä määräaikoja.
-              </p>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Kaikki hallinnassa! ☕
-              </p>
+              <p className="text-sm text-slate-400 font-medium">Ei lähestyviä määräaikoja.</p>
+              <p className="text-xs text-slate-300 mt-0.5">Kaikki hallinnassa! ☕</p>
             </div>
           ) : (
             apps.map((app) => (
@@ -106,7 +105,6 @@ export default function UpcomingDeadlines() {
                 key={app.id}
                 className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0 group"
               >
-                {/* Vasen puoli: Ikonilaatikko + Tekstit */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0 text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
                     <Building2 size={16} />
@@ -121,7 +119,6 @@ export default function UpcomingDeadlines() {
                   </div>
                 </div>
 
-                {/* Oikea puoli: Päivämääräbadge */}
                 <div className="flex items-center gap-1.5 flex-shrink-0 text-amber-600 bg-amber-50/50 border border-amber-100 px-2 py-1 rounded-lg">
                   <Clock size={12} />
                   <span className="text-xs font-bold tracking-tight">

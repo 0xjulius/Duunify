@@ -4,15 +4,12 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { AlertCircle } from "lucide-react";
 
-type DayCell = {
-  dateString: string;
-  count: number;
-  monthLabel: string | null;
-};
+type DayCell = { dateString: string; count: number; monthLabel: string | null };
+type Application = { created_at: string };
 
 const FINNISH_MONTHS = [
   "Tammi", "Helmi", "Maalis", "Huhti", "Touko", "Kesä",
-  "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu"
+  "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu",
 ];
 
 const getColorClass = (count: number) => {
@@ -26,15 +23,75 @@ const getColorClass = (count: number) => {
   return "bg-indigo-700";
 };
 
-export default function ActivityHeatmap() {
-  const [cells, setCells] = useState<DayCell[]>([]);
-  const [totalActivities, setTotalActivities] = useState(0);
-  const [loading, setLoading] = useState(true);
+function calculate(applications: Application[]) {
+  const now = new Date();
+  const currentDay = now.getDay();
+  const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - daysSinceMonday);
+
+  const startDate = new Date(startOfWeek);
+  startDate.setDate(startOfWeek.getDate() - 12 * 7);
+  startDate.setHours(0, 0, 0, 0);
+
+  const dateCounts: Record<string, number> = {};
+  let total = 0;
+
+  applications.forEach((app) => {
+    if (!app.created_at) return;
+    const dateKey = app.created_at.split("T")[0];
+    dateCounts[dateKey] = (dateCounts[dateKey] || 0) + 1;
+    total++;
+  });
+
+  const generatedCells: DayCell[] = [];
+  const tempDate = new Date(startDate);
+  const monthsTracker: Record<string, number> = {};
+
+  for (let i = 0; i < 13 * 7; i++) {
+    const dateString = tempDate.toISOString().split("T")[0];
+    const count = dateCounts[dateString] || 0;
+    const monthName = FINNISH_MONTHS[tempDate.getMonth()];
+
+    let monthLabel = null;
+    const weekIndex = Math.floor(i / 7);
+
+    if (!monthsTracker[monthName]) {
+      monthsTracker[monthName] = weekIndex;
+      monthLabel = monthName;
+    }
+
+    generatedCells.push({ dateString, count, monthLabel });
+    tempDate.setDate(tempDate.getDate() + 1);
+  }
+
+  const extractedMonths = Object.entries(monthsTracker)
+    .map(([label, index]) => ({ label, index }))
+    .sort((a, b) => a.index - b.index);
+
+  return { cells: generatedCells, months: extractedMonths, total };
+}
+
+export default function ActivityHeatmap({
+  demoApplications,
+}: {
+  demoApplications?: Application[];
+}) {
+  const initial = demoApplications ? calculate(demoApplications) : null;
+
+  const [cells, setCells] = useState<DayCell[]>(initial?.cells || []);
+  const [totalActivities, setTotalActivities] = useState(initial?.total || 0);
+  const [loading, setLoading] = useState(!demoApplications);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [uniqueMonths, setUniqueMonths] = useState<{ label: string; index: number }[]>([]);
+  const [uniqueMonths, setUniqueMonths] = useState<{ label: string; index: number }[]>(
+    initial?.months || []
+  );
 
   useEffect(() => {
+    if (demoApplications) return;
     fetchActivityData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchActivityData() {
@@ -45,10 +102,8 @@ export default function ActivityHeatmap() {
       const now = new Date();
       const currentDay = now.getDay();
       const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
-      
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - daysSinceMonday);
-
       const startDate = new Date(startOfWeek);
       startDate.setDate(startOfWeek.getDate() - 12 * 7);
       startDate.setHours(0, 0, 0, 0);
@@ -64,51 +119,10 @@ export default function ActivityHeatmap() {
         return;
       }
 
-      const dateCounts: Record<string, number> = {};
-      let total = 0;
-
-      applications?.forEach((app) => {
-        if (!app.created_at) return;
-        const dateKey = app.created_at.split("T")[0];
-        dateCounts[dateKey] = (dateCounts[dateKey] || 0) + 1;
-        total++;
-      });
-
+      const { cells, months, total } = calculate(applications || []);
+      setCells(cells);
+      setUniqueMonths(months);
       setTotalActivities(total);
-
-      const generatedCells: DayCell[] = [];
-      const tempDate = new Date(startDate);
-      const monthsTracker: Record<string, number> = {};
-
-      for (let i = 0; i < 13 * 7; i++) {
-        const dateString = tempDate.toISOString().split("T")[0];
-        const count = dateCounts[dateString] || 0;
-        const monthName = FINNISH_MONTHS[tempDate.getMonth()];
-
-        let monthLabel = null;
-        const weekIndex = Math.floor(i / 7);
-        
-        if (!monthsTracker[monthName]) {
-          monthsTracker[monthName] = weekIndex;
-          monthLabel = monthName;
-        }
-
-        generatedCells.push({
-          dateString,
-          count,
-          monthLabel
-        });
-
-        tempDate.setDate(tempDate.getDate() + 1);
-      }
-
-      const extractedMonths = Object.entries(monthsTracker).map(([label, index]) => ({
-        label,
-        index
-      })).sort((a, b) => a.index - b.index);
-
-      setUniqueMonths(extractedMonths);
-      setCells(generatedCells);
     } catch (err) {
       console.error("Yllättävä virhe kalenterissa:", err);
       setErrorMsg("Yhteysvirhe kalenteridataa haettaessa.");
@@ -143,23 +157,14 @@ export default function ActivityHeatmap() {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between select-none">
-      
-      {/* Otsikko */}
-      <h3 className="text-lg font-bold text-slate-900">
-        Aktiivisuus
-      </h3>
+      <h3 className="text-lg font-bold text-slate-900">Aktiivisuus</h3>
 
-      {/* Kalenterialue (Keskittää sisällön täydellisesti) */}
       <div className="flex flex-col items-center justify-center w-full flex-1 my-auto">
-        
-        {/* KORJAUS: Tämä w-fit pakottaa kuvaajan, kuukaudet ja legendan samaan nippuun keskelle */}
         <div className="w-fit flex flex-col">
-          
-          {/* Kuukausien otsikkorivi */}
           <div className="relative w-full h-5 flex flex-row text-xs font-semibold text-slate-400 pl-8 mb-1">
             {uniqueMonths.map((m, idx) => (
-              <span 
-                key={idx} 
+              <span
+                key={idx}
                 className="absolute transition-all"
                 style={{ left: `${2 + m.index * 17.5}px` }}
               >
@@ -168,17 +173,13 @@ export default function ActivityHeatmap() {
             ))}
           </div>
 
-          {/* Viikonpäivät + Grid rinnakkain */}
           <div className="flex flex-row items-start gap-2">
-            
-            {/* Päiväindikaattorit vasemmassa reunassa (Ma, Ke, Pe) */}
             <div className="flex flex-col justify-between text-[11px] font-bold text-slate-400 h-[116px] pr-1 pt-[2px]">
               <span>Ma</span>
               <span>Ke</span>
               <span>Pe</span>
             </div>
 
-            {/* GitHub-tyylinen Grid */}
             <div className="grid grid-flow-col grid-rows-7 gap-[3px] h-[116px]">
               {cells.map((cell, idx) => (
                 <div
@@ -188,10 +189,8 @@ export default function ActivityHeatmap() {
                 />
               ))}
             </div>
-
           </div>
 
-          {/* Alareunan legenda (Vähemmän -> Enemmän) */}
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 pl-8 mt-4 self-start">
             <span>Vähemmän</span>
             <div className="flex gap-[3px]">
@@ -206,15 +205,12 @@ export default function ActivityHeatmap() {
             </div>
             <span>Enemmän</span>
           </div>
-
         </div>
       </div>
 
-      {/* Alatunniste kokonaismäärällä */}
       <p className="text-sm font-medium text-slate-500">
         Yhteensä <span className="font-bold text-slate-800">{totalActivities}</span> aktiviteettia
       </p>
-
     </div>
   );
 }

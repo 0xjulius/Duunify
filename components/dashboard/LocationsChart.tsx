@@ -5,10 +5,8 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { MapPin, ArrowRight } from "lucide-react";
 
-// Ladataan kartta dynaamisesti SSR-yhteensopivuuden vuoksi
 const Map = dynamic(() => import("./MapComponent"), { ssr: false });
 
-// Apufunktio koordinaattien hakuun
 const getCoords = (city: string): [number, number] => {
   const locations: Record<string, [number, number]> = {
     "tampere": [61.4978, 23.7610],
@@ -40,9 +38,15 @@ const LocationsSkeleton = () => (
   </div>
 );
 
-export default function LocationsCard() {
-  const [stats, setStats] = useState<{ name: string; count: number }[]>([]);
-  const [loading, setLoading] = useState(true);
+type LocationStat = { name: string; count: number };
+
+export default function LocationsCard({
+  demoData,
+}: {
+  demoData?: LocationStat[];
+}) {
+  const [stats, setStats] = useState<LocationStat[]>(demoData || []);
+  const [loading, setLoading] = useState(!demoData);
   const [showModal, setShowModal] = useState(false);
 
   async function fetchStats() {
@@ -66,6 +70,9 @@ export default function LocationsCard() {
   }
 
   useEffect(() => {
+    // Demo-tilassa data tulee valmiina propsina — ei fetchia eikä realtime-tilausta.
+    if (demoData) return;
+
     fetchStats();
     const channel = supabase
       .channel("schema-db-changes")
@@ -75,6 +82,7 @@ export default function LocationsCard() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const mapMarkers = stats.map((s) => ({
@@ -92,7 +100,7 @@ export default function LocationsCard() {
         <div className="max-w-30 lg:max-w-40 shrink-0 mt-4">
           <img src="/fi.svg" alt="Suomen kartta" className="w-full h-auto object-contain" />
         </div>
-        
+
         <div className="flex-1 overflow-y-auto py-4 space-y-3">
           {stats.length > 0 ? (
             stats.map((loc, i) => (
@@ -112,7 +120,7 @@ export default function LocationsCard() {
         </div>
       </div>
 
-      <button 
+      <button
         onClick={() => setShowModal(true)}
         className="mt-2 py-2 px-4 max-w-40 border rounded-2xl border-slate-300 text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors"
       >
@@ -122,8 +130,8 @@ export default function LocationsCard() {
       {showModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white p-2 rounded-2xl w-full max-w-2xl h-[500px] relative shadow-2xl">
-            <button 
-              onClick={() => setShowModal(false)} 
+            <button
+              onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 z-[1000] bg-white px-3 py-1.5 rounded-lg shadow text-xs font-bold hover:bg-slate-50 transition-all"
             >
               Sulje

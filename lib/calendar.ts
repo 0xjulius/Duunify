@@ -10,6 +10,8 @@ export interface UnifiedEvent {
   date: Date;
   time: string | null;
   applicationId: string | null;
+  notes: string | null;
+  completed: boolean;
   editable: boolean; // false = johdettu hakemuksen valid_through-kentästä
 }
 
@@ -36,7 +38,7 @@ export async function fetchApplicationsLite(): Promise<ApplicationLite[]> {
 export async function fetchCalendarEvents() {
   const { data, error } = await supabase
     .from("calendar_events")
-    .select("id, type, title, event_date, event_time, notes, application_id");
+    .select("id, type, title, event_date, event_time, notes, application_id, completed");
 
   if (error) {
     console.error("Virhe haettaessa tapahtumia:", error);
@@ -47,7 +49,7 @@ export async function fetchCalendarEvents() {
 
 export function buildUnifiedEvents(
   applications: ApplicationLite[],
-  customEvents: Awaited<ReturnType<typeof fetchCalendarEvents>>,
+  customEvents: Awaited<ReturnType<typeof fetchCalendarEvents>>
 ): UnifiedEvent[] {
   const deadlineEvents: UnifiedEvent[] = applications
     .filter((a) => a.valid_through && a.status !== "Hylätty")
@@ -59,6 +61,8 @@ export function buildUnifiedEvents(
       date: new Date(a.valid_through as string),
       time: null,
       applicationId: a.id,
+      notes: null,
+      completed: false,
       editable: false,
     }));
 
@@ -72,12 +76,14 @@ export function buildUnifiedEvents(
       date: new Date(`${e.event_date}T${e.event_time || "00:00"}`),
       time: e.event_time,
       applicationId: e.application_id,
+      notes: e.notes,
+      completed: !!e.completed,
       editable: true,
     };
   });
 
   return [...deadlineEvents, ...custom].sort(
-    (a, b) => a.date.getTime() - b.date.getTime(),
+    (a, b) => a.date.getTime() - b.date.getTime()
   );
 }
 
@@ -105,10 +111,11 @@ export async function deleteCalendarEvent(id: string) {
   return supabase.from("calendar_events").delete().eq("id", id);
 }
 
-export const EVENT_COLORS: Record<
-  CalendarEventType,
-  { bg: string; text: string; dot: string }
-> = {
+export async function toggleCalendarEventCompleted(id: string, completed: boolean) {
+  return supabase.from("calendar_events").update({ completed }).eq("id", id);
+}
+
+export const EVENT_COLORS: Record<CalendarEventType, { bg: string; text: string; dot: string }> = {
   deadline: { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B" },
   interview: { bg: "#EEF2FF", text: "#3730A3", dot: "#6D67F2" },
   reminder: { bg: "#ECFDF5", text: "#065F46", dot: "#10B981" },
