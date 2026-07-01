@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
