@@ -49,6 +49,8 @@ export default function LoginModal({ isOpen, onClose }) {
         data: {
           full_name: fullName,
         },
+        // Tämä ohjaa käyttäjän vahvistuksen jälkeen suoraan dashboardille
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
@@ -202,9 +204,9 @@ export default function LoginModal({ isOpen, onClose }) {
                     onChange={setPassword}
                   />
                   <PrimaryButton
-                      label="Luo tunnus"
-                      onClick={register}
-                      loading={loading}
+                    label="Luo tunnus"
+                    onClick={register}
+                    loading={loading}
                   />
                 </form>
                 <SwitchLine

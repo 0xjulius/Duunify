@@ -87,7 +87,7 @@ export default function ApplicationsChart({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
       <div>
-        <h3 className="text-lg font-bold text-slate-900">Hakemukset tilan mukaan</h3>
+        <h3 className="text-lg font-bold text-slate-900">Työnhaku tilan mukaan</h3>
         <p className="text-xs text-slate-500 mt-0.5">Tallennetut ja aktiiviset prosessit.</p>
       </div>
 

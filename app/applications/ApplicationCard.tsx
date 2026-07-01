@@ -284,6 +284,15 @@ export default function ApplicationCard({
     job_url: app.job_url || "",
   });
 
+  const getSourceFromUrl = (urlStr: string) => {
+    try {
+      const hostname = new URL(urlStr).hostname.toLowerCase();
+      return hostname.replace("www.", "");
+    } catch {
+      return "Linkki";
+    }
+  };
+
   async function deleteApplication() {
     if (!confirmDelete) {
       setConfirmDelete(true);
@@ -680,6 +689,11 @@ export default function ApplicationCard({
               </svg>
             </button>
           )}
+
+            <div className="absolute bottom-5 left-5">
+            <p className="text-[12px] text-slate-400 pointer-none">{app.job_url ? getSourceFromUrl(app.job_url) : "Ei saatavilla"}
+            </p>
+            </div>
 
           <div className="absolute bottom-5 right-5">
             <button

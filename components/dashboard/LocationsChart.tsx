@@ -9,16 +9,16 @@ const Map = dynamic(() => import("./MapComponent"), { ssr: false });
 
 const getCoords = (city: string): [number, number] => {
   const locations: Record<string, [number, number]> = {
-    "tampere": [61.4978, 23.7610],
-    "helsinki": [60.1699, 24.9384],
-    "vantaa": [60.2934, 25.0378],
-    "espoo": [60.2054, 24.6559],
-    "turku": [60.4515, 22.2666],
-    "oulu": [65.0121, 25.4650],
-    "vaasa": [63.0950, 21.6166],
-    "jyväskylä": [62.2415, 25.7209],
-    "kuopio": [62.8924, 27.6777],
-    "lahti": [60.9827, 25.6612],
+    tampere: [61.4978, 23.761],
+    helsinki: [60.1699, 24.9384],
+    vantaa: [60.2934, 25.0378],
+    espoo: [60.2054, 24.6559],
+    turku: [60.4515, 22.2666],
+    oulu: [65.0121, 25.465],
+    vaasa: [63.095, 21.6166],
+    jyväskylä: [62.2415, 25.7209],
+    kuopio: [62.8924, 27.6777],
+    lahti: [60.9827, 25.6612],
   };
   return locations[city.toLowerCase()] || [64.9121, 26.5912];
 };
@@ -54,9 +54,23 @@ export default function LocationsCard({
       const { data } = await supabase.from("applications").select("location");
       if (data) {
         const counts: Record<string, number> = {};
+
         data.forEach((d) => {
-          if (d.location) counts[d.location] = (counts[d.location] || 0) + 1;
+          if (d.location) {
+            // 1. Pilkotaan merkkijono pilkun kohdalta (esim. "Tampere, Helsinki" -> ["Tampere", " Helsinki"])
+            // 2. .map(c => c.trim()) poistaa turhat välilyönnit ympäriltä
+            const cities = d.location.split(",").map((c: string) => c.trim());
+
+            // Lisätään jokainen kaupunki tilastoihin erikseen
+            cities.forEach((city) => {
+              if (city) {
+                // Varmistetaan ettei ole tyhjä merkkijono
+                counts[city] = (counts[city] || 0) + 1;
+              }
+            });
+          }
         });
+
         const sorted = Object.entries(counts)
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => b.count - a.count);
@@ -76,12 +90,18 @@ export default function LocationsCard({
     fetchStats();
     const channel = supabase
       .channel("schema-db-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "applications" }, () => {
-        fetchStats();
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "applications" },
+        () => {
+          fetchStats();
+        },
+      )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -95,18 +115,25 @@ export default function LocationsCard({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
-      <h3 className="text-lg font-bold text-slate-900">Sijainnit</h3>
+      <h3 className="text-lg font-bold text-slate-900">Työmahdollisuudet</h3>
       <div className="flex items-start gap-4 flex-1 overflow-hidden">
         <div className="max-w-30 lg:max-w-40 shrink-0 mt-4">
-          <img src="/fi.svg" alt="Suomen kartta" className="w-full h-auto object-contain" />
+          <img
+            src="/fi.svg"
+            alt="Suomen kartta"
+            className="w-full h-auto object-contain"
+          />
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto h-full pr-2 py-2 space-y-3 scrollbar-thin scrollbar-thumb-slate-200">
           {stats.length > 0 ? (
             stats.map((loc, i) => (
               <div key={i} className="flex items-center justify-between group">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <MapPin size={14} className="text-indigo-400 group-hover:text-indigo-600 transition-colors" />
+                  <MapPin
+                    size={14}
+                    className="text-indigo-400 group-hover:text-indigo-600 transition-colors"
+                  />
                   <span className="truncate max-w-[140px]">{loc.name}</span>
                 </div>
                 <span className="text-xs font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">

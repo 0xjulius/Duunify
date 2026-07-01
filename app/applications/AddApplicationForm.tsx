@@ -97,6 +97,8 @@ export default function AddApplicationForm({
         "www.duunitori.fi",
         "tyomarkkinatori.fi",
         "www.tyomarkkinatori.fi",
+        "jobly.fi",
+        "www.jobly.fi",
       ];
 
       if (!allowed.includes(parsed.hostname)) {
@@ -176,8 +178,8 @@ export default function AddApplicationForm({
       return;
     }
 
-    if (location.length > 30) {
-      toast.error("Sijainti-kenttä liian pitkä, max 30 merkkiä");
+    if (location.length > 60) {
+      toast.error("Sijainti-kenttä liian pitkä, max 60 merkkiä");
       setLoading(false);
       return;
     }

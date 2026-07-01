@@ -3,10 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 
+type RouteParams = {
+  params: Promise<{ id: string }>;
+};
+
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: RouteParams
 ) {
+  // Puretaan params asynkronisesti Next.js 15 -tyylillä
+  const { id } = await props.params;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,7 +33,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (user.id === params.id) {
+  // Käytetään purettua id-muuttujaa params.id sijaan
+  if (user.id === id) {
     return NextResponse.json(
       { error: "Et voi poistaa omaa tunnustasi." },
       { status: 400 }
@@ -34,7 +42,7 @@ export async function DELETE(
   }
 
   const admin = createAdminClient();
-  const { error } = await admin.auth.admin.deleteUser(params.id);
+  const { error } = await admin.auth.admin.deleteUser(id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

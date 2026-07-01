@@ -33,7 +33,7 @@ export default function MapComponent({ markers }: { markers: MapMarker[] }) {
       
       {markers.map((m, i) => (
         <Marker key={i} position={m.position} icon={icon}>
-          <Popup>{m.name}: {m.count} hakemusta</Popup>
+          <Popup>{m.name}: {m.count} työmahdollisuutta</Popup>
         </Marker>
       ))}
     </MapContainer>

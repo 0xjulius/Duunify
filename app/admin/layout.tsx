@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/admin";
+import { requireAdmin } from "@/lib/supabase-admin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default async function AdminLayout({
