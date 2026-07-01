@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation"; // LISÄTTY: Tuonti searchParamsia varten
-import { toast } from "sonner"; // LISÄTTY: Toast-tuonti (vaihda 'react-hot-toast' jos käytössä)
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -34,60 +32,6 @@ import {
   ListSkeleton,
 } from "@/components/ui/skeletons";
 
-// ==========================================
-// ERILLINEN KOMPONENTTI TERVETULOVIESITILLE
-// ==========================================
-function WelcomeToastHandler() {
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // 1. Tarkistetaan onko kyseessä sähköpostivahvistuksen jälkeinen ohjaus.
-    const isSignupConfirmation =
-      searchParams?.get("type") === "signup" ||
-      window.location.hash.includes("type=signup");
-
-    if (isSignupConfirmation) {
-      // Näytetään tervetuloviesti
-      toast.success("Tervetuloa uusi käyttäjä! 👋", {
-        description: "Sähköpostisi on vahvistettu onnistuneesti.",
-        duration: 5000,
-      });
-
-      // Siivotaan URL-osoite, jotta toast ei laukea uudelleen sivun päivityksessä
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    } else {
-      // 2. Vaihtoehtoinen tapa: Tarkistetaan suoraan istunnon luontiaika
-      const checkNewUserBySession = async () => {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.user) {
-          const createdAt = new Date(session.user.created_at).getTime();
-          const now = new Date().getTime();
-
-          // Jos tili on luotu alle 2 minuuttia sitten ja tästä ei ole vielä merkintää
-          if (now - createdAt < 120000 && !sessionStorage.getItem("welcomed")) {
-            toast.success("Tervetuloa uusi käyttäjä! 👋", {
-              description: "Tili luotu ja sähköposti vahvistettu.",
-            });
-            sessionStorage.setItem("welcomed", "true");
-          }
-        }
-      };
-
-      checkNewUserBySession();
-    }
-  }, [searchParams]);
-
-  return null;
-}
-
-// ==========================================
-// PÄÄSIVU-KOMPONENTTI
-// ==========================================
 export default function DashboardPage() {
   const [stats, setStats] = useState({
     total: 0,
@@ -112,7 +56,7 @@ export default function DashboardPage() {
 
     const { data: applications, error } = await supabase
       .from("applications")
-      .select("status, created_at");
+      .select("status, created_at"); // Varmista, että haet myös created_at
 
     if (error) {
       console.error("Virhe tilastojen haussa:", error);
@@ -121,11 +65,15 @@ export default function DashboardPage() {
     }
 
     if (applications) {
+      const isFavorite = (status: string) =>
+        ["suosikki", "tallennettu"].includes(status?.toLowerCase().trim());
+
       // 1. Lasketaan kategoriat reduce-metodilla
       const statsData = applications.reduce(
         (acc, app) => {
           const s = app.status?.toLowerCase().trim() || "";
-          if (["suosikki", "tallennettu"].includes(s)) acc.favorites++;
+          if (["suosikki", "tallennettu"].includes(s))
+            acc.favorites++; // Lasketaan mukaan
           else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
           else if (["tarjous", "offer"].includes(s)) acc.offers++;
           else if (["hylätty", "hylätyt", "rejected"].includes(s))
@@ -150,7 +98,8 @@ export default function DashboardPage() {
         ),
       ).length;
 
-      // 3. Päivitetään active total (ilman suosikkeja)
+      // 3. Päivitetään state oikeilla arvoilla
+      // Nyt 'total' sisältää vain aktiiviset hakemukset (ei suosikkeja)
       const totalActive =
         statsData.pending +
         statsData.interviews +
@@ -175,10 +124,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-row min-h-screen bg-slate-100 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50">
-      <Suspense fallback={null}>
-        <WelcomeToastHandler />
-      </Suspense>
-
       <Sidebar />
       <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-10">
         <ApplicationDialog
@@ -214,7 +159,7 @@ export default function DashboardPage() {
                   <StatsSkeleton />
                 </div>
               </>
-            ) : (
+            ) : ( 
               <>
                 {/* Ylätaso: 2 korttia */}
                 <div className="md:col-span-6">
@@ -247,12 +192,14 @@ export default function DashboardPage() {
                     value={stats.favorites}
                     subtitle={
                       <span className="flex items-center gap-2">
-                        {stats.pending > 0 ? `` : ""}
+                        {stats.pending > 0
+                          ? ``
+                          : ""}
                         <Link
                           href="/favorites"
                           className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:underline font-medium"
                         >
-                          Katso suosikit <ArrowRight className="h-3 w-3" />
+                          Katso suosikit <ArrowRight className="h-3 w-3"/>
                         </Link>
                       </span>
                     }
@@ -379,10 +326,10 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
-        <LoginModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-        />
+        <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+      />
       </main>
     </div>
   );

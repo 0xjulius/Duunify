@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // LISÄTTY
 import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
 import { Bookmark, Filter, Clock, Search } from "lucide-react";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
 import { Dialog, DialogContent, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
-import AddApplicationForm from "@/app/applications/AddApplicationForm"; // Tarkista polku
+import AddApplicationForm from "@/app/applications/AddApplicationForm";
 
 type FavoriteJob = {
   id: string;
@@ -24,6 +25,7 @@ type FavoriteJob = {
 };
 
 export default function SavedJobsPage() {
+  const router = useRouter(); // LISÄTTY
   const [activeTab, setActiveTab] = useState("Kaikki");
   const [jobs, setJobs] = useState<FavoriteJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +43,27 @@ export default function SavedJobsPage() {
   useEffect(() => {
     async function fetchFavorites() {
       setLoading(true);
+      
+      // 1. TARKISTUS: Haetaan istunto asiakaspuolella
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // Jos istuntoa ei jostain syystä ole, varmistetaan suojaus heittämällä ulos
+        router.push("/login");
+        return;
+      }
+
+      // 2. TURVALLINEN HAKU: Suodatetaan user_id:n mukaan
       const { data, error } = await supabase
         .from("applications")
         .select("*")
+        .eq("user_id", session.user.id) // KORJAUS: Haetaan vain tämän käyttäjän omat!
         .eq("status", "Tallennettu")
         .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Virhe suosikkien haussa:", error);
+      }
 
       if (!error && data) {
         const today = new Date().getTime();
@@ -62,8 +80,9 @@ export default function SavedJobsPage() {
       }
       setLoading(false);
     }
+    
     fetchFavorites();
-  }, []);
+  }, [router]);
 
   // Dynaamiset tilastot
   const expiringSoon = jobs.filter(

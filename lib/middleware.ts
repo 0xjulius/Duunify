@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // Luodaan pohja-response vain kerran
+  const response = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,19 +14,21 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name, value, options) {
+          // Päivitetään pyyntö (jotta seuraavat koodit näkevät evästeen)
           request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({ request });
+          // KORJAUS: Päivitetään suoraan olemassa oleva response luomatta uutta oliota
           response.cookies.set({ name, value, ...options });
         },
         remove(name, options) {
           request.cookies.set({ name, value: "", ...options });
-          response = NextResponse.next({ request });
+          // KORJAUS: Päivitetään suoraan olemassa oleva response luomatta uutta oliota
           response.cookies.set({ name, value: "", ...options });
         },
       },
     }
   );
 
+  // getUser() on täydellinen ja turvallinen valinta tässä!
   const {
     data: { user },
   } = await supabase.auth.getUser();

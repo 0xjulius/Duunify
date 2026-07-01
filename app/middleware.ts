@@ -8,19 +8,31 @@ const PROTECTED_PREFIXES = [
 const ADMIN_PREFIX = "/admin";
 
 export async function middleware(request: NextRequest) {
-  const { response, user } = await updateSession(request);
+  // 1. Päivitetään istunto ja otetaan talteen pohja-response evästeineen
+  const { response: sessionResponse, user } = await updateSession(request);
 
   const isProtected = PROTECTED_PREFIXES.some((p) =>
     request.nextUrl.pathname.startsWith(p)
   );
   const isAdminRoute = request.nextUrl.pathname.startsWith(ADMIN_PREFIX);
 
+  // KORJAUS 1: Suojatut sivut, kun käyttäjä EI ole kirjautunut
   if ((isProtected || isAdminRoute) && !user) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
+    
+    // Luodaan redirect-vastaus
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    
+    // Kopioidaan Supabasen päivittämät evästeet redirectiin, jotta istunto ei korruptoidu
+    sessionResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options);
+    });
+    
+    return redirectResponse;
   }
 
+  // Admin-reitin tarkistus
   if (isAdminRoute && user) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,12 +52,20 @@ export async function middleware(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
+    // KORJAUS 2: Jos ei ole admin, ohjataan dashboardille evästeet säilyttäen
     if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      const dashboardRedirect = NextResponse.redirect(new URL("/dashboard", request.url));
+      
+      sessionResponse.cookies.getAll().forEach((cookie) => {
+        dashboardRedirect.cookies.set(cookie.name, cookie.value, cookie.options);
+      });
+      
+      return dashboardRedirect;
     }
   }
 
-  return response;
+  // KORJAUS 3: Palautetaan updateSessionista saatu response, jossa on tuoreimmat evästeet mukana
+  return sessionResponse;
 }
 
 export const config = {
