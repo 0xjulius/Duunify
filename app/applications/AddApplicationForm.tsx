@@ -27,19 +27,19 @@ export default function AddApplicationForm({
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-  supabase.auth.getUser().then(({ data }) => {
-    setUser(data.user);
-  });
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
 
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    setUser(session?.user ?? null);
-  });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-  return () => subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
-  
+
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
@@ -249,7 +249,7 @@ export default function AddApplicationForm({
         status === "Tallennettu"
           ? "Hakemus tallennettu luonnokseksi"
           : "Hakemus lähetetty",
-        null,
+        undefined,
         status,
       );
     }
