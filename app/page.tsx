@@ -116,7 +116,7 @@ export default function LandingPage() {
           <p className="mt-5 text-md text-slate-400 mb-8">
             Ei luottokorttia. Ei sitoutumista.
           </p>
-                    <Link
+          <Link
             href="/demo"
             className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 hover:shadow-md"
           >
@@ -233,7 +233,11 @@ export default function LandingPage() {
       {/* FOOTER */}
       <Footer />
 
-      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => setShowLoginModal(false)}
+      />
     </div>
   );
 }
