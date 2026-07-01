@@ -9,6 +9,7 @@ import {
   Star,
   ArrowRight,
   CheckCircle2,
+  PlayCircle,
 } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
@@ -54,7 +55,9 @@ export default function LandingPage() {
             <button
               onClick={() => setShowLogin(true)}
               className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+              style={{
+                background: "linear-gradient(135deg, #6D67F2, #5750E0)",
+              }}
             >
               Aloita ilmaiseksi
             </button>
@@ -86,19 +89,22 @@ export default function LandingPage() {
 
           <p className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
             Lopeta hakemusten seuraaminen Excelissä. Tallenna, järjestä ja
-            muistuta itseäsi jokaisesta hakemuksesta — automaattisella
-            tietojen haulla suoraan työpaikkailmoituksesta.
+            muistuta itseäsi jokaisesta hakemuksesta — automaattisella tietojen
+            haulla suoraan työpaikkailmoituksesta.
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setShowLogin(true)}
               className="w-full sm:w-auto flex items-center justify-center gap-2 text-white font-bold px-7 py-3.5 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+              style={{
+                background: "linear-gradient(135deg, #6D67F2, #5750E0)",
+              }}
             >
               Aloita ilmaiseksi
               <ArrowRight size={18} />
             </button>
+
             <button
               onClick={() => setShowLogin(true)}
               className="w-full sm:w-auto font-semibold text-slate-700 px-7 py-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 transition"
@@ -107,9 +113,19 @@ export default function LandingPage() {
             </button>
           </div>
 
-          <p className="mt-5 text-xs text-slate-400">
+          <p className="mt-5 text-md text-slate-400 mb-8">
             Ei luottokorttia. Ei sitoutumista.
           </p>
+                    <Link
+            href="/demo"
+            className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 hover:shadow-md"
+          >
+            <PlayCircle
+              size={24}
+              className="text-violet-600 group-hover:scale-110 transition-transform"
+            />
+            Katso demo-versiota!
+          </Link>
         </div>
       </section>
 
@@ -151,7 +167,10 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="miten-toimii" className="duunify-modal py-20 md:py-28 bg-slate-50">
+      <section
+        id="miten-toimii"
+        className="duunify-modal py-20 md:py-28 bg-slate-50"
+      >
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
@@ -186,7 +205,8 @@ export default function LandingPage() {
             Valmis järjestämään työnhakusi?
           </h2>
           <p className="mt-4 text-slate-500">
-            Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa haltuun.
+            Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa
+            haltuun.
           </p>
           <button
             onClick={() => setShowLogin(true)}

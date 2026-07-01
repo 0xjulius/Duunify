@@ -188,3 +188,17 @@ h6 {
 .duunify-toast[data-type="loading"] [data-icon] svg {
   color: #6d67f2;
 }
+
+.duunify-gradient {
+  background: linear-gradient(135deg, 
+    #f8fafc 0%, 
+    #f0e9ff 40%, 
+    #e0d4ff 70%, 
+    #f3e8ff 100%);
+  background-size: 200% 200%;
+  transition: background-position 0.6s ease;
+}
+
+.duunify-gradient:hover {
+  background-position: 100% 100%;
+}

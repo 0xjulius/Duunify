@@ -10,12 +10,13 @@ export default function DemoBanner() {
       <div className="flex items-center gap-2 text-sm font-medium">
         <Sparkles size={16} />
         Katselet esikatselua esimerkkidatalla. Tiedot eivät tallennu.
-      </div>
+          </div>
+          
       <Link
         href="/"
         className="text-xs font-bold bg-white text-[#5750E0] px-3 py-1.5 rounded-lg shrink-0 hover:bg-indigo-50 transition"
       >
-        Luo oma tili
+        Palaa etusivulle
       </Link>
     </div>
   );
