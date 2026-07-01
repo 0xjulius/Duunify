@@ -278,6 +278,14 @@ function BrandPanel({
   tagline,
   footer,
   className = "",
+}: {
+  side: string;
+  serial: string;
+  eyebrow: string;
+  heading: string;
+  tagline: string;
+  footer: React.ReactNode; // ReactNode hyväksyy esim. <Quote /> komponentin
+  className?: string;     // Kysymysmerkki tarkoittaa, että tämä on valinnainen
 }) {
   return (
     <div
