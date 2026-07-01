@@ -8,7 +8,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Link as LinkIcon, FileText, X, Clock } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Link as LinkIcon,
+  FileText,
+  X,
+  Clock,
+} from "lucide-react";
 
 // Määritellään Application-tyyppi, jotta "any" poistuu
 type ApplicationData = {
@@ -27,7 +34,7 @@ type ApplicationData = {
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  application: any;
+  app: any;
 };
 
 export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
@@ -77,9 +84,7 @@ export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
                     {new Date(app.applied_date).toLocaleDateString("fi-FI")}
                   </span>
                 )}
-
               </div>
-
             </div>
 
             {app.job_url && (
@@ -92,17 +97,15 @@ export default function ApplicationDialog({ open, onOpenChange, app }: Props) {
                 <LinkIcon size={16} /> Avaa työpaikkailmoitus
               </a>
             )}
-                                          {app.valid_through && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500 mt-2">
-                    <Clock size={16} />
-                    <span>
-                      Päättyy:{" "}
-                      {new Date(app.valid_through).toLocaleDateString(
-                        "fi-FI",
-                      )}
-                    </span>
-                  </div>
-                )}
+            {app.valid_through && (
+              <div className="flex items-center gap-2 text-sm text-slate-500 mt-2">
+                <Clock size={16} />
+                <span>
+                  Päättyy:{" "}
+                  {new Date(app.valid_through).toLocaleDateString("fi-FI")}
+                </span>
+              </div>
+            )}
 
             <div className="space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
