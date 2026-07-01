@@ -265,7 +265,8 @@ function SidebarItem({
   label: string;
   href: string;
   collapsed: boolean;
-}) {
+  }) {
+  
   const pathname = usePathname();
 
   const active =

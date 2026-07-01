@@ -1,24 +1,32 @@
+"use client";
+
+import Link from "next/link"; // 1. Tuodaan Next.js:n Link-komponentti
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full py-4">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-        
-        {/* Vasen puoli: Logo ja brändi */}
-        <div className="flex flex-col items-center md:items-start gap-1">
-          <h4 className="font-bold text-slate-900">Duunify</h4>
-          <p className="text-xs text-slate-500">
-            © {currentYear} Kaikki oikeudet pidätetään.
-          </p>
+    <footer className="duunify-modal border-t border-slate-100 py-10">
+      <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+        <div>
+          <span className="font-bold text-slate-900">Duunify</span>
+          <span className="ml-2">© {currentYear} Kaikki oikeudet pidätetään.</span>
         </div>
-
-        {/* Oikea puoli: Linkit */}
-        <nav className="flex gap-8 text-sm text-slate-600">
-          <a href="/tietosuoja" className="hover:text-indigo-600 transition-colors">Tietosuoja</a>
-          <a href="/kayttoehdot" className="hover:text-indigo-600 transition-colors">Käyttöehdot</a>
-          <a href="mailto:tuki@duunify.com" className="hover:text-indigo-600 transition-colors">Yhteystiedot</a>
-        </nav>
+        <div className="flex gap-6">
+          {/* 2. Muutettu <a> -> <Link> sisäiselle sivulle */}
+          <Link href="/privacy" className="hover:text-slate-900">
+            Tietosuoja
+          </Link>
+          
+          {/* Ankkurit (#) voivat jäädä tavallisiksi <a>-tageiksi */}
+          <Link href="/tos" className="hover:text-slate-900">
+            Käyttöehdot
+          </Link>
+          
+          <Link href="/contact" className="hover:text-slate-900">
+            Yhteystiedot
+          </Link>
+        </div>
       </div>
     </footer>
   );

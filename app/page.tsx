@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
+import Footer from "@/components/Footer";
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -210,25 +211,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="duunify-modal border-t border-slate-100 py-10">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-          <div>
-            <span className="font-bold text-slate-900">Duunify</span>
-            <span className="ml-2">© 2026 Kaikki oikeudet pidätetään.</span>
-          </div>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-900">
-              Tietosuoja
-            </a>
-            <a href="#" className="hover:text-slate-900">
-              Käyttöehdot
-            </a>
-            <a href="#" className="hover:text-slate-900">
-              Yhteystiedot
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </div>

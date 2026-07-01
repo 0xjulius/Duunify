@@ -159,7 +159,7 @@ export default function DashboardPage() {
                   <StatsSkeleton />
                 </div>
               </>
-            ) : (
+            ) : ( 
               <>
                 {/* Ylätaso: 2 korttia */}
                 <div className="md:col-span-6">
