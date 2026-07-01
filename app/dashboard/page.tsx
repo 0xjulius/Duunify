@@ -1,6 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic"; // LISÄTTY: Pakottaa Next.js:n ajamaan middlewaren joka pyynnöllä
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // LISÄTTY: Reititystä varten
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -33,6 +36,7 @@ import {
 } from "@/components/ui/skeletons";
 
 export default function DashboardPage() {
+  const router = useRouter(); // LISÄTTY
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -54,9 +58,19 @@ export default function DashboardPage() {
   async function fetchDashboardStats() {
     setLoading(true);
 
+    // 1. TARKISTUS: Haetaan istunto asiakaspuolella varmistukseksi
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    // 2. TURVALLINEN HAKU: Suodatetaan vain kirjautuneen käyttäjän omat hakemukset
     const { data: applications, error } = await supabase
       .from("applications")
-      .select("status, created_at"); // Varmista, että haet myös created_at
+      .select("status, created_at")
+      .eq("user_id", session.user.id); // KORJAUS: Ei enää palauteta muiden dataa!
 
     if (error) {
       console.error("Virhe tilastojen haussa:", error);
@@ -72,12 +86,10 @@ export default function DashboardPage() {
       const statsData = applications.reduce(
         (acc, app) => {
           const s = app.status?.toLowerCase().trim() || "";
-          if (["suosikki", "tallennettu"].includes(s))
-            acc.favorites++; // Lasketaan mukaan
+          if (["suosikki", "tallennettu"].includes(s)) acc.favorites++; 
           else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
           else if (["tarjous", "offer"].includes(s)) acc.offers++;
-          else if (["hylätty", "hylätyt", "rejected"].includes(s))
-            acc.rejected++;
+          else if (["hylätty", "hylätyt", "rejected"].includes(s)) acc.rejected++;
           else acc.pending++;
           return acc;
         },
@@ -99,7 +111,6 @@ export default function DashboardPage() {
       ).length;
 
       // 3. Päivitetään state oikeilla arvoilla
-      // Nyt 'total' sisältää vain aktiiviset hakemukset (ei suosikkeja)
       const totalActive =
         statsData.pending +
         statsData.interviews +
