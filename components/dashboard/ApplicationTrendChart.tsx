@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation"; // Lisätty istunnon ohjausta varten
 import {
   ResponsiveContainer,
   AreaChart,
@@ -69,6 +70,7 @@ export default function ApplicationTrendChart({
 }: {
   demoApplications?: Application[];
 }) {
+  const router = useRouter();
   const initial = demoApplications ? calculate(demoApplications) : null;
 
   const [data, setData] = useState<ChartRow[]>(initial?.chartData || []);
@@ -85,17 +87,31 @@ export default function ApplicationTrendChart({
   async function loadData() {
     setLoading(true);
 
+    // 1. Haetaan kirjautuneen käyttäjän istunto tietoturvaa varten
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      console.error("Ei voimassa olevaa istuntoa trendikomponentissa.");
+      setLoading(false);
+      router.push("/login");
+      return;
+    }
+
+    // Luodaan aloituspäivämäärä edelliselle jaksolle (60 päivää taaksepäin, jotta trendivertailu toimii)
     const baseDate = new Date();
     const startOfPreviousPeriod = subDays(baseDate, 59);
+    const formattedStartDate = format(startOfPreviousPeriod, "yyyy-MM-dd");
 
+    // 2. KORJAUKSET: Lisätty .eq("user_id") ja laajennettu haku 60 päivään (.gte muutos)
     const { data: applications, error } = await supabase
       .from("applications")
       .select("applied_date")
-      .gte("applied_date", format(subDays(new Date(), 30), "yyyy-MM-dd"))
+      .eq("user_id", session.user.id) // 🔥 TIETOTURVAKORJAUS
+      .gte("applied_date", formattedStartDate) // 🛠️ BUGIKORJAUS: Haetaan 60 päivää 30 päivän sijaan
       .order("applied_date");
 
     if (error) {
-      console.error(error);
+      console.error("Virhe ladattaessa trendidataa:", error);
       setLoading(false);
       return;
     }
@@ -107,7 +123,7 @@ export default function ApplicationTrendChart({
     setData(chartData);
     setTotalCount(currentTotal);
     setPercentageChange(percentageChange);
-    setLoading(false);
+    loading && setLoading(false);
   }
 
   if (loading) {
@@ -120,7 +136,7 @@ export default function ApplicationTrendChart({
       </div>
     );
   }
-
+  
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between h-[340px]">
       <div className="flex items-center justify-between">

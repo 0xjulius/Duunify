@@ -2,13 +2,25 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/middleware";
 import { createServerClient } from "@supabase/ssr";
 
+// Reitit, jotka vaativat tavallisen kirjautumisen
 const PROTECTED_PREFIXES = [
-  "/dashboard", "/applications", "/calendar", "/favorites", "/settings",
+  "/dashboard", 
+  "/applications", 
+  "/calendar", 
+  "/favorites", 
+  "/settings",
+  "/history"
 ];
+
+// Reitit, jotka vaativat admin-roolin
 const ADMIN_PREFIX = "/admin";
 
-export async function middleware(request: NextRequest) {
-  // 1. Päivitetään istunto ja otetaan talteen pohja-response evästeineen
+// KORJAUS: Funktion nimi on nyt "proxy" (aiemmin "middleware")
+export async function proxy(request: NextRequest) {
+  // Lokitus terminaaliin
+  //console.log("👉 PROXY AKTIIVINEN OSOITTEESSA:", request.nextUrl.pathname);
+  
+  // Päivitetään istunto ja haetaan tuoreet evästeet sekä käyttäjätieto
   const { response: sessionResponse, user } = await updateSession(request);
 
   const isProtected = PROTECTED_PREFIXES.some((p) =>
@@ -16,15 +28,13 @@ export async function middleware(request: NextRequest) {
   );
   const isAdminRoute = request.nextUrl.pathname.startsWith(ADMIN_PREFIX);
 
-  // KORJAUS 1: Suojatut sivut, kun käyttäjä EI ole kirjautunut
+  // 1. Suojatut sivut tai admin-sivut, kun käyttäjä EI ole kirjautunut lainkaan
   if ((isProtected || isAdminRoute) && !user) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
     
-    // Luodaan redirect-vastaus
     const redirectResponse = NextResponse.redirect(redirectUrl);
     
-    // Kopioidaan Supabasen päivittämät evästeet redirectiin, jotta istunto ei korruptoidu
     sessionResponse.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options);
     });
@@ -32,7 +42,7 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // Admin-reitin tarkistus
+  // Admin-reitin tarkistus silloin, kun käyttäjä on kirjautunut sisään
   if (isAdminRoute && user) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,7 +62,7 @@ export async function middleware(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    // KORJAUS 2: Jos ei ole admin, ohjataan dashboardille evästeet säilyttäen
+    // 2. Jos käyttäjä ei ole admin, ohjataan takaisin dashboardille evästeet säilyttäen
     if (profile?.role !== "admin") {
       const dashboardRedirect = NextResponse.redirect(new URL("/dashboard", request.url));
       
@@ -64,10 +74,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // KORJAUS 3: Palautetaan updateSessionista saatu response, jossa on tuoreimmat evästeet mukana
+  // 3. Palautetaan tuoreet evästeet
   return sessionResponse;
 }
 
+// Matcher pysyy samana
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",

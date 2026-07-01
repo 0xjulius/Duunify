@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation"; // Lisätty uudelleenohjausta varten
 
 type ChartRow = {
   name: string;
@@ -42,6 +43,7 @@ export default function ApplicationsChart({
 }: {
   demoApplications?: { status: string }[];
 }) {
+  const router = useRouter();
   const initial = demoApplications ? calculate(demoApplications) : null;
 
   const [data, setData] = useState<ChartRow[]>(initial?.data || []);
@@ -57,9 +59,21 @@ export default function ApplicationsChart({
   async function fetchApplicationsStatus() {
     setLoading(true);
 
+    // 1. Haetaan ensin kirjautuneen käyttäjän istunto
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      console.error("Ei voimassa olevaa istuntoa.");
+      setLoading(false);
+      router.push("/login");
+      return;
+    }
+
+    // 2. KORJAUS: Haetaan vain tämän kyseisen käyttäjän hakemukset (ei NULLeja, ei muiden)
     const { data: applications, error } = await supabase
       .from("applications")
-      .select("status");
+      .select("status")
+      .eq("user_id", session.user.id); // 🔥 TÄMÄ RIVI PELASTAA TIETOTURVAN
 
     if (error) {
       console.error("Virhe haettaessa kaaviodataa:", error);
@@ -83,7 +97,7 @@ export default function ApplicationsChart({
       </div>
     );
   }
-
+  
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
       <div>
