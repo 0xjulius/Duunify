@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { createLog } from "@/lib/logger";
 
-export default function LoginModal({ isOpen, onClose }) {
+export default function LoginModal({ isOpen, onClose, onSuccess }) {
   const router = useRouter();
   const [mode, setMode] = useState("login"); // "login" | "register"
   const flipped = mode === "register";
@@ -34,13 +34,17 @@ export default function LoginModal({ isOpen, onClose }) {
         action: "login_failed",
         details: `Failed login attempt for email: ${email}`,
         category: "auth",
-        status: "failure"
+        status: "failure",
       });
       setLoading(false);
       return;
     }
 
     toast.success("Tervetuloa takaisin 👋");
+
+    if (onSuccess) {
+      onSuccess();
+    }
 
     onClose();
     router.push("/dashboard");

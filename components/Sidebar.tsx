@@ -146,8 +146,8 @@ export default function Sidebar() {
           />
            <SidebarItem
             icon={<SquareActivity size={18} />}
-            label="Toimintaloki"
-            href="/history"
+            label="Toimintaloki 🔨"
+            href="#"
             collapsed={sidebarCollapsed}
           />
         </div>
