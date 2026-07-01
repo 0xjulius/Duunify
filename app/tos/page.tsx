@@ -144,7 +144,7 @@ export default function TermsOfServicePage() {
                   3. Oikeudet ja vastuunrajoitukset
                 </h2>
                 <p className="mb-6">
-                  Teemme parhaamme pitääksemme palvelun aina saatavilla ja virheettömänä, mutta palvelu tarjotaan "sellaisena kuin se on".
+                 Panostamme palvelumme jatkuvaan kehittämiseen ja korkeaan käytettävyyteen. Palvelu tarjotaan kuitenkin 'sellaisena kuin se on', emmekä voi taata sen keskeytyksetöntä toimivuutta kaikissa olosuhteissa.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -159,7 +159,7 @@ export default function TermsOfServicePage() {
                       <AlertTriangle size={18} />
                     </div>
                     <h4 className="font-bold text-slate-900 mb-1">Vastuunrajoitus</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">Duunify ei vastaa välillisistä vahingoista, tietojen mahdollisesta katoamisesta tai tilanteista, joissa kolmannen osapuolen sivusto muuttaa muotoaan.</p>
+                    <p className="text-sm text-slate-500 leading-relaxed">Duunify ei vastaa palvelun käytöstä mahdollisesti aiheutuvista välillisistä vahingoista tai tietojen menetyksestä. Emme myöskään vastaa palvelun häiriöistä tai toiminnallisuuden muutoksista tilanteissa, joissa kolmannen osapuolen sivusto tai rajapinta muuttaa muotoaan tai lopettaa toimintansa.</p>
                   </div>
                 </div>
               </section>
