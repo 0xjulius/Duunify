@@ -257,7 +257,11 @@ export default function ContactPage() {
       {/* FOOTER */}
       <Footer />
 
-      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSuccess={() => setShowLogin(false)} // <--- LISÄÄ TÄMÄ
+      />
     </div>
   );
 }
