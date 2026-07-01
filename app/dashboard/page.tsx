@@ -337,9 +337,10 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
-        <LoginModal 
+      <LoginModal 
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
+        onSuccess={() => setShowLoginModal(false)}
       />
       </main>
     </div>
