@@ -7,7 +7,15 @@ import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { createLog } from "@/lib/logger";
 
-export default function LoginModal({ isOpen, onClose, onSuccess }) {
+export default function LoginModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void; // Kysymysmerkki tekee siitä valinnaisen
+}) {
   const router = useRouter();
   const [mode, setMode] = useState("login"); // "login" | "register"
   const flipped = mode === "register";
