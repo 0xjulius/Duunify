@@ -1,20 +1,17 @@
-import { createClient } from '@/utils/supabase/server';
-import { DataTable } from "@/components/ui/data-table"; // Shadcn DataTable
-import { columns } from "./columns"; // Tänne määrittelet mitä sarakkeita näytetään
+import { requireAdmin } from "@/lib/admin";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
-export default async function AdminApplicationsPage() {
-  const supabase = await createClient();
-  
-  // Haetaan kaikki hakemukset (tämä on admin-työkalu, joten voit hakea kaiken)
-  const { data: applications } = await supabase
-    .from('applications')
-    .select('*')
-    .order('created_at', { ascending: false });
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { profile } = await requireAdmin();
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Kaikki hakemukset</h1>
-      <DataTable columns={columns} data={applications || []} />
+    <div className="flex min-h-screen bg-slate-50">
+      <AdminSidebar adminName={profile?.full_name || profile?.email || "Admin"} />
+      <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
 }
