@@ -56,7 +56,7 @@ export default function CalendarClient({
     }
     toast.success(completed ? "Merkitty valmiiksi." : "Merkitty kesken.");
     loadEvents();
-    
+
     if (selectedEvent && selectedEvent.id === id) {
       setSelectedEvent({ ...selectedEvent, completed });
     }
@@ -99,8 +99,7 @@ export default function CalendarClient({
           <div className="hidden lg:block bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
             <MiniCalendar
               events={events}
-              value={focusDate || new Date()}
-              onChange={(date: Date | null) => setFocusDate(date)}
+              onSelectDate={(date: Date) => setFocusDate(date)}
             />
           </div>
 
@@ -109,7 +108,7 @@ export default function CalendarClient({
             <QuickEvents
               events={events}
               onSelectEvent={(event: UnifiedEvent) => setSelectedEvent(event)}
-              onDelete={handleDelete} 
+              onDelete={handleDelete}
             />
           </div>
         </div>
