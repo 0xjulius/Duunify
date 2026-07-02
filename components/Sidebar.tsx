@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useModal } from "@/components/logout/ModalProvider";
+import { motion } from "framer-motion";
 
 import {
   LayoutDashboard,
@@ -37,7 +38,7 @@ export default function Sidebar() {
   const [user, setUser] = useState<any>(null);
   const [showMore, setShowMore] = useState(false);
   const [mounted, setMounted] = useState(false); // Estää Next.js hydration errorit
-  
+
   const { showLogout } = useModal();
   const pathname = usePathname();
 
@@ -60,16 +61,22 @@ export default function Sidebar() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
   }, []);
 
   // Varmistetaan, ettei serveri yritä renderöidä väärää näkymää ennen asiakaspuolen latausta
-  if (!mounted) return <div className="w-20 min-h-screen bg-white/80 border-r border-slate-200" />;
+  if (!mounted)
+    return (
+      <div className="w-20 min-h-screen bg-white/80 border-r border-slate-200" />
+    );
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Vieras";
+  const displayName =
+    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Vieras";
   const displayEmail = user?.email || "";
   const avatarUrl = user?.user_metadata?.avatar_url || "";
 
@@ -82,15 +89,32 @@ export default function Sidebar() {
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 pb-[env(safe-area-inset-bottom)]">
           <div className="grid grid-cols-5 h-16">
             {primaryItems.map((item) => {
-              const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              const active =
+                pathname === item.href ||
+                (item.href !== "/" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center justify-center gap-1 transition ${
-                    active ? "text-indigo-600" : "text-slate-500"
+                  className={`relative flex flex-col items-center justify-center gap-1 py-2 px-3 transition-colors duration-300 ${
+                    active
+                      ? "text-indigo-800"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
+                  {/* AITO iOS-TYYLINEN LIUKUVA TAUSTAILMIÖ */}
+                  {active && (
+                    <motion.div
+                      layoutId="active-nav-pill"
+                      className="absolute inset-0 bg-indigo-100 rounded-4xl -z-10"
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+
                   <item.icon size={20} />
                   <span className="text-[10px] font-medium leading-none">
                     {item.label}
@@ -104,7 +128,9 @@ export default function Sidebar() {
               className="flex flex-col items-center justify-center gap-1 text-slate-500"
             >
               <MoreHorizontal size={20} />
-              <span className="text-[10px] font-medium leading-none">Lisää</span>
+              <span className="text-[10px] font-medium leading-none">
+                Lisää
+              </span>
             </button>
           </div>
         </nav>
@@ -151,7 +177,11 @@ export default function Sidebar() {
 
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 mb-2">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-[36px] h-[36px] rounded-full object-cover shrink-0" />
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-[36px] h-[36px] rounded-full object-cover shrink-0"
+                  />
                 ) : (
                   <UserCircle2 size={36} className="text-slate-400 shrink-0" />
                 )}
@@ -159,7 +189,9 @@ export default function Sidebar() {
                   <p className="font-medium text-slate-900 truncate text-sm">
                     {displayName}
                   </p>
-                  <p className="text-xs text-slate-500 truncate">{displayEmail}</p>
+                  <p className="text-xs text-slate-500 truncate">
+                    {displayEmail}
+                  </p>
                 </div>
                 {user && (
                   <button
@@ -183,12 +215,13 @@ export default function Sidebar() {
     );
   }
 
-// --- TYÖPÖYTÄ: supistettava sivupalkki ---
+  // --- TYÖPÖYTÄ: supistettava sivupalkki ---
   const sidebarCollapsed = collapsed;
 
   return (
-    <aside className={`transition-all duration-300 ${sidebarCollapsed ? "w-20" : "w-64"} min-h-screen sticky top-0 bg-white/80 backdrop-blur-xl border-r border-slate-200 flex flex-col`}>
-      
+    <aside
+      className={`transition-all duration-300 ${sidebarCollapsed ? "w-20" : "w-64"} min-h-screen sticky top-0 bg-white/80 backdrop-blur-xl border-r border-slate-200 flex flex-col`}
+    >
       {/* HEADER: Täällä on nyt vain logo ja supistuspainike */}
       <div className="relative h-20 flex items-center px-5 border-b border-slate-200">
         {!sidebarCollapsed && (
@@ -197,23 +230,27 @@ export default function Sidebar() {
             <p className="text-xs text-slate-500">Työhakemusten hallinta</p>
           </div>
         )}
-        <button 
-          onClick={() => setCollapsed(!collapsed)} 
+        <button
+          onClick={() => setCollapsed(!collapsed)}
           className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-slate-100 transition text-slate-500"
         >
-          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          {collapsed ? (
+            <PanelLeftOpen size={18} />
+          ) : (
+            <PanelLeftClose size={18} />
+          )}
         </button>
       </div>
 
       {/* NAVIGATION: Pysyy keskellä */}
       <nav className="flex-1 p-4 space-y-1">
         {NAV_ITEMS.map((item) => (
-          <SidebarItem 
-            key={item.href} 
-            icon={<item.icon size={18} />} 
-            label={item.label} 
-            href={item.href} 
-            collapsed={sidebarCollapsed} 
+          <SidebarItem
+            key={item.href}
+            icon={<item.icon size={18} />}
+            label={item.label}
+            href={item.href}
+            collapsed={sidebarCollapsed}
           />
         ))}
       </nav>
@@ -221,39 +258,56 @@ export default function Sidebar() {
       {/* PRO UPSELL */}
       <div className="px-4 pb-4">
         {sidebarCollapsed ? (
-          <Link href="/settings#pro" title="Hanki Duunify Pro" className="w-full flex justify-center p-3.5 rounded-2xl bg-[#EEF2FF] text-indigo-600">
+          <Link
+            href="/settings#pro"
+            title="Hanki Duunify Pro"
+            className="w-full flex justify-center p-3.5 rounded-2xl bg-[#EEF2FF] text-indigo-600"
+          >
             <Sparkles size={20} />
           </Link>
         ) : (
-          <Link href="/settings#pro" className="block p-5 rounded-3xl bg-[#EEF2FF] hover:shadow-md transition">
+          <Link
+            href="/settings#pro"
+            className="block p-5 rounded-3xl bg-[#EEF2FF] hover:shadow-md transition"
+          >
             <div className="flex items-center gap-2 text-xs font-bold text-indigo-700">
               <Sparkles size={14} /> Duunify Pro
             </div>
-            <p className="text-sm text-slate-700 mt-3">Rajattomat hakemukset ja automaattinen täyttö.</p>
+            <p className="text-sm text-slate-700 mt-3">
+              Rajattomat hakemukset ja automaattinen täyttö.
+            </p>
           </Link>
         )}
       </div>
 
       {/* USER & LOGOUT: Nyt oikeassa paikassa alhaalla */}
       <div className="p-4 border-t border-slate-200">
-        <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"} p-3 rounded-2xl bg-slate-50`}>
+        <div
+          className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"} p-3 rounded-2xl bg-slate-50`}
+        >
           {avatarUrl ? (
-            <img src={avatarUrl} className="w-[42px] h-[42px] rounded-full object-cover shrink-0" alt="Avatar" />
+            <img
+              src={avatarUrl}
+              className="w-[42px] h-[42px] rounded-full object-cover shrink-0"
+              alt="Avatar"
+            />
           ) : (
             <UserCircle2 size={42} className="text-slate-400 shrink-0" />
           )}
-          
+
           {!sidebarCollapsed && (
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-slate-900 truncate">{displayName}</p>
+              <p className="font-medium text-slate-900 truncate">
+                {displayName}
+              </p>
               <p className="text-sm text-slate-500 truncate">{displayEmail}</p>
             </div>
           )}
 
           {user && !sidebarCollapsed && (
-            <button 
-              onClick={() => showLogout(displayName)} 
-              title="Kirjaudu ulos" 
+            <button
+              onClick={() => showLogout(displayName)}
+              title="Kirjaudu ulos"
               className="p-2 rounded-lg hover:bg-rose-50 text-slate-500 hover:text-rose-600 transition shrink-0"
             >
               <LogOut size={18} />
@@ -265,12 +319,26 @@ export default function Sidebar() {
   );
 }
 
-function SidebarItem({ icon, label, href, collapsed }: { icon: React.ReactNode; label: string; href: string; collapsed: boolean }) {
+function SidebarItem({
+  icon,
+  label,
+  href,
+  collapsed,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  collapsed: boolean;
+}) {
   const pathname = usePathname();
-  const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+  const active =
+    pathname === href || (href !== "/" && pathname.startsWith(href));
 
   return (
-    <Link href={href} className={`w-full flex items-center ${collapsed ? "justify-center" : "gap-3"} px-4 py-3 rounded-xl transition ${active ? "bg-indigo-50 text-indigo-600 font-medium" : "text-slate-600 hover:bg-slate-100"}`}>
+    <Link
+      href={href}
+      className={`w-full flex items-center ${collapsed ? "justify-center" : "gap-3"} px-4 py-3 rounded-xl transition ${active ? "bg-indigo-50 text-indigo-600 font-medium" : "text-slate-600 hover:bg-slate-100"}`}
+    >
       {icon}
       {!collapsed && <span>{label}</span>}
     </Link>

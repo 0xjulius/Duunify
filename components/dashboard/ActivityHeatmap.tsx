@@ -4,44 +4,33 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { AlertCircle } from "lucide-react";
 
-type DayCell = { dateString: string; count: number; monthLabel: string | null };
+type DayCell = { dateString: string; count: number; monthLabel: string | null; isFuture: boolean };
 type Application = { created_at: string };
 
 const FINNISH_MONTHS = [
-  "Tammi",
-  "Helmi",
-  "Maalis",
-  "Huhti",
-  "Touko",
-  "Kesä",
-  "Heinä",
-  "Elo",
-  "Syys",
-  "Loka",
-  "Marras",
-  "Joulu",
+  "Tammi", "Helmi", "Maalis", "Huhti", "Touko", "Kesä",
+  "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu"
 ];
 
 const getColorClass = (count: number) => {
-  if (count === 0) return "bg-indigo-50/30 border border-slate-100/50";
-  if (count === 1) return "bg-indigo-100/70";
-  if (count === 2) return "bg-indigo-200";
-  if (count === 3) return "bg-indigo-300";
-  if (count === 4) return "bg-indigo-400";
-  if (count === 5) return "bg-indigo-500";
-  if (count === 6) return "bg-indigo-600";
-  return "bg-indigo-700";
+  if (count === 0) return "bg-[#EEF2FF]";
+  if (count === 1) return "bg-[#C7D2FE]";
+  if (count === 2) return "bg-[#818CF8]";
+  if (count === 3) return "bg-[#4F46E5]";
+  return "bg-[#3730A3]";
 };
 
 function calculate(applications: Application[]) {
   const now = new Date();
+  const todayStr = now.toISOString().split("T")[0];
+  
   const currentDay = now.getDay();
   const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
 
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - daysSinceMonday);
 
-  // MUUTOS: Palataan 12 viikkoa taaksepäin + kuluva viikko = 13 viikkoa (91 päivää)
+  // MUUTOS: Palataan 12 viikkoa taaksepäin + kuluva viikko = 13 viikkoa
   const startDate = new Date(startOfWeek);
   startDate.setDate(startOfWeek.getDate() - 12 * 7);
   startDate.setHours(0, 0, 0, 0);
@@ -60,6 +49,7 @@ function calculate(applications: Application[]) {
   const tempDate = new Date(startDate);
   const monthsTracker: Record<string, number> = {};
 
+  // MUUTOS: Silmukka pyörii nyt 13 viikon edestä
   for (let i = 0; i < 13 * 7; i++) {
     const dateString = tempDate.toISOString().split("T")[0];
     const count = dateCounts[dateString] || 0;
@@ -68,12 +58,14 @@ function calculate(applications: Application[]) {
     let monthLabel = null;
     const weekIndex = Math.floor(i / 7);
 
-    if (!monthsTracker[monthName]) {
+    if (monthsTracker[monthName] === undefined) {
       monthsTracker[monthName] = weekIndex;
       monthLabel = monthName;
     }
 
-    generatedCells.push({ dateString, count, monthLabel });
+    const isFuture = dateString > todayStr;
+
+    generatedCells.push({ dateString, count, monthLabel, isFuture });
     tempDate.setDate(tempDate.getDate() + 1);
   }
 
@@ -95,14 +87,11 @@ export default function ActivityHeatmap({
   const [totalActivities, setTotalActivities] = useState(initial?.total || 0);
   const [loading, setLoading] = useState(!demoApplications);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [uniqueMonths, setUniqueMonths] = useState<
-    { label: string; index: number }[]
-  >(initial?.months || []);
+  const [uniqueMonths, setUniqueMonths] = useState<{ label: string; index: number }[]>(initial?.months || []);
 
   useEffect(() => {
     if (demoApplications) return;
     fetchActivityData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchActivityData() {
@@ -116,7 +105,7 @@ export default function ActivityHeatmap({
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - daysSinceMonday);
 
-      // MUUTOS: Supabase-haku rajataan myös 12 viikon taakse (yhteensä 13  viikkoa)
+      // MUUTOS: Supabase-haun rajaus myös 13 viikon ajalle
       const startDate = new Date(startOfWeek);
       startDate.setDate(startOfWeek.getDate() - 12 * 7);
       startDate.setHours(0, 0, 0, 0);
@@ -146,9 +135,9 @@ export default function ActivityHeatmap({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-[340px] flex flex-col justify-between animate-pulse">
+      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm h-[320px] flex flex-col justify-between animate-pulse">
         <div className="h-5 bg-slate-200 rounded w-1/4 mb-4" />
-        <div className="h-32 bg-slate-100 rounded-xl w-full" />
+        <div className="h-28 bg-slate-100 rounded-xl w-full" />
         <div className="h-4 bg-slate-200 rounded w-1/3" />
       </div>
     );
@@ -156,99 +145,105 @@ export default function ActivityHeatmap({
 
   if (errorMsg) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50/50 p-6 shadow-sm flex flex-col h-[340px] justify-between text-red-800">
-        <div className="flex flex-col items-center justify-center flex-1 text-center gap-2">
-          <AlertCircle className="text-red-500" size={32} />
-          <h3 className="font-bold text-sm text-red-950">
-            Aktiivisuutta ei voitu ladata
-          </h3>
-          <p className="text-xs text-red-700 max-w-[240px] break-words font-mono bg-white p-2 rounded border border-red-200">
-            {errorMsg}
-          </p>
+      <div className="rounded-3xl border border-red-100 bg-red-50/30 p-6 shadow-sm flex flex-col h-[320px] justify-center text-red-800">
+        <div className="flex flex-col items-center justify-center text-center gap-2">
+          <AlertCircle className="text-red-500" size={28} />
+          <h3 className="font-bold text-sm text-red-950">Aktiivisuutta ei voitu ladata</h3>
+          <p className="text-xs text-red-600 font-mono bg-white px-2 py-1 rounded border border-red-100">{errorMsg}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col">
-      <h3 className="text-lg font-bold text-slate-900 mb-6">
-        Aktiivisuus
-      </h3>
+    <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm w-full flex flex-col justify-between gap-6">
+      
+      {/* YLÄOSA */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-bold text-slate-900">
+          Aktiivisuus 13 viikon ajalta
+        </h3>
+      </div>
 
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex flex-col gap-4">
+      {/* RUUDUKKOALUE */}
+      <div className="flex flex-col gap-2 overflow-x-auto py-2 min-w-0">
+        
+        {/* Kuukaudet (Päivitetty pituudeksi 13) */}
+        <div className="flex pl-10 flex-nowrap">
+          <div className="flex flex-nowrap gap-1.5">
+            {Array.from({ length: 13 }).map((_, week) => {
+              const month = uniqueMonths.find((m) => m.index === week);
+              return (
+                <div key={week} className="text-[11px] font-bold text-slate-400 h-5 w-5 shrink-0 whitespace-nowrap overflow-visible">
+                  {month?.label || ""}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-          {/* Kuukaudet */}
-          <div className="flex">
-            <div className="w-10" />
+        {/* Päivät + Itse Heatmap */}
+        <div className="flex gap-4 flex-nowrap items-start">
+          
+          {/* Viikonpäivien nimet */}
+          <div className="grid grid-rows-7 h-[174px] items-center text-[11px] font-bold text-slate-400 w-6 shrink-0">
+            <div></div>
+            <div>Ma</div>
+            <div></div>
+            <div>Ke</div>
+            <div></div>
+            <div>Pe</div>
+            <div></div>
+          </div>
 
-            <div className="grid grid-flow-col auto-cols-[22px] gap-1">
-              {Array.from({ length: 13 }).map((_, week) => {
-                const month = uniqueMonths.find((m) => m.index === week);
-
+          {/* 7-rivinen heatmap-ruudukko */}
+          <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1.5 shrink-0">
+            {cells.map((cell, idx) => {
+              if (cell.isFuture) {
                 return (
                   <div
-                    key={week}
-                    className="text-sm font-semibold text-slate-400 h-5"
-                  >
-                    {month?.label}
-                  </div>
+                    key={idx}
+                    className="w-5 h-5 bg-transparent border border-transparent pointer-events-none shrink-0"
+                  />
                 );
-              })}
-            </div>
-          </div>
+              }
 
-          {/* Viikonpäivät + heatmap */}
-          <div className="flex gap-3">
-
-            {/* Päivät */}
-            <div className="grid grid-rows-7 h-fit items-center text-sm font-bold text-slate-400">
-              <div/>
-              <div>Ma </div>
-              <div/>
-              <div>Ke</div>
-              <div/>
-              <div>Pe</div>
-              <div />
-            </div>
-
-            {/* Heatmap */}
-            <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1">
-              {cells.map((cell, idx) => (
+              return (
                 <div
                   key={idx}
-                  title={`${cell.dateString}: ${cell.count} hakemusta`}
-                  className={`w-5 h-5 rounded-md transition-colors ${getColorClass(
-                    cell.count
-                  )}`}
+                  title={`${cell.dateString}: ${cell.count} aktiviteettia`}
+                  className={`w-5 h-5 rounded-[6px] transition-colors shrink-0 ${getColorClass(cell.count)}`}
                 />
-              ))}
-            </div>
-          </div>
-
-          {/* Legenda */}
-          <div className="flex justify-end items-center gap-3 text-sm font-medium text-slate-400">
-
-            <span>Vähemmän</span>
-
-            <div className="flex gap-1">
-              <div className="w-5 h-5 rounded-md bg-indigo-50/30 border border-slate-100/50" />
-              <div className="w-5 h-5 rounded-md bg-indigo-100/70" />
-              <div className="w-5 h-5 rounded-md bg-indigo-200" />
-              <div className="w-5 h-5 rounded-md bg-indigo-300" />
-              <div className="w-5 h-5 rounded-md bg-indigo-400" />
-              <div className="w-5 h-5 rounded-md bg-indigo-500" />
-              <div className="w-5 h-5 rounded-md bg-indigo-600" />
-              <div className="w-5 h-5 rounded-md bg-indigo-700" />
-            </div>
-
-            <span>Enemmän</span>
-
+              );
+            })}
           </div>
 
         </div>
       </div>
+
+      {/* ALARIVI */}
+      <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
+        
+        <p className="text-slate-500 font-medium lg:hidden xl:block">
+          <span className="font-bold text-slate-900">{totalActivities}</span> aktiviteettia 
+        </p>
+
+        <div className="flex items-center gap-2 text-slate-400 font-medium">
+          <span className="text-xs lg:hidden 2xl:block">Vähemmän</span>
+          <span className="hidden text-xs lg:block 2xl:hidden">-</span>
+          <div className="flex gap-1">
+            <div className="w-4 h-4 rounded-md bg-[#EEF2FF]" />
+            <div className="w-4 h-4 rounded-md bg-[#C7D2FE]" />
+            <div className="w-4 h-4 rounded-md bg-[#818CF8]" />
+            <div className="w-4 h-4 rounded-md bg-[#4F46E5]" />
+            <div className="w-4 h-4 rounded-md bg-[#3730A3]" />
+          </div>
+          <span className="text-xs lg:hidden 2xl:block">Enemmän</span>
+          <span className="hidden text-xs lg:block 2xl:hidden">+</span>
+        </div>
+
+      </div>
+
     </div>
   );
 }

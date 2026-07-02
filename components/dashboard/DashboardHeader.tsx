@@ -46,7 +46,7 @@ export default function DashboardHeader() {
       </h1>
       
       {/* Päivämäärä */}
-      <p className="text-slate-500 text-lg mb-6">
+      <p className="text-slate-500 text-sm mb-6">
         {now.toLocaleDateString('fi-FI', { 
           weekday: 'long', 
           day: 'numeric', 
@@ -57,12 +57,12 @@ export default function DashboardHeader() {
       {/* Otsikko ja ikoni */}
       <div className="flex items-center gap-4">
         <div className="bg-gradient-to-br from-indigo-200 to-violet-600 p-3.5 rounded-2xl shadow-md">
-          <LayoutDashboard className="h-10 w-10 text-white" />
+          <LayoutDashboard className="h-6 w-6 text-white" />
         </div>
 
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Yleiskatsaus</h2>
-          <p className="mt-1 text-slate-500 text-[17px]">
+          <h2 className="text-2xl font-bold text-slate-900">Yleiskatsaus</h2>
+          <p className="mt-1 text-slate-500 text-sm xl:text-md">
             Työnhakusi yhdellä silmäyksellä
           </p>
         </div>

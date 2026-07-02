@@ -18,6 +18,40 @@ function isAllowedJobSite(url: string) {
   }
 }
 
+// Suomennus- ja siivousfunktio employmentTypelle
+function suomennaTyoaika(tyyppiInput: any): string {
+  if (!tyyppiInput) return "Ei määritelty";
+
+  // Muutetaan input aina merkkijonotaulukoksi ja siivotaan välit
+  let tyypit: string[] = [];
+  if (Array.isArray(tyyppiInput)) {
+    tyypit = tyyppiInput.map(t => String(t).trim().toUpperCase());
+  } else {
+    tyypit = String(tyyppiInput).split(",").map(t => t.trim().toUpperCase());
+  }
+
+  // Suodatetaan pois "OTHER" ja poistetaan duplikaatit
+  const uniikitTyypit = [...new Set(tyypit.filter(t => t !== "OTHER" && t !== ""))];
+
+  // Jos oli vain FULL_TIME (tai useampi, jotka siivottiin yhteen)
+  if (uniikitTyypit.length === 1 && uniikitTyypit[0] === "FULL_TIME") {
+    return "Kokoaikainen";
+  }
+
+  const kaannokset: Record<string, string> = {
+    "FULL_TIME": "Kokoaikainen",
+    "PART_TIME": "Osa-aikainen",
+    "TEMPORARY": "Määräaikainen",
+    "CONTRACT": "Projekti / Sopimustyö"
+  };
+
+  if (uniikitTyypit.length > 0) {
+    return uniikitTyypit.map(t => kaannokset[t] || t).join(", ");
+  }
+
+  return "Muu";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -98,27 +132,27 @@ export async function POST(req: NextRequest) {
         .join(" ");
     }
 
-    // 2. UUSI OMINAISUUS: Yrityksen logo
-    // Schema voi palauttaa logon objektina { @type: 'ImageObject', url: '...' } tai suoraan merkkijonona
+    // 2. Yrityksen logo
     const logoData = jobData.hiringOrganization?.logo;
     const companyLogo = typeof logoData === "object" ? logoData?.url : logoData || null;
 
-    // 3. PARANNETTU: Sijainnit (Käsittelee taulukot ja yksittäiset kohteet)
+    // 3. Sijainnit
     let location = "";
     if (Array.isArray(jobData.jobLocation)) {
       location = jobData.jobLocation
         .map((loc: any) => loc?.address?.addressLocality)
         .filter(Boolean)
-        .join(", "); // Esim: "Lahti, Tampere, Turku"
+        .join(", ");
     } else {
       location = jobData.jobLocation?.address?.addressLocality || "";
     }
 
     const salaryMin = jobData.baseSalary?.value?.minValue || null;
     const salaryMax = jobData.baseSalary?.value?.maxValue || null;
-    const employmentType = Array.isArray(jobData.employmentType) 
-      ? jobData.employmentType.join(", ") 
-      : jobData.employmentType || "";
+    
+    // TÄSSÄ KOHTAA OTETAAN RAUKADATA JA AJETAAN SE APUFUNKTION LÄPI
+    const employmentType = suomennaTyoaika(jobData.employmentType);
+
     const validThrough = jobData.validThrough || "";
     const datePosted = jobData.datePosted || "";
 
@@ -145,12 +179,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       title,
       company,
-      companyLogo, // Nyt logo lähtee mukana!
+      companyLogo,
       location,
       description,
       salaryMin,
       salaryMax,
-      employmentType,
+      employmentType, // Palauttaa nyt siististi "Kokoaikainen"
       validThrough,
       datePosted,
     });

@@ -314,7 +314,7 @@ export default function DashboardPage() {
             </div>
 
             {/* ALATASO */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-16">
               <div className="lg:col-span-8">
                 {loading ? (
                   <ChartSkeleton className="h-[500px]" />
@@ -327,7 +327,7 @@ export default function DashboardPage() {
                   />
                 )}
               </div>
-              <div className="lg:col-span-4 mb-10">
+              <div className="lg:col-span-4">
                 {loading ? (
                   <ChartSkeleton className="h-[500px]" />
                 ) : (

@@ -83,7 +83,7 @@ export default function RecentApplications({
           <DownloadButton data={apps} fileName="tyohakemukset_30pv" />
         </div>
 
-        <p className="text-xs text-slate-400 mt-1">Neljä viimeisintä aktiviteettiasi.</p>
+        <p className="text-xs text-slate-400">Neljä viimeisintä aktiviteettiasi.</p>
 
         <div className="mt-2.5 flex flex-col">
           {apps.length === 0 ? (
