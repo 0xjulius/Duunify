@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "Duunify | Älykäs työhakemusten hallinta",
     description: "Hallitse työhakemuksiasi helposti ja pysy ajan tasalla työnhaussasi.",
     siteName: "Duunify",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "/og-image-social.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
