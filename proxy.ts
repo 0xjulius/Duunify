@@ -10,7 +10,7 @@ const PROTECTED_PREFIXES = [
   "/favorites",
   "/settings",
   "/history",
-  "/login", // Tämä on lisätty, jotta kirjautumissivu on suojattu väliaikaisesti
+   // Tämä on lisätty, jotta kirjautumissivu on suojattu väliaikaisesti
 ];
 
 // Reitit, jotka vaativat admin-roolin
