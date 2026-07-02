@@ -120,8 +120,8 @@ export default function PrivacyPolicyPage() {
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm space-y-1">
                   <strong className="text-slate-900 block mb-1">Rekisterinpitäjän yhteystiedot:</strong>
                   <p>Duunify Tietosuojavastaava</p>
-                  <p>Sähköposti: privacy@duunify.fi</p>
-                  <p>Verkkosivusto: www.duunify.fi</p>
+                  <p>Sähköposti: privacy@duunify.com</p>
+                  <p>Verkkosivusto: www.duunify.com</p>
                 </div>
               </section>
 

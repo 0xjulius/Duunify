@@ -112,10 +112,10 @@ export default function ContactPage() {
                     Sähköposti
                   </h3>
                   <a
-                    href="mailto:info@duunify.fi"
+                    href="mailto:info@duunify.com"
                     className="text-lg font-semibold text-[#6D67F2] hover:underline flex items-center gap-2.5 break-all"
                   >
-                    <Mail size={20} className="shrink-0" /> info@duunify.fi
+                    <Mail size={20} className="shrink-0" /> info@duunify.com 
                   </a>
                   <p className="text-sm text-slate-500 mt-2 leading-relaxed">
                     Yleiset kysymykset, palaute ja yhteistyöehdotukset.
@@ -129,14 +129,14 @@ export default function ContactPage() {
                     Asiakastuki
                   </h3>
                   <a
-                    href="mailto:tuki@duunify.fi"
+                    href="mailto:tuki@duunify.com"
                     className="text-lg font-semibold text-slate-900 hover:text-[#5750E0] flex items-center gap-2.5 transition-colors break-all"
                   >
                     <ShieldCheck
                       size={20}
                       className="text-emerald-500 shrink-0"
                     />{" "}
-                    tuki@duunify.fi
+                    tuki@duunify.com
                   </a>
                   <p className="text-sm text-slate-500 mt-2 leading-relaxed">
                     Ongelmatilanteet, käyttäjätilit ja tekninen apu.

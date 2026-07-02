@@ -15,9 +15,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Duunify - Työhakemusten hallinta",
+  title: {
+    default: "Duunify | Älykäs työhakemusten hallinta ja työnhakutyökalu",
+    template: "%s | Duunify",
+  },
   description:
-    "Hallitse työhakemuksesi helposti Duunify-sovelluksella. Seuraa hakemuksiasi, tallenna muistiinpanoja ja pysy ajan tasalla työnhaussasi.",
+    "Duunify on moderni työnhakutyökalu, jolla hallitset työhakemuksesi, seuraat prosessia ja pysyt ajan tasalla työnhaussasi. Aloita ilmaiseksi ja tehosta työnhakuasi.",
+  keywords: ["työnhaku", "työhakemus", "hakemusten hallinta", "työnhakutyökalu", "CV", "Duunify"],
+  authors: [{ name: "Duunify Team" }],
+  creator: "Duunify",
+  openGraph: {
+    type: "website",
+    url: "https://duunify.com",
+    title: "Duunify | Älykäs työhakemusten hallinta",
+    description: "Hallitse työhakemuksiasi helposti ja pysy ajan tasalla työnhaussasi.",
+    siteName: "Duunify",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Duunify | Älykäs työhakemusten hallinta",
+    description: "Tehosta työnhakuasi Duunifyn avulla.",
+    images: ["/og-image.png"],
+  },
+  alternates: {
+    canonical: "https://duunify.com",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +58,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Tänne voit lisätä esim. faviconit tai Google Analyticsin skriptin */}
+      </head>
       <body className="min-h-full flex flex-col">
         <ModalProvider>{children}</ModalProvider>
         <AppToaster />
