@@ -15,15 +15,25 @@ import {
   LogOut,
   Sparkles,
   SquareActivity,
+  MoreHorizontal,
+  X,
 } from "lucide-react";
 import { DEMO_USER } from "@/lib/demo-data";
+
+const NAV_ITEMS = [
+  { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
+  { icon: Briefcase, label: "Hakemukset", href: "#" },
+  { icon: Calendar, label: "Kalenteri", href: "#" },
+  { icon: StarPlus, label: "Suosikit", href: "#" },
+  { icon: SquareActivity, label: "Toimintaloki", href: "#" },
+];
 
 export default function DemoSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const pathname = usePathname();
 
-  // Seurataan ikkunan kokoa
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     handleResize();
@@ -31,7 +41,111 @@ export default function DemoSidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const sidebarCollapsed = isMobile || collapsed;
+  // --- MOBIILI: kiinteä, koko leveyden alanavigaatio ---
+  if (isMobile) {
+    // Ensimmäiset 4 kohdetta suoraan näkyviin, loput "Lisää"-valikon taakse
+    const primaryItems = NAV_ITEMS.slice(0, 4);
+
+    return (
+      <>
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 pb-[env(safe-area-inset-bottom)]">
+          <div className="grid grid-cols-5 h-16">
+            {primaryItems.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center justify-center gap-1 transition ${
+                    active ? "text-indigo-600" : "text-slate-500"
+                  }`}
+                >
+                  <item.icon size={20} />
+                  <span className="text-[10px] font-medium leading-none">
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+
+            <button
+              onClick={() => setShowMore(true)}
+              className="flex flex-col items-center justify-center gap-1 text-slate-500"
+            >
+              <MoreHorizontal size={20} />
+              <span className="text-[10px] font-medium leading-none">Lisää</span>
+            </button>
+          </div>
+        </nav>
+
+        {/* "Lisää"-arkki: Asetukset, Pro, käyttäjä, poistu demosta */}
+        {showMore && (
+          <div
+            className="fixed inset-0 z-50 flex items-end"
+            style={{ background: "rgba(13, 11, 38, 0.5)" }}
+            onClick={() => setShowMore(false)}
+          >
+            <div
+              className="w-full bg-white rounded-t-3xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-bold text-slate-900">Lisää</p>
+                <button
+                  onClick={() => setShowMore(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-1 mb-4">
+                <Link
+                  href="/settings#pro"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] text-indigo-700"
+                  onClick={() => setShowMore(false)}
+                >
+                  <Sparkles size={18} />
+                  <span className="font-semibold text-sm">Duunify Pro</span>
+                </Link>
+                <Link
+                  href="#"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 hover:bg-slate-50"
+                  onClick={() => setShowMore(false)}
+                >
+                  <Settings size={18} />
+                  <span className="text-sm font-medium">Asetukset</span>
+                </Link>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 mb-2">
+                <UserCircle2 size={36} className="text-slate-400 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-slate-900 truncate text-sm">
+                    {DEMO_USER.full_name}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">{DEMO_USER.email}</p>
+                </div>
+                <Link
+                  href="/"
+                  title="Poistu demosta"
+                  className="p-2 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-rose-600 transition shrink-0"
+                >
+                  <LogOut size={18} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tilan varaus, ettei sisältö jää alanavigaation alle */}
+        <div className="h-16" />
+      </>
+    );
+  }
+
+  // --- TYÖPÖYTÄ: alkuperäinen supistettava sivupalkki ---
+  const sidebarCollapsed = collapsed;
 
   return (
     <aside
@@ -44,26 +158,17 @@ export default function DemoSidebar() {
             <p className="text-xs text-slate-500">Demo-tila</p>
           </div>
         )}
-        
-        {/* Piilotetaan laajennusnappi mobiilissa, koska se on aina supistettu */}
-        {!isMobile && (
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-slate-100 transition text-slate-500"
-          >
-            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          </button>
-        )}
+
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-slate-100 transition text-slate-500"
+        >
+          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+        </button>
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
-        {[
-          { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
-          { icon: Briefcase, label: "Hakemukset", href: "#" },
-          { icon: Calendar, label: "Kalenteri", href: "#" },
-          { icon: StarPlus, label: "Suosikit", href: "#" },
-          { icon: SquareActivity, label: "Toimintaloki", href: "#" },
-        ].map((item) => {
+        {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
           return (
             <Link
