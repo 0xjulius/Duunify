@@ -163,8 +163,83 @@ h6 {
     @apply font-sans;
   }
 }
+/* --- Duunify Toaster --- */
+
 .duunify-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 24rem;
+  border-radius: 1rem;
+  padding: 0.875rem 1rem;
+  box-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.05);
+  background-color: white;
+  border: 1px solid #e2e8f0;
   font-family: var(--font-geist-sans), sans-serif;
+}
+
+.duunify-toast-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.duunify-toast-description {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 0.125rem;
+  line-height: 1.5;
+}
+
+.duunify-toast-action {
+  background-color: #6d67f2 !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding: 0.375rem 0.75rem !important;
+  border-radius: 0.5rem !important;
+  margin-left: auto !important;
+}
+
+.duunify-toast-cancel {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 0.375rem 0.75rem !important;
+  border-radius: 0.5rem !important;
+}
+
+.duunify-toast-close {
+  background-color: white !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  border-radius: 9999px !important;
+}
+.duunify-toast-close:hover {
+  color: #475569 !important;
+}
+
+.duunify-toast-success {
+  border-color: #d1fae5 !important;
+  background-color: rgb(236 253 245 / 0.9) !important;
+}
+
+.duunify-toast-error {
+  border-color: #ffe4e6 !important;
+  background-color: rgb(255 241 242 / 0.9) !important;
+}
+
+.duunify-toast-warning {
+  border-color: #fef3c7 !important;
+  background-color: rgb(255 251 235 / 0.9) !important;
+}
+
+.duunify-toast-loading {
+  border-color: #e2e0fb !important;
+  background-color: rgb(109 103 242 / 0.05) !important;
 }
 
 .duunify-toast [data-icon] svg {
@@ -187,18 +262,4 @@ h6 {
 
 .duunify-toast[data-type="loading"] [data-icon] svg {
   color: #6d67f2;
-}
-
-.duunify-gradient {
-  background: linear-gradient(135deg, 
-    #f8fafc 0%, 
-    #f0e9ff 40%, 
-    #e0d4ff 70%, 
-    #f3e8ff 100%);
-  background-size: 200% 200%;
-  transition: background-position 0.6s ease;
-}
-
-.duunify-gradient:hover {
-  background-position: 100% 100%;
 }

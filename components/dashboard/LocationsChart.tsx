@@ -57,14 +57,10 @@ export default function LocationsCard({
 
         data.forEach((d) => {
           if (d.location) {
-            // 1. Pilkotaan merkkijono pilkun kohdalta (esim. "Tampere, Helsinki" -> ["Tampere", " Helsinki"])
-            // 2. .map(c => c.trim()) poistaa turhat välilyönnit ympäriltä
             const cities = d.location.split(",").map((c: string) => c.trim());
 
-            // Lisätään jokainen kaupunki tilastoihin erikseen
-            cities.forEach((city) => {
-              if (city) {
-                // Varmistetaan ettei ole tyhjä merkkijono
+            cities.forEach((city: string | null | undefined) => {
+              if (city && typeof city === "string") {
                 counts[city] = (counts[city] || 0) + 1;
               }
             });
@@ -84,26 +80,32 @@ export default function LocationsCard({
   }
 
   useEffect(() => {
-    // Demo-tilassa data tulee valmiina propsina — ei fetchia eikä realtime-tilausta.
     if (demoData) return;
 
     fetchStats();
+
+    // Uniikki kanavanimi per komponentti-instanssi — estää törmäyksen
+    // React StrictModen kaksoismountissa ja useamman avoimen välilehden kanssa.
+    const channelName = `applications_db_changes_${Math.random().toString(36).slice(2)}`;
+
+    // TÄRKEÄÄ: .on() ja .subscribe() ketjutetaan yhdeksi kutjuksi.
+    // Erillisenä lauseena .subscribe() jälkeen kutsuttu .on() aiheuttaa
+    // "cannot add postgres_changes callbacks after subscribe()" -virheen.
     const channel = supabase
-      .channel("schema-db-changes")
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "applications" },
         () => {
           fetchStats();
-        },
+        }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [demoData]);
 
   const mapMarkers = stats.map((s) => ({
     position: getCoords(s.name),
