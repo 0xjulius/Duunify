@@ -16,7 +16,6 @@ import Footer from "@/components/Footer";
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
@@ -48,13 +47,13 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowLogin(true)}
+              onClick={() => setShowLoginModal(true)}
               className="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2"
             >
               Kirjaudu sisään
             </button>
             <button
-              onClick={() => setShowLogin(true)}
+              onClick={() => setShowLoginModal(true)}
               className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, #6D67F2, #5750E0)",
@@ -96,7 +95,7 @@ export default function LandingPage() {
 
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
-              onClick={() => setShowLogin(true)}
+              onClick={() => setShowLoginModal(true)}
               className="w-full sm:w-auto flex items-center justify-center gap-2 text-white font-bold px-7 py-3.5 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, #6D67F2, #5750E0)",
@@ -107,7 +106,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => setShowLogin(true)}
+              onClick={() => setShowLoginModal(true)}
               className="w-full sm:w-auto font-semibold text-slate-700 px-7 py-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 transition"
             >
               Kirjaudu sisään
@@ -210,7 +209,7 @@ export default function LandingPage() {
             haltuun.
           </p>
           <button
-            onClick={() => setShowLogin(true)}
+            onClick={() => setShowLoginModal(true)}
             className="mt-8 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
           >
