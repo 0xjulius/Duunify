@@ -10,9 +10,14 @@ import {
   ArrowRight,
   CheckCircle2,
   PlayCircle,
+  BarChart3,
+  History,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
+import { LandingIndexCard } from "@/components/LandingIndexCard";
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -39,6 +44,9 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#ominaisuudet" className="hover:text-slate-900">
               Ominaisuudet
+            </a>
+            <a href="#dashboard" className="hover:text-slate-900">
+              Yleiskatsaus
             </a>
             <a href="#miten-toimii" className="hover:text-slate-900">
               Miten toimii
@@ -79,18 +87,18 @@ export default function LandingPage() {
         <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
           <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-[#6D67F2]" />
-            Nyt Duunitori ja Työmarkkinatori -tuki
+            Nyt Duunitori ja Jobly -sivustojen tuki
           </div>
 
           <h1 className="duunify-display mt-6 text-4xl md:text-6xl font-bold tracking-tight text-slate-900 max-w-3xl mx-auto">
-            Pidä kaikki työhakemuksesi{" "}
-            <span className="text-[#6D67F2]">yhdessä paikassa</span>
+            Työnhaku, joka näyttää{" "}
+            <span className="text-[#6D67F2]">missä oikeasti menet</span>
           </h1>
 
           <p className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Lopeta hakemusten seuraaminen Excelissä. Tallenna, järjestä ja
-            muistuta itseäsi jokaisesta hakemuksesta — automaattisella tietojen
-            haulla suoraan työpaikkailmoituksesta.
+            Lopeta hakemusten seuraaminen Excelissä. Duunify tallentaa,
+            aikatauluttaa ja visualisoi koko hakuprosessisi — automaattisella
+            tietojen haulla suoraan työpaikkailmoituksesta.
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -141,7 +149,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard
               icon={<Zap size={20} />}
               title="Automaattinen täyttö"
@@ -154,8 +162,18 @@ export default function LandingPage() {
             />
             <FeatureCard
               icon={<Calendar size={20} />}
-              title="Määräajat ja muistutukset"
-              description="Älä koskaan missaa hakuajan päättymistä tai haastattelua."
+              title="Älykäs kalenteri"
+              description="Haastattelut, hakuaikojen päättymiset ja omat muistutukset samassa näkymässä — merkitse suoritetuksi yhdellä klikkauksella."
+            />
+            <FeatureCard
+              icon={<BarChart3 size={20} />}
+              title="Visuaalinen yleiskatsaus"
+              description="Hakemusten status, trendi ja aktiivisuus kuukausien ajalta — näet heti missä kohtaa hakuprosessiasi olet."
+            />
+            <FeatureCard
+              icon={<History size={20} />}
+              title="Toimintaloki"
+              description="Jokainen tilamuutos, muistiinpano ja tapahtuma tallentuu automaattisesti aikajanalle, jota voi suodattaa ja hakea."
             />
             <FeatureCard
               icon={<Star size={20} />}
@@ -166,11 +184,139 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* DASHBOARD SHOWCASE */}
+      <section id="dashboard" className="duunify-modal py-20 md:py-28 bg-slate-50 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full mb-5">
+              <BarChart3 size={13} />
+              Yleiskatsaus
+            </div>
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+              Koko hakuprosessisi,{" "}
+              <span className="text-[#6D67F2]">yhdellä silmäyksellä</span>
+            </h2>
+            <p className="mt-4 text-slate-500 leading-relaxed">
+              Excel-taulukko kertoo mitä olet tehnyt. Duunifyn dashboard kertoo
+              mihin suuntaan olet menossa — ja mitä kannattaisi tehdä
+              seuraavaksi.
+            </p>
+          </div>
+
+          {/* Kaksi korostettua mittaria: Työnhaku-indeksi ja Aktiivisuus */}
+          <div className="mb-8">
+            <LandingIndexCard />
+          </div>
+
+          {/* Iso visuaalinen esikatselu, dataton mutta uskottava */}
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6">
+              <div className="flex items-center justify-between mb-5">
+                <p className="font-bold text-slate-900 text-sm">
+                  Hakemukset tilan mukaan
+                </p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                  Esimerkki
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-24 h-24 rounded-full shrink-0"
+                  style={{
+                    background:
+                      "conic-gradient(#6D67F2 0% 35%, #F59E0B 35% 55%, #22C55E 55% 70%, #EF4444 70% 85%, #E2E8F0 85% 100%)",
+                  }}
+                />
+                <div className="flex-1 space-y-2">
+                  <LegendRow color="#6D67F2" label="Haettu" value="35%" />
+                  <LegendRow color="#F59E0B" label="Haastattelu" value="20%" />
+                  <LegendRow color="#22C55E" label="Tarjous" value="15%" />
+                  <LegendRow color="#EF4444" label="Hylätty" value="15%" />
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-slate-900">24</p>
+                  <p className="text-xs text-slate-400">hakemusta yhteensä</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-2.5 py-1.5 rounded-lg">
+                  <CheckCircle size={13} />↑ 18% edelliseen kuukauteen
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6">
+              <div className="flex items-center justify-between mb-5">
+                <p className="font-bold text-slate-900 text-sm">
+                  Aktiivisuus 9 viikon ajalta
+                </p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                  Esimerkki
+                </span>
+              </div>
+              <div className="flex gap-1 justify-center flex-wrap">
+                {Array.from({ length: 63 }).map((_, i) => {
+                  const intensity = Math.random();
+                  const color =
+                    intensity > 0.85
+                      ? "#3D3699"
+                      : intensity > 0.65
+                        ? "#6D67F2"
+                        : intensity > 0.45
+                          ? "#B3ADF7"
+                          : intensity > 0.25
+                            ? "#D9D6FB"
+                            : "#F1F0FE";
+                  return (
+                    <div
+                      key={i}
+                      className="w-3.5 h-3.5 rounded-[4px]"
+                      style={{ backgroundColor: color }}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
+                <p className="text-sm text-slate-500">
+                  <span className="font-bold text-slate-800">48</span>{" "}
+                  aktiviteettia yhteensä
+                </p>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                  <span>Vähemmän</span>
+                  <div className="flex gap-[3px]">
+                    {["#F1F0FE", "#D9D6FB", "#B3ADF7", "#6D67F2", "#3D3699"].map(
+                      (c) => (
+                        <div
+                          key={c}
+                          className="w-2.5 h-2.5 rounded-[3px]"
+                          style={{ backgroundColor: c }}
+                        />
+                      )
+                    )}
+                  </div>
+                  <span>Enemmän</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mt-10">
+            <Link
+              href="/demo"
+              className="inline-flex items-center gap-2 font-semibold text-[#6D67F2] hover:text-[#5750E0] transition"
+            >
+              Kokeile koko dashboardia demossa
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
-      <section
-        id="miten-toimii"
-        className="duunify-modal py-20 md:py-28 bg-slate-50"
-      >
+      <section id="miten-toimii" className="duunify-modal py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
@@ -192,7 +338,50 @@ export default function LandingPage() {
             <StepCard
               number="03"
               title="Seuraa etenemistä"
-              description="Päivitä tilaa hakemuksen edetessä ja saa muistutukset ajoissa."
+              description="Päivitä tilaa hakemuksen edetessä, saa muistutukset ajoissa ja katso kehitystäsi dashboardilta."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* WHY NOT EXCEL */}
+      <section className="duunify-modal py-20 md:py-28 bg-slate-50">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center max-w-xl mx-auto mb-14">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+              Miksi ei vain Excel?
+            </h2>
+            <p className="mt-4 text-slate-500">
+              Taulukko tallentaa rivejä. Duunify ymmärtää hakuprosessisi.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <ComparisonRow
+              label="Automaattinen tietojen täyttö ilmoituksesta"
+              excel={false}
+              duunify={true}
+            />
+            <ComparisonRow
+              label="Haastattelut ja hakuajat samassa kalenterissa"
+              excel={false}
+              duunify={true}
+            />
+            <ComparisonRow
+              label="Visuaalinen yleiskatsaus ja trendit"
+              excel={false}
+              duunify={true}
+            />
+            <ComparisonRow
+              label="Automaattinen toimintaloki"
+              excel={false}
+              duunify={true}
+            />
+            <ComparisonRow
+              label="Muistutukset ennen määräaikaa"
+              excel={false}
+              duunify={true}
+              isLast
             />
           </div>
         </div>
@@ -278,6 +467,65 @@ function StepCard({
       </span>
       <h3 className="font-bold text-slate-900 mt-3 mb-1.5">{title}</h3>
       <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function LegendRow({
+  color,
+  label,
+  value,
+}: {
+  color: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center gap-1.5">
+        <span
+          className="w-2 h-2 rounded-full shrink-0"
+          style={{ backgroundColor: color }}
+        />
+        <span className="text-slate-600 font-medium">{label}</span>
+      </div>
+      <span className="font-bold text-slate-900">{value}</span>
+    </div>
+  );
+}
+
+function ComparisonRow({
+  label,
+  excel,
+  duunify,
+  isLast,
+}: {
+  label: string;
+  excel: boolean;
+  duunify: boolean;
+  isLast?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between px-6 py-4 ${!isLast ? "border-b border-slate-100" : ""}`}
+    >
+      <p className="text-sm font-medium text-slate-700 flex-1 pr-4">{label}</p>
+      <div className="flex items-center gap-8 shrink-0">
+        <div className="w-16 flex justify-center">
+          {excel ? (
+            <CheckCircle size={18} className="text-emerald-500" />
+          ) : (
+            <XCircle size={18} className="text-slate-300" />
+          )}
+        </div>
+        <div className="w-16 flex justify-center">
+          {duunify ? (
+            <CheckCircle size={18} className="text-[#6D67F2]" />
+          ) : (
+            <XCircle size={18} className="text-slate-300" />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
