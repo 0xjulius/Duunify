@@ -4,11 +4,11 @@ import { Sparkles } from "lucide-react";
 export default function DemoBanner() {
   return (
     <div
-      className="rounded-2xl p-4 flex items-center justify-between gap-4 text-white mb-6"
+      className="rounded-2xl p-4 flex items-center justify-between gap-4 text-indigo-100 mb-6"
       style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
     >
       <div className="flex items-center gap-2 text-sm font-medium">
-        <Sparkles size={16} />
+        <Sparkles size={40} />
         Katselet esikatselua esimerkkidatalla. Tiedot eivät tallennu.
           </div>
           

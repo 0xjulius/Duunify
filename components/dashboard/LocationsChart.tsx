@@ -117,13 +117,13 @@ export default function LocationsCard({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
-      <h3 className="text-lg font-bold text-slate-900">Työmahdollisuudet</h3>
+      <h3 className="text-md font-bold text-slate-800">Työmahdollisuudet</h3>
       <div className="flex items-start gap-4 flex-1 overflow-hidden">
         <div className="max-w-30 lg:max-w-40 shrink-0 mt-4">
           <img
             src="/fi.svg"
             alt="Suomen kartta"
-            className="w-full h-auto object-contain"
+            className="w-full h-auto object-contain md:hidden xl:block"
           />
         </div>
 

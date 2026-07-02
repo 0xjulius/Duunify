@@ -119,7 +119,7 @@ export default function ConsistencyCard({
           </div>
 
           {/* Progress-rengas */}
-          <div className="relative h-20 w-20 mr-8">
+          <div className="relative h-20 w-20  mr-8 md:hidden xl:block xl:mr-2 2xl:mr-8">
             <svg className="h-full w-full -rotate-90" viewBox="0 0 52 52">
               <circle
                 cx="26"

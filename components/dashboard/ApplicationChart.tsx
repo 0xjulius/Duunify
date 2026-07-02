@@ -101,7 +101,7 @@ export default function ApplicationsChart({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
       <div>
-        <h3 className="text-lg font-bold text-slate-900">Työnhaku tilan mukaan</h3>
+        <h3 className="text-lg font-bold text-slate-800">Työnhaku tilan mukaan</h3>
         <p className="text-xs text-slate-500 mt-0.5">Tallennetut ja aktiiviset prosessit.</p>
       </div>
 
@@ -128,12 +128,12 @@ export default function ApplicationsChart({
           </ResponsiveContainer>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-2xl font-bold text-slate-900">{totalApplications}</span>
+            <span className="text-3xl font-bold text-slate-900">{totalApplications}</span>
             <span className="text-[10px] text-slate-400 uppercase tracking-wider">kpl</span>
           </div>
         </div>
 
-        <div className="flex-1 max-h-[220px] overflow-y-auto flex flex-col gap-1.5 pr-2">
+        <div className="flex-1 max-h-[220px] overflow-y-auto flex flex-col gap-1.5 pr-2 md:hidden xl:block">
           {data.map((item, index) => (
             <div key={index} className="flex items-center justify-between text-[11px] sm:text-xs">
               <div className="flex items-center gap-2 min-w-0">

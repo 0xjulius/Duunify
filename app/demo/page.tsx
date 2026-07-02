@@ -64,12 +64,12 @@ export default function DemoDashboardPage() {
 
         <DemoBanner />
         <header className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+          <h1 className="text-xl md:text-3xl font-semibold text-slate-800 mb-1 flex items-center gap-2">
             {greeting}<span>Demokäyttäjä 👋</span>
           </h1>
 
           {/* Päivämäärä */}
-          <p className="text-slate-500 text-lg mb-6">
+          <p className="text-slate-500 text-sm md:text-xl mb-6">
             {now.toLocaleDateString("fi-FI", {
               weekday: "long",
               day: "numeric",
@@ -86,10 +86,10 @@ export default function DemoDashboardPage() {
             </div>
 
             <div>
-              <h2 className="text-3xl font-bold text-slate-900">
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800">
                 Yleiskatsaus
               </h2>
-              <p className="mt-1 text-slate-500 text-[17px]">
+              <p className="mt-1 text-slate-500 text-sm md:text-lg">
                 Työnhakusi yhdellä silmäyksellä
               </p>
             </div>

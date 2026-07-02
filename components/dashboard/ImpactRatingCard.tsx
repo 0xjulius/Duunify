@@ -22,7 +22,7 @@ export function ImpactRatingSkeleton() {
       <div className="absolute right-4 top-4 h-4 w-4 rounded-full bg-slate-100" />
 
       {/* Otsikko */}
-      <div className="h-4 w-32 rounded bg-slate-100" />
+      <div className="h-4 w-32 rounded bg-slate-100 text-slate-800" />
 
       {/* Luku ja emoji */}
       <div className="flex items-end gap-3">
@@ -140,7 +140,7 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
         <span className={`text-5xl font-extrabold ${colorClass}`}>
           {displayRating}
         </span>
-        <span className="text-5xl">{emoji}</span>
+        <span className="text-4xl md:hidden xl:block">{emoji}</span>
       </div>
 
       <p className={`text-sm font-medium ${colorClass}`}>{statusText}</p>
