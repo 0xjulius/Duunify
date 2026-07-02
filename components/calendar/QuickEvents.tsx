@@ -1,18 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Calendar, Plus, Search, Trash2, CheckCircle2 } from "lucide-react";
+import { Calendar, Search, Trash2, CheckCircle2 } from "lucide-react";
 import { UnifiedEvent, EVENT_COLORS, EVENT_TYPE_LABELS } from "@/lib/calendar";
 
 export default function QuickEvents({
   events,
-  onAddClick,
   onDelete,
   onSelectEvent,
 }: {
   events: UnifiedEvent[];
-  onAddClick: () => void;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onSelectEvent: (event: UnifiedEvent) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -22,97 +20,102 @@ export default function QuickEvents({
     today.setHours(0, 0, 0, 0);
 
     return events
-      .filter((e) => e.date >= today)
-      .filter((e) =>
-        query
-          ? (e.title + e.subtitle).toLowerCase().includes(query.toLowerCase())
-          : true
-      );
+      .filter((e) => {
+        const eventDate = e.date instanceof Date ? e.date : new Date(e.date);
+        return eventDate >= today;
+      })
+      .filter((e) => {
+        if (!query) return true;
+        const searchString = `${e.title || ""} ${e.subtitle || ""}`.toLowerCase();
+        return searchString.includes(query.toLowerCase());
+      });
   }, [events, query]);
 
   return (
-    // min-h-0 on tässä välttämätön: ilman sitä flex-lapsi ei koskaan
-    // kutistu vanhempaansa pienemmäksi, jolloin overflow-y-auto ei
-    // ikinä aktivoidu ja scrollbar ei näy.
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 h-full min-h-0 flex flex-col shadow-sm">
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="font-bold text-slate-900 flex items-center gap-2">
-          <Calendar size={18} className="text-indigo-500" />
-          Tulevat
+    <div className="bg-white rounded-2xl border border-slate-100 p-4 h-full min-h-0 flex flex-col">
+      <div className="flex justify-between items-center mb-4 shrink-0">
+        <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <Calendar size={16} className="text-indigo-500" />
+          Tulevat tapahtumat
         </h2>
-        <button
-          onClick={onAddClick}
-          className="bg-slate-900 text-white p-1.5 rounded-lg hover:bg-slate-800"
-        >
-          <Plus size={16} />
-        </button>
       </div>
 
-      <div className="relative mb-6 shrink-0">
-        <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+      <div className="relative mb-4 shrink-0">
+        <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Etsi tapahtumia..."
-          className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+          className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-500 transition-colors"
         />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pr-1 max-h-[350px]">
         {upcoming.length === 0 && (
-          <p className="text-sm text-slate-400 text-center mt-8">
+          <p className="text-xs text-slate-400 text-center py-6">
             Ei tulevia tapahtumia.
           </p>
         )}
 
         {upcoming.map((e) => {
-          const colors = EVENT_COLORS[e.type];
+          const typeKey = e.type as keyof typeof EVENT_COLORS;
+          const colors = EVENT_COLORS[typeKey] || { dot: "#94a3b8" };
+          
+          const labelKey = e.type as keyof typeof EVENT_TYPE_LABELS;
+          const label = EVENT_TYPE_LABELS[labelKey] || e.type;
+
+          const dateObj = e.date instanceof Date ? e.date : new Date(e.date);
+
           return (
             <div
               key={e.id}
               onClick={() => onSelectEvent(e)}
-              className={`flex justify-between items-center p-3 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-slate-50 transition-colors group cursor-pointer ${
+              className={`flex justify-between items-center p-2.5 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-slate-50 transition-colors group cursor-pointer ${
                 e.completed ? "opacity-50" : ""
               }`}
             >
-              <div className="min-w-0">
+              <div className="min-w-0 pr-2">
                 <div className="flex items-center gap-1.5">
                   <span
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ backgroundColor: colors.dot }}
                   />
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                    {EVENT_TYPE_LABELS[e.type]}
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                    {label}
                   </p>
                   {e.completed && (
-                    <CheckCircle2 size={11} className="text-emerald-500" />
+                    <CheckCircle2 size={10} className="text-emerald-500" />
                   )}
                 </div>
+                
+                {/* Käytetään e.titleä, jotta (Haettu ✓) -teksti näkyy oikein */}
                 <p
-                  className={`text-sm font-bold text-slate-900 truncate mt-0.5 ${
-                    e.completed ? "line-through" : ""
+                  className={`text-xs font-semibold text-slate-900 truncate mt-0.5 ${
+                    e.completed ? "line-through text-slate-400" : ""
                   }`}
                 >
-                  {e.type === "deadline" ? e.subtitle : e.title}
+                  {e.title}
                 </p>
-                {e.subtitle && e.type !== "deadline" && (
-                  <p className="text-xs text-slate-500 truncate">{e.subtitle}</p>
+                
+                {/* Näytetään yritys ja tehtävä (e.subtitle) kaikilla tyypeillä */}
+                {e.subtitle && (
+                  <p className="text-[11px] text-slate-500 truncate mt-0.5">{e.subtitle}</p>
                 )}
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-bold bg-white px-2 py-1 rounded-md border border-slate-200">
-                  {e.date.toLocaleDateString("fi-FI", { day: "numeric", month: "short" })}
+                <span className="text-[9px] font-bold bg-white px-2 py-0.5 rounded-md border border-slate-100 text-slate-600">
+                  {dateObj.toLocaleDateString("fi-FI", { day: "numeric", month: "short" })}
                 </span>
-                {e.editable && (
+                {e.editable && onDelete && (
                   <button
                     onClick={(ev) => {
                       ev.stopPropagation();
                       onDelete(e.id);
                     }}
-                    className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition"
+                    className="md:opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition p-0.5"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={12} />
                   </button>
                 )}
               </div>

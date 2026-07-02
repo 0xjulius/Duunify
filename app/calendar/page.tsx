@@ -16,11 +16,11 @@ export default async function CalendarPage() {
     redirect("/login");
   }
 
-  // KORJAUS: Haetaan vain tämän kirjautuneen käyttäjän kalenteritapahtumat
+  // KORJAUS: Lisätty 'cv_url' hakuun, jotta kalenterista avautuva dialogi näkee liitteen
   const { data: applications, error } = await supabase
     .from("applications")
-    .select("id, company, job_title, valid_through, status")
-    .eq("user_id", user.id); // <--- LISÄTTY TURVALLISUUSSUODATUS
+    .select("id, company, job_title, valid_through, status, cv_url") // <-- cv_url lisätty tänne
+    .eq("user_id", user.id);
 
   if (error) {
     console.error("Virhe haettaessa hakemuksia:", error);

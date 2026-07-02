@@ -44,6 +44,7 @@ export default function CalendarClient({
       return;
     }
     toast.success("Tapahtuma poistettu.");
+    setSelectedEvent(null);
     loadEvents();
   }
 
@@ -55,44 +56,84 @@ export default function CalendarClient({
     }
     toast.success(completed ? "Merkitty valmiiksi." : "Merkitty kesken.");
     loadEvents();
+    
+    if (selectedEvent && selectedEvent.id === id) {
+      setSelectedEvent({ ...selectedEvent, completed });
+    }
   }
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-140px)]">
-      <div className="w-80 flex-shrink-0 min-h-0">
-        <QuickEvents
-          events={events}
-          onAddClick={() => setShowAdd(true)}
-          onDelete={handleDelete}
-          onSelectEvent={setSelectedEvent}
-        />
+    <div className="w-full max-w-7xl mx-auto space-y-6">
+      {/* Otsikkoalue */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-100">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Kalenteri
+          </h1>
+          <p className="text-sm text-slate-500">
+            Seuraa hakuprosessiesi tärkeitä päivämääriä.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAdd(true)}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-xl transition-colors w-full sm:w-auto"
+        >
+          + Lisää tapahtuma
+        </button>
       </div>
 
-      <div className="flex-1 bg-white rounded-2xl border border-slate-200 p-4 shadow-sm min-w-0">
-        <CalendarView
-          events={events}
-          onSelectEvent={setSelectedEvent}
-          focusDate={focusDate}
-        />
+      {/* PÄÄASSETTELU */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* VASEN REUNA / YLÄOSA: Pääkalenteri */}
+        <div className="w-full lg:flex-1 bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <CalendarView
+            events={events}
+            onSelectEvent={(event: UnifiedEvent) => setSelectedEvent(event)}
+            focusDate={focusDate}
+          />
+        </div>
+
+        {/* OIKEA REUNA / ALAOSA: Tulevat tapahtumat & Apukalenterit */}
+        <div className="w-full lg:w-80 flex flex-col gap-6">
+          {/* Minikalenteri */}
+          <div className="hidden lg:block bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <MiniCalendar
+              events={events}
+              value={focusDate || new Date()}
+              onChange={(date: Date | null) => setFocusDate(date)}
+            />
+          </div>
+
+          {/* Tulevat tapahtumat -lista */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm w-full">
+            <QuickEvents
+              events={events}
+              onSelectEvent={(event: UnifiedEvent) => setSelectedEvent(event)}
+              onDelete={handleDelete} 
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="w-72 flex-shrink-0">
-        <MiniCalendar events={events} onSelectDate={setFocusDate} />
-      </div>
-
+      {/* MODALIKOMPONENTIT */}
       <AddEventModal
-        isOpen={showAdd}
-        onClose={() => setShowAdd(false)}
+        open={showAdd}
+        onOpenChange={setShowAdd}
         applications={applications}
-        onCreated={loadEvents}
+        onSuccess={() => {
+          loadEvents();
+        }}
       />
 
-      <EventDetailModal
-        event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
-        onDelete={handleDelete}
-        onToggleCompleted={handleToggleCompleted}
-      />
+      {selectedEvent && (
+        <EventDetailModal
+          event={selectedEvent}
+          open={!!selectedEvent}
+          onOpenChange={(open: boolean) => !open && setSelectedEvent(null)}
+          onDelete={handleDelete}
+          onToggleCompleted={handleToggleCompleted}
+        />
+      )}
     </div>
   );
 }
