@@ -35,11 +35,15 @@ export default function RecentApplications({
   onOpenApplication,
   demoApps,
 }: {
-  onOpenApplication: (app: Application) => void;
+  // Lisätään onOpenApplication-funktiolle valinnainen toinen parametri isDemo
+  onOpenApplication: (app: Application, isDemo?: boolean) => void;
   demoApps?: Application[];
 }) {
   const [apps, setApps] = useState<Application[]>(demoApps ? demoApps.slice(0, 4) : []);
   const [loading, setLoading] = useState(!demoApps);
+  
+  // Tunnistetaan dynaamisesti, ollaanko demotilassa
+  const isDemoMode = !!demoApps;
 
   useEffect(() => {
     if (demoApps) return;
@@ -92,7 +96,8 @@ export default function RecentApplications({
             apps.map((app) => (
               <button
                 key={app.id}
-                onClick={() => onOpenApplication(app)}
+                // Välitetään tieto demotilasta eteenpäin, kun hakemus avataan
+                onClick={() => onOpenApplication(app, isDemoMode)}
                 className="w-full flex items-center justify-between py-2 border-b border-slate-50 last:border-0 group transition-all hover:bg-slate-50 rounded-lg -mx-2 px-2 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">

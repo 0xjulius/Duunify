@@ -33,7 +33,6 @@ export default function DemoDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
 
-
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
   const interviewPercentage =
@@ -47,19 +46,21 @@ export default function DemoDashboardPage() {
     if (hour < 18) return "Hyvää iltapäivää,";
     if (hour < 22) return "Hyvää iltaa,";
     return "Hyvää myöhäisiltaa,";
-    };
-    const greeting = getGreeting();
-    const now = new Date();
+  };
+  const greeting = getGreeting();
+  const now = new Date();
 
   return (
     <div className="flex flex-row min-h-screen bg-slate-100 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50">
       <DemoSidebar />
 
       <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-6">
+        {/* Lukitaan dialogi demotilaan propeilla */}
         <ApplicationDialog
           app={selectedApplication}
           open={open}
           onOpenChange={setOpen}
+          isDemo={true} 
         />
 
         <DemoBanner />

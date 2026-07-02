@@ -28,6 +28,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   app: any;
+  isDemo?: boolean;
   onUpdate?: () => void; // Kutsuu päänäkymän päivitystä muutosten jälkeen
 };
 
@@ -36,6 +37,7 @@ export default function ApplicationDialog({
   onOpenChange,
   app,
   onUpdate,
+  isDemo = false,
 }: Props) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [currentCvUrl, setCurrentCvUrl] = useState<string | null>(null);
@@ -269,7 +271,7 @@ export default function ApplicationDialog({
                         variant="ghost"
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 w-9 p-0"
                         onClick={deleteAttachment}
-                        disabled={deleting}
+                        disabled={deleting || isDemo}
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -280,8 +282,16 @@ export default function ApplicationDialog({
                     Luodaan suojattua linkkiä...
                   </p>
                 )
+              ) : isDemo ? (
+                /* Näytetään demossa latauslaatikon tilalla ilmoitus, jos tiedostoa ei ole */
+                <div className="max-w-md p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center">
+                  <p className="text-xs text-slate-400 font-medium italic">
+                    Ei liitteitä. Liitteiden lisäys on poissa käytöstä
+                    demotilassa.
+                  </p>
+                </div>
               ) : (
-                // Jos liitettä ei ole (tai se poistettiin), näytetään heti lisäyspainike
+                /* Jos liitettä ei ole ja kyseessä EI ole demo, näytetään normaali lisäyspainike */
                 <div className="max-w-md">
                   <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-xl cursor-pointer bg-slate-50/50 hover:bg-indigo-50/20 transition-all">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -298,12 +308,14 @@ export default function ApplicationDialog({
                       onChange={handleFileChange}
                       disabled={uploading}
                       accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                      onClick={(e) => e.stopPropagation()} // Estää dialogia sulkeutumasta joissain tapauksissa
+                      onClick={(e) => e.stopPropagation()}
                     />
                   </label>
                 </div>
               )}
             </div>
+
+            {/* MUISTIINPANOT-OSIO */}
             <div className="space-y-4 border-t pt-6">
               <h3 className="font-semibold flex items-center gap-2">
                 <FileText size={18} /> Muistiinpanot
