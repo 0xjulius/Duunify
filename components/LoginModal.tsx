@@ -60,29 +60,30 @@ export default function LoginModal({
   }
 
   async function register() {
-    setLoading(true);
+  setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-        // Tämä ohjaa käyttäjän vahvistuksen jälkeen suoraan dashboardille
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
       },
-    });
+      // Korjattu: ohjataan /auth/callback-reitin kautta, joka vaihtaa
+      // koodin istunnoksi ennen kuin käyttäjä päätyy /dashboard-sivulle.
+      emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+    },
+  });
 
-    setLoading(false);
+  setLoading(false);
 
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-
-    toast.success("Tarkista sähköpostisi.");
+  if (error) {
+    toast.error(translateAuthError(error.message));
+    return;
   }
+
+  toast.success("Tarkista sähköpostisi.");
+}
 
   return (
     <div

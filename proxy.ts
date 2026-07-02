@@ -29,8 +29,9 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith(ADMIN_PREFIX);
 
   // 1. Suojatut sivut tai admin-sivut, kun käyttäjä EI ole kirjautunut lainkaan
+  // vaihdetaan redirectUrl /login, kun sivusto on julkaisukelpoinen
   if ((isProtected || isAdminRoute) && !user) {
-    const redirectUrl = new URL("/login", request.url);
+    const redirectUrl = new URL("/", request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
 
     const redirectResponse = NextResponse.redirect(redirectUrl);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Shield, ArrowLeft, CheckCircle2, FileText, Lock } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
+import SimpleNavbar from "@/components/SimpleNav";
 
 export default function PrivacyPolicyPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -28,35 +29,42 @@ export default function PrivacyPolicyPage() {
         }}
       />
 
-      {/* NAV */}
-      <header className="duunify-modal sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
-            <span className="duunify-display font-bold text-slate-900">
-              Duunify
-            </span>
-          </Link>
-
-          {/* PALAA TAKAISIN -LINKKI JA NAPPI YHDESSÄ */}
-          <div className="flex items-center gap-5">
-            <Link 
-              href="/" 
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <ArrowLeft size={16} /> Palaa takaisin
-            </Link>
-            
-            <button
-              onClick={() => setShowLogin(true)}
-              className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
-            >
-              Aloita ilmaiseksi
-            </button>
-          </div>
-        </div>
-      </header>
+          {/* NAV WAIT */}
+          <SimpleNavbar />
+    
+          {/* NAV-VALMIS 
+          <header className="duunify-modal sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+            <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
+    
+                <span className="duunify-display font-bold text-slate-900">
+                  Duunify
+                </span>
+              </Link>
+    
+              <div className="flex items-center gap-5">
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                >
+                  <ArrowLeft size={16} /> Palaa takaisin
+                </Link>
+    
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, #6D67F2, #5750E0)",
+                  }}
+                >
+                  Aloita ilmaiseksi
+                </button>
+              </div>
+            </div>
+          </header >
+          */}
+    
 
       {/* PÄÄSISÄLTÖ */}
       <main className="duunify-modal max-w-6xl mx-auto px-6 pt-16 pb-24 relative z-10">

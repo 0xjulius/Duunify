@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
+import WaitlistSignup from "@/components/WaitlistSignup";
 import { LandingIndexCard } from "@/components/LandingIndexCard";
+import NavBarWait from "@/components/NavBarWait";
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -32,46 +34,7 @@ export default function LandingPage() {
       `}</style>
 
       {/* NAV */}
-      <header className="duunify-modal sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
-            <span className="duunify-display font-bold text-slate-900">
-              Duunify
-            </span>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#ominaisuudet" className="hover:text-slate-900">
-              Ominaisuudet
-            </a>
-            <a href="#dashboard" className="hover:text-slate-900">
-              Yleiskatsaus
-            </a>
-            <a href="#miten-toimii" className="hover:text-slate-900">
-              Miten toimii
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2"
-            >
-              Kirjaudu sisään
-            </button>
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, #6D67F2, #5750E0)",
-              }}
-            >
-              Aloita ilmaiseksi
-            </button>
-          </div>
-        </div>
-      </header>
+      <NavBarWait />
 
       {/* HERO */}
       <section className="duunify-modal relative overflow-hidden">
@@ -95,12 +58,12 @@ export default function LandingPage() {
             <span className="text-[#6D67F2]">missä oikeasti menet</span>
           </h1>
 
-          <p className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+          <p className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed mb-8">
             Lopeta hakemusten seuraaminen Excelissä. Duunify tallentaa,
             aikatauluttaa ja visualisoi koko hakuprosessisi — automaattisella
             tietojen haulla suoraan työpaikkailmoituksesta.
           </p>
-
+          {/* HIDDEN FOR NOW
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setShowLoginModal(true)}
@@ -119,11 +82,8 @@ export default function LandingPage() {
             >
               Kirjaudu sisään
             </button>
-          </div>
+          </div>*/}
 
-          <p className="mt-5 text-md text-slate-400 mb-8">
-            Ei luottokorttia. Ei sitoutumista.
-          </p>
           <Link
             href="/demo"
             className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 hover:shadow-md"
@@ -134,6 +94,19 @@ export default function LandingPage() {
             />
             Katso demo-versiota!
           </Link>
+          <p className="mt-3 text-sm text-slate-400 mb-12">
+            Ei luottokorttia. Ei sitoutumista.
+          </p>
+          <div className="text-center">
+            <h3 className="mt-4 text-2xl font-bold text-slate-900">
+              Haluatko ensimmäisten joukossa kokeilemaan?
+            </h3>
+            <p className="mt-2 text-slate-600">
+              Liity odotuslistalle ja saat kutsun heti, kun avaamme palvelun
+              uusille käyttäjille.
+            </p>
+          </div>
+          <WaitlistSignup />
         </div>
       </section>
 
@@ -185,7 +158,10 @@ export default function LandingPage() {
       </section>
 
       {/* DASHBOARD SHOWCASE */}
-      <section id="dashboard" className="duunify-modal py-20 md:py-28 bg-slate-50 overflow-hidden">
+      <section
+        id="dashboard"
+        className="duunify-modal py-20 md:py-28 bg-slate-50 overflow-hidden"
+      >
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full mb-5">
@@ -287,15 +263,19 @@ export default function LandingPage() {
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                   <span>Vähemmän</span>
                   <div className="flex gap-[3px]">
-                    {["#F1F0FE", "#D9D6FB", "#B3ADF7", "#6D67F2", "#3D3699"].map(
-                      (c) => (
-                        <div
-                          key={c}
-                          className="w-2.5 h-2.5 rounded-[3px]"
-                          style={{ backgroundColor: c }}
-                        />
-                      )
-                    )}
+                    {[
+                      "#F1F0FE",
+                      "#D9D6FB",
+                      "#B3ADF7",
+                      "#6D67F2",
+                      "#3D3699",
+                    ].map((c) => (
+                      <div
+                        key={c}
+                        className="w-2.5 h-2.5 rounded-[3px]"
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
                   </div>
                   <span>Enemmän</span>
                 </div>
@@ -397,6 +377,7 @@ export default function LandingPage() {
             Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa
             haltuun.
           </p>
+          {/* HIDDEN FOR NOW
           <button
             onClick={() => setShowLoginModal(true)}
             className="mt-8 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
@@ -416,6 +397,8 @@ export default function LandingPage() {
               Ei mainoksia
             </span>
           </div>
+          */}
+          <WaitlistSignup />
         </div>
       </section>
 
