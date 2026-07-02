@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import LoginModal from "@/components/LoginModal";
+import AddAttachment from "@/components/applications/AddAttachment";
 
 const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   FULL_TIME: "Kokoaikainen",
@@ -25,6 +26,7 @@ export default function AddApplicationForm({
   const [loadingJob, setLoadingJob] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -78,7 +80,6 @@ export default function AddApplicationForm({
       toast.error("Kirjaudu sisään", {
         description: "Kirjaudu sisään käyttääksesi automaattista hakua.",
       });
-
       setShowLoginModal(true);
       return;
     }
@@ -122,17 +123,14 @@ export default function AddApplicationForm({
       const data = await response.json();
 
       if (!response.ok) {
-        // 1. Jos käyttäjä ei ole kirjautunut, avataan modaali
         if (response.status === 401) {
           toast.error("Kirjaudu sisään", {
-            description:
-              "Jatka kirjautumalla käyttääksesi automaattista hakua.",
+            description: "Jatka kirjautumalla käyttääksesi automaattista hakua.",
           });
           setShowLoginModal(true);
           return;
         }
 
-        // 2. Jos kyseessä on jokin muu virhe (esim. 500), näytetään vain virheilmoitus
         toast.error("Virhe", {
           description: "Tapahtui odottamaton virhe. Yritä myöhemmin uudelleen.",
         });
@@ -159,90 +157,81 @@ export default function AddApplicationForm({
     e.preventDefault();
 
     if (loading) return;
-
     setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      toast.error("Et ole kirjautunut sisään.");
-      setLoading(false);
-      return;
-    }
+      if (!user) {
+        toast.error("Et ole kirjautunut sisään.");
+        setLoading(false);
+        return;
+      }
 
-    if (company.length > 60) {
-      toast.error("Yrityksen nimi liian pitkä, max 60 merkkiä");
-      setLoading(false);
-      return;
-    }
+      // Kenttien pituusvalidioinnit
+      if (company.length > 60) throw new Error("Yrityksen nimi liian pitkä, max 60 merkkiä");
+      if (location.length > 60) throw new Error("Sijainti-kenttä liian pitkä, max 60 merkkiä");
+      if (jobTitle.length > 150) throw new Error("Työtehtävä liian pitkä, max 150 merkkiä");
+      if (notes.length > 5000) throw new Error("Liikaa muistiinpanoja, max 5000 merkkiä");
+      if (jobDescription.length > 15000) throw new Error("Työpaikkakuvaus liian pitkä, max 15000 merkkiä");
 
-    if (location.length > 60) {
-      toast.error("Sijainti-kenttä liian pitkä, max 60 merkkiä");
-      setLoading(false);
-      return;
-    }
+      const minSalary = salaryMin ? Number(salaryMin) : null;
+      const maxSalary = salaryMax ? Number(salaryMax) : null;
 
-    if (jobTitle.length > 150) {
-      toast.error("Työtehtävä liian pitkä, max 150 merkkiä");
-      setLoading(false);
-      return;
-    }
+      if (minSalary && maxSalary && minSalary > maxSalary) {
+        throw new Error("Minimipalkka ei voi olla suurempi kuin maksimipalkka");
+      }
+      if (salaryMin.length > 10 || salaryMax.length > 10) {
+        throw new Error("Palkkakenttä liian pitkä, max 10 merkkiä");
+      }
 
-    if (notes.length > 5000) {
-      toast.error("Liikaa muistiinpanoja, max 5000 merkkiä");
-      setLoading(false);
-      return;
-    }
+      let cvUrl = null;
 
-    if (jobDescription.length > 15000) {
-      toast.error("Työpaikkakuvaus liian pitkä, max 15000 merkkiä");
-      setLoading(false);
-      return;
-    }
+      // 1. LIITETIEDOSTON LATAUS (Jos tiedosto on valittu)
+      if (file) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-    const minSalary = salaryMin ? Number(salaryMin) : null;
-    const maxSalary = salaryMax ? Number(salaryMax) : null;
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from("attachments")
+          .upload(fileName, file);
 
-    if (minSalary && maxSalary && minSalary > maxSalary) {
-      toast.error("Minimipalkka ei voi olla suurempi kuin maksimipalkka");
-      return;
-    }
+        if (storageError) {
+          throw new Error(`Tiedoston lataus epäonnistui: ${storageError.message}`);
+        }
 
-    if (salaryMin.length > 10) {
-      toast.error("Minimipalkka liian pitkä, max 10 merkkiä");
-      return;
-    }
+        cvUrl = storageData.path;
+      }
 
-    if (salaryMax.length > 10) {
-      toast.error("Maksimipalkka liian pitkä, max 10 merkkiä");
-      return;
-    }
+      // 2. HAKEMUKSEN TALLENNUS TIETOKANTAAN
+      const { data, error: dbError } = await supabase
+        .from("applications")
+        .insert([
+          {
+            user_id: user.id,
+            company,
+            job_title: jobTitle,
+            location,
+            status,
+            notes,
+            applied_date: appliedDate,
+            job_description: jobDescription,
+            job_url: jobUrl,
+            salary_min: minSalary,
+            salary_max: maxSalary,
+            employment_type: employmentType || null,
+            valid_through: validThrough || null,
+            cv_url: cvUrl,
+          },
+        ])
+        .select()
+        .single();
 
-    const { data, error } = await supabase
-      .from("applications")
-      .insert([
-        {
-          user_id: user.id,
-          company,
-          job_title: jobTitle,
-          location,
-          status,
-          notes,
-          applied_date: appliedDate,
-          job_description: jobDescription,
-          job_url: jobUrl,
-          salary_min: salaryMin ? Number(salaryMin) : null,
-          salary_max: salaryMax ? Number(salaryMax) : null,
-          employment_type: employmentType || null,
-          valid_through: validThrough || null,
-        },
-      ])
-      .select()
-      .single();
+      if (dbError) throw dbError;
 
-    if (!error) {
+      // 3. HISTORIAN TALLENNUS
       await addHistory(
         user.id,
         data.id,
@@ -252,33 +241,32 @@ export default function AddApplicationForm({
         undefined,
         status,
       );
-    }
-    setLoading(false);
 
-    if (error) {
+      toast.success("🎉 Hakemus tallennettu!", {
+        description: `${company} • ${jobTitle}`,
+      });
+
+      // Lomakkeen resetointi
+      setCompany("");
+      setJobTitle("");
+      setLocation("");
+      setStatus("Haettu");
+      setNotes("");
+      setJobDescription("");
+      setJobUrl("");
+      setSalaryMin("");
+      setSalaryMax("");
+      setEmploymentType("");
+      setValidThrough("");
+      setFile(null);
+
+      onSuccess();
+    } catch (error: any) {
       console.error(error);
-      toast.error("Virhe tallennuksessa: " + error.message);
-      return;
+      toast.error(error.message || "Tapahtui virhe tallennuksessa.");
+    } finally {
+      setLoading(false);
     }
-
-    toast.success("🎉 Hakemus tallennettu!", {
-      description: `${company} • ${jobTitle}`,
-    });
-
-    // Reset
-    setCompany("");
-    setJobTitle("");
-    setLocation("");
-    setStatus("Haettu");
-    setNotes("");
-    setJobDescription("");
-    setJobUrl("");
-    setSalaryMin("");
-    setSalaryMax("");
-    setEmploymentType("");
-    setValidThrough("");
-
-    onSuccess();
   }
 
   const inputStyle =
@@ -442,14 +430,18 @@ export default function AddApplicationForm({
         </div>
 
         {/* NOTES — full width */}
-        <div className="md:col-span-2">
-          <label className={labelStyle}>Muistiinpanot</label>
+        <div className="md:col-span-1">
+          <label className={labelStyle}>Muistiinpanot, tai lisää liite:</label>
           <textarea
             placeholder="Palkkatoive, yhteyshenkilö..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className={`${inputStyle} h-[100px] resize-none`}
+            className={`${inputStyle} h-[150px] resize-none`}
           />
+        </div>
+        <div className="md:col-span-1">
+          <AddAttachment notes={notes} setNotes={setNotes} file={file} 
+          setFile={setFile}  />
         </div>
 
         {/* DESCRIPTION — full width */}
