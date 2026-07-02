@@ -18,10 +18,9 @@ const ADMIN_PREFIX = "/admin";
 
 // KORJAUS: Funktion nimi on nyt "proxy" (aiemmin "middleware")
 export async function proxy(request: NextRequest) {
-  // Lokitus terminaaliin
-  //console.log("👉 PROXY AKTIIVINEN OSOITTEESSA:", request.nextUrl.pathname);
-
-  // Päivitetään istunto ja haetaan tuoreet evästeet sekä käyttäjätieto
+  if (process.env.NODE_ENV === "development") {
+    return NextResponse.next();
+  }
   const { response: sessionResponse, user } = await updateSession(request);
 
   const isProtected = PROTECTED_PREFIXES.some((p) =>
