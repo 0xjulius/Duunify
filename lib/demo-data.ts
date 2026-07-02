@@ -14,7 +14,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-20", 
     created_at: "2026-06-20T09:00:00Z", 
     valid_through: "2026-07-10",
-    jobDescription: "Kehitämme Woltin kuluttaja- ja kuljettajasovelluksia Reactin ja TypeScriptin avulla. Etsimme intohimoista frontend-kehittäjää, jolla on vahva osaaminen modernista web-kehityksestä ja suorituskykyisistä käyttöliittymistä."
+    job_description: "Kehitämme Woltin kuluttaja- ja kuljettajasovelluksia Reactin ja TypeScriptin avulla. Etsimme intohimoista frontend-kehittäjää, jolla on vahva osaaminen modernista web-kehityksestä ja suorituskykyisistä käyttöliittymistä."
   },
   { 
     id: "d2", 
@@ -25,7 +25,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-24", 
     created_at: "2026-06-24T11:00:00Z", 
     valid_through: "2026-07-15",
-    jobDescription: "Työskentele yhdessä maailman parhaiden pelinkehittäjien kanssa uusien mobiilipelien parissa. Vastuullasi on pelimekaniikkojen suunnittelu, pelaajakokemuksen optimointi ja innovatiivisten peli-ideoiden toteuttaminen."
+    job_description: "Työskentele yhdessä maailman parhaiden pelinkehittäjien kanssa uusien mobiilipelien parissa. Vastuullasi on pelimekaniikkojen suunnittelu, pelaajakokemuksen optimointi ja innovatiivisten peli-ideoiden toteuttaminen."
   },
   { 
     id: "d3", 
@@ -36,7 +36,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-18", 
     created_at: "2026-06-18T08:30:00Z", 
     valid_through: null,
-    jobDescription: "Monipuolinen rooli eri asiakasprojekteissa. Käytämme moderneja teknologioita kuten Node.js, React, Kotlin ja AWS. Arvostamme itsenäistä ongelmanratkaisukykyä ja hyviä kommunikointitaitoja."
+    job_description: "Monipuolinen rooli eri asiakasprojekteissa. Käytämme moderneja teknologioita kuten Node.js, React, Kotlin ja AWS. Arvostamme itsenäistä ongelmanratkaisukykyä ja hyviä kommunikointitaitoja."
   },
   { 
     id: "d4", 
@@ -47,7 +47,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-10", 
     created_at: "2026-06-10T14:00:00Z", 
     valid_through: null,
-    jobDescription: "Analysoit pankkitoiminnan dataa ja kehität raportointia Power BI:n ja SQL:n avulla. Tehtävässä pääset vaikuttamaan digitaalisten palveluiden kehitykseen."
+    job_description: "Analysoit pankkitoiminnan dataa ja kehität raportointia Power BI:n ja SQL:n avulla. Tehtävässä pääset vaikuttamaan digitaalisten palveluiden kehitykseen."
   },
   { 
     id: "d5", 
@@ -58,7 +58,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-05", 
     created_at: "2026-06-05T10:00:00Z", 
     valid_through: null,
-    jobDescription: "Rakennetaan maailman parasta supply chain -ohjelmistoa. Käytämme Javaa, Spring Bootia ja mikropalveluita. Etsimme kehittäjää, joka haluaa ratkaista haastavia optimointiongelmia."
+    job_description: "Rakennetaan maailman parasta supply chain -ohjelmistoa. Käytämme Javaa, Spring Bootia ja mikropalveluita. Etsimme kehittäjää, joka haluaa ratkaista haastavia optimointiongelmia."
   },
   { 
     id: "d6", 
@@ -69,7 +69,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-27", 
     created_at: "2026-06-27T13:00:00Z", 
     valid_through: "2026-07-05",
-    jobDescription: "Monipuolinen full stack -rooli asiakastyössä. Käytämme Reactia, Node.js:ää ja pilvipalveluita. Meillä pääset vaikuttamaan projekteihin alusta loppuun."
+    job_description: "Monipuolinen full stack -rooli asiakastyössä. Käytämme Reactia, Node.js:ää ja pilvipalveluita. Meillä pääset vaikuttamaan projekteihin alusta loppuun."
   },
   { 
     id: "d7", 
@@ -80,7 +80,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-29", 
     created_at: "2026-06-29T09:15:00Z", 
     valid_through: "2026-07-20",
-    jobDescription: "Vastaat digitaalisten palveluiden kehityksestä ja priorisoinnista. Tehtävässä yhdistyvät käyttäjäymmärrys, teknologia ja liiketoiminta."
+    job_description: "Vastaat digitaalisten palveluiden kehityksestä ja priorisoinnista. Tehtävässä yhdistyvät käyttäjäymmärrys, teknologia ja liiketoiminta."
   },
   { 
     id: "d8", 
@@ -91,7 +91,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-05-28", 
     created_at: "2026-05-28T09:00:00Z", 
     valid_through: null,
-    jobDescription: "Suunnittelet käyttäjäkokemusta Fiskarsin digitaalisille palveluille ja verkkokaupalle. Käytät Figmaa ja teet tutkimusta käyttäjien kanssa."
+    job_description: "Suunnittelet käyttäjäkokemusta Fiskarsin digitaalisille palveluille ja verkkokaupalle. Käytät Figmaa ja teet tutkimusta käyttäjien kanssa."
   },
   { 
     id: "d9", 
@@ -102,7 +102,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-01", 
     created_at: "2026-07-01T10:15:00Z", 
     valid_through: null,
-    jobDescription: "Kehitämme Koneen hissien ja liukuportaiden älykkäitä ohjausjärjestelmiä. Etsimme osaajaa, jolla on kokemusta sulautetuista järjestelmistä tai modernista web-kehityksestä."
+    job_description: "Kehitämme Koneen hissien ja liukuportaiden älykkäitä ohjausjärjestelmiä. Etsimme osaajaa, jolla on kokemusta sulautetuista järjestelmistä tai modernista web-kehityksestä."
   },
   { 
     id: "d10", 
@@ -113,7 +113,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-02", 
     created_at: "2026-07-02T09:30:00Z", 
     valid_through: null,
-    jobDescription: "Osallistut verkkopankin ja mobiilisovellusten kehitykseen. Käytämme Reactia, TypeScriptiä ja Java Spring Bootia. Arvostamme puhdasta koodia ja hyviä tiimityötaitoja."
+    job_description: "Osallistut verkkopankin ja mobiilisovellusten kehitykseen. Käytämme Reactia, TypeScriptiä ja Java Spring Bootia. Arvostamme puhdasta koodia ja hyviä tiimityötaitoja."
   },
   { 
     id: "d11", 
@@ -124,7 +124,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-06-30", 
     created_at: "2026-06-30T14:20:00Z", 
     valid_through: null,
-    jobDescription: "Työskentelet energiadatan parissa ja kehität koneoppimismalleja. Tehtävässä pääset hyödyntämään Pythonia, SQL:ää ja pilvipalveluita (Azure)."
+    job_description: "Työskentelet energiadatan parissa ja kehität koneoppimismalleja. Tehtävässä pääset hyödyntämään Pythonia, SQL:ää ja pilvipalveluita (Azure)."
   },
   { 
     id: "d12", 
@@ -135,7 +135,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-03", 
     created_at: "2026-07-03T08:45:00Z", 
     valid_through: null,
-    jobDescription: "Suunnittelet ja kehität Varman digitaalisia palveluita. Etsimme React-osaajaa, joka haluaa luoda erinomaisia käyttäjäkokemuksia."
+    job_description: "Suunnittelet ja kehität Varman digitaalisia palveluita. Etsimme React-osaajaa, joka haluaa luoda erinomaisia käyttäjäkokemuksia."
   },
   { 
     id: "d13", 
@@ -146,7 +146,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-01", 
     created_at: "2026-07-01T11:00:00Z", 
     valid_through: null,
-    jobDescription: "Kehitämme Telian verkkopalveluita ja asiakaskokemusta. Tehtävässä käytetään moderneja teknologioita ja työskennellään ketterässä tiimissä."
+    job_description: "Kehitämme Telian verkkopalveluita ja asiakaskokemusta. Tehtävässä käytetään moderneja teknologioita ja työskennellään ketterässä tiimissä."
   },
 
   // Viisi uutta hakemusta
@@ -159,7 +159,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-02", 
     created_at: "2026-07-02T13:10:00Z", 
     valid_through: null,
-    jobDescription: "Kehitämme Suomen johtavia digitaalisia mediatuotteita. Etsimme backend-osaajaa, jolla on kokemusta Node.js:stä tai Pythonista ja pilvipalveluista."
+    job_description: "Kehitämme Suomen johtavia digitaalisia mediatuotteita. Etsimme backend-osaajaa, jolla on kokemusta Node.js:stä tai Pythonista ja pilvipalveluista."
   },
   { 
     id: "d15", 
@@ -170,7 +170,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-03", 
     created_at: "2026-07-03T10:00:00Z", 
     valid_through: null,
-    jobDescription: "Vastaat pilvi-infrastruktuurin kehityksestä ja ylläpidosta AWS- ja Azure-ympäristöissä. Etsimme osaajaa, joka tuntee IaC-työkaluja kuten Terraform."
+    job_description: "Vastaat pilvi-infrastruktuurin kehityksestä ja ylläpidosta AWS- ja Azure-ympäristöissä. Etsimme osaajaa, joka tuntee IaC-työkaluja kuten Terraform."
   },
   { 
     id: "d16", 
@@ -181,7 +181,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-04", 
     created_at: "2026-07-04T09:20:00Z", 
     valid_through: null,
-    jobDescription: "Kehitämme VR:n matkustajasovellusta React Nativen avulla. Tehtävässä pääset vaikuttamaan tuhansien suomalaisten päivittäiseen matkustuskokemukseen."
+    job_description: "Kehitämme VR:n matkustajasovellusta React Nativen avulla. Tehtävässä pääset vaikuttamaan tuhansien suomalaisten päivittäiseen matkustuskokemukseen."
   },
   { 
     id: "d17", 
@@ -192,7 +192,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-03", 
     created_at: "2026-07-03T14:30:00Z", 
     valid_through: null,
-    jobDescription: "Osallistut S-ryhmän digitaalisten palveluiden (Prisma, S-market, Sokos) kehittämiseen monipuolisessa teknologiaympäristössä."
+    job_description: "Osallistut S-ryhmän digitaalisten palveluiden (Prisma, S-market, Sokos) kehittämiseen monipuolisessa teknologiaympäristössä."
   },
   { 
     id: "d18", 
@@ -203,7 +203,7 @@ export const DEMO_APPLICATIONS = [
     applied_date: "2026-07-04", 
     created_at: "2026-07-04T11:45:00Z", 
     valid_through: null,
-    jobDescription: "Rakennetaan ja ylläpidetään DNA:n kriittisiä palveluita. Käytämme Kubernetesia, CI/CD-putkia ja moderneja monitorointityökaluja."
+    job_description: "Rakennetaan ja ylläpidetään DNA:n kriittisiä palveluita. Käytämme Kubernetesia, CI/CD-putkia ja moderneja monitorointityökaluja."
   }
 ];
 

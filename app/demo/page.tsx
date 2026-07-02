@@ -34,6 +34,7 @@ export default function DemoDashboardPage() {
   const [open, setOpen] = useState(false);
 
   const stats = computeDemoStats();
+  const [isDemoClick, setIsDemoClick] = useState(false);
   const locationStats = computeDemoLocationStats();
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
@@ -60,13 +61,14 @@ export default function DemoDashboardPage() {
           app={selectedApplication}
           open={open}
           onOpenChange={setOpen}
-          isDemo={true} 
+          isDemo={isDemoClick || true}
         />
 
         <DemoBanner />
         <header className="mb-8">
           <h1 className="text-xl md:text-3xl font-semibold text-slate-800 mb-1 flex items-center gap-2">
-            {greeting}<span>Demokäyttäjä 👋</span>
+            {greeting}
+            <span>Demokäyttäjä 👋</span>
           </h1>
 
           {/* Päivämäärä */}
@@ -202,8 +204,9 @@ export default function DemoDashboardPage() {
               <div className="lg:col-span-8">
                 <RecentApplications
                   demoApps={DEMO_APPLICATIONS as any}
-                  onOpenApplication={(app) => {
+                  onOpenApplication={(app, isDemo) => {
                     setSelectedApplication(app);
+                    setIsDemoClick(!!isDemo); // Tallentaa tiedon, että klikattiin demotyöpaikkaa
                     setOpen(true);
                   }}
                 />

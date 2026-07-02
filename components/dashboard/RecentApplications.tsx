@@ -15,7 +15,7 @@ type Application = {
   applied_date?: string;
   job_url?: string;
   notes?: string;
-  job_description?: string;
+  job_description?: string; // Varmistettu tyyppiturvallisuus tässä
 };
 
 const getStatusBadgeClass = (status: string) => {
@@ -35,14 +35,12 @@ export default function RecentApplications({
   onOpenApplication,
   demoApps,
 }: {
-  // Lisätään onOpenApplication-funktiolle valinnainen toinen parametri isDemo
   onOpenApplication: (app: Application, isDemo?: boolean) => void;
   demoApps?: Application[];
 }) {
+  // Otetaan koko demoApps-objekti (mukaan lukien job_description) talteen tilaan
   const [apps, setApps] = useState<Application[]>(demoApps ? demoApps.slice(0, 4) : []);
   const [loading, setLoading] = useState(!demoApps);
-  
-  // Tunnistetaan dynaamisesti, ollaanko demotilassa
   const isDemoMode = !!demoApps;
 
   useEffect(() => {
@@ -52,7 +50,7 @@ export default function RecentApplications({
       setLoading(true);
       const { data, error } = await supabase
         .from("applications")
-        .select("*")
+        .select("*") // Hakee kaikki kentät, myös job_descriptionin tietokannasta
         .order("created_at", { ascending: false })
         .limit(4);
 
@@ -96,7 +94,7 @@ export default function RecentApplications({
             apps.map((app) => (
               <button
                 key={app.id}
-                // Välitetään tieto demotilasta eteenpäin, kun hakemus avataan
+                // Välittää nyt koko app-objektin työpaikkakuvauksineen eteenpäin sivulle ja siitä dialogille
                 onClick={() => onOpenApplication(app, isDemoMode)}
                 className="w-full flex items-center justify-between py-2 border-b border-slate-50 last:border-0 group transition-all hover:bg-slate-50 rounded-lg -mx-2 px-2 text-left"
               >
