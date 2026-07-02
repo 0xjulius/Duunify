@@ -4,12 +4,12 @@ import { createServerClient } from "@supabase/ssr";
 
 // Reitit, jotka vaativat tavallisen kirjautumisen
 const PROTECTED_PREFIXES = [
-  "/dashboard", 
-  "/applications", 
-  "/calendar", 
-  "/favorites", 
+  "/dashboard",
+  "/applications",
+  "/calendar",
+  "/favorites",
   "/settings",
-  "/history"
+  "/history",
 ];
 
 // Reitit, jotka vaativat admin-roolin
@@ -19,12 +19,12 @@ const ADMIN_PREFIX = "/admin";
 export async function proxy(request: NextRequest) {
   // Lokitus terminaaliin
   //console.log("👉 PROXY AKTIIVINEN OSOITTEESSA:", request.nextUrl.pathname);
-  
+
   // Päivitetään istunto ja haetaan tuoreet evästeet sekä käyttäjätieto
   const { response: sessionResponse, user } = await updateSession(request);
 
   const isProtected = PROTECTED_PREFIXES.some((p) =>
-    request.nextUrl.pathname.startsWith(p)
+    request.nextUrl.pathname.startsWith(p),
   );
   const isAdminRoute = request.nextUrl.pathname.startsWith(ADMIN_PREFIX);
 
@@ -32,13 +32,17 @@ export async function proxy(request: NextRequest) {
   if ((isProtected || isAdminRoute) && !user) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
-    
+
     const redirectResponse = NextResponse.redirect(redirectUrl);
-    
+
     sessionResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options);
+      // Pura nimi, arvo ja kaikki muut asetukset (kuten path, httpOnly, sameSite jne.)
+      const { name, value, ...options } = cookie;
+
+      // Aseta eväste uudelleen purkamillasi asetuksilla
+      redirectResponse.cookies.set(name, value, options);
     });
-    
+
     return redirectResponse;
   }
 
@@ -53,7 +57,7 @@ export async function proxy(request: NextRequest) {
           set: () => {},
           remove: () => {},
         },
-      }
+      },
     );
 
     const { data: profile } = await supabase
@@ -64,12 +68,18 @@ export async function proxy(request: NextRequest) {
 
     // 2. Jos käyttäjä ei ole admin, ohjataan takaisin dashboardille evästeet säilyttäen
     if (profile?.role !== "admin") {
-      const dashboardRedirect = NextResponse.redirect(new URL("/dashboard", request.url));
-      
+      const dashboardRedirect = NextResponse.redirect(
+        new URL("/dashboard", request.url),
+      );
+
       sessionResponse.cookies.getAll().forEach((cookie) => {
-        dashboardRedirect.cookies.set(cookie.name, cookie.value, cookie.options);
+        // Pura nimi, arvo ja kaikki muut asetukset (kuten path, httpOnly, sameSite jne.)
+        const { name, value, ...options } = cookie;
+
+        // Aseta eväste uudelleen purkamillasi asetuksilla
+        dashboardRedirect.cookies.set(name, value, options);
       });
-      
+
       return dashboardRedirect;
     }
   }

@@ -21,20 +21,22 @@ export default function EventDetailModal({
 
   const colors = EVENT_COLORS[event.type];
 
-  async function handleDelete() {
+async function handleDelete() {
+    if (!event) return; // Turvacheck
     setBusy(true);
-    await onDelete(event.id);
+    await onDelete(event.id); // Käytetään suoraan event-objektia
     setBusy(false);
     onClose();
   }
 
   async function handleToggle() {
+    if (!event) return; // Turvacheck
     setBusy(true);
-    await onToggleCompleted(event.id, !event.completed);
+    await onToggleCompleted(event.id, !event.completed); // Nyt tämä toimii!
     setBusy(false);
     onClose();
-  }
-
+    }
+    
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"

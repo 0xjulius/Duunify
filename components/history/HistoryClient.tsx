@@ -322,7 +322,7 @@ export default function HistoryClient({ items }: { items: HistoryItem[] }) {
         <div className="space-y-8">
           {grouped.map(([dayKey, dayItems]) => (
             <div key={dayKey}>
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3 capitalize">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">
                 {formatDayLabel(dayKey)}
               </p>
 

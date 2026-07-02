@@ -254,6 +254,12 @@ export default function LoginModal({
 }
 
 /* ---------------------------- Sub-components ---------------------------- */
+type QuoteProps = {
+  text: string;
+  name: string;
+  role: string;
+};
+
 
 function BrandPanel({
   side,
@@ -322,7 +328,7 @@ function BrandPanel({
   );
 }
 
-function Perforation({ side }) {
+function Perforation({ side }: { side: string }) {
   // Dashed seam with punch-hole notches, evoking a torn ticket stub.
   const edgeClass =
     side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2";
@@ -338,7 +344,7 @@ function Perforation({ side }) {
   );
 }
 
-function FormShell({ heading, sub, children }) {
+function FormShell({ heading, sub, children }: { heading: string; sub: string; children: React.ReactNode  }) {
   return (
     <div className="max-w-sm w-full mx-auto space-y-5">
       <div>
@@ -352,7 +358,7 @@ function FormShell({ heading, sub, children }) {
   );
 }
 
-function GoogleButton({ label }) {
+function GoogleButton({ label }: { label: string }) {
   return (
     <button
       type="button"
@@ -381,7 +387,7 @@ function GoogleButton({ label }) {
   );
 }
 
-function Divider({ label }) {
+function Divider({ label }: { label: string }) {
   return (
     <div className="relative py-1">
       <div className="absolute inset-0 flex items-center">
@@ -396,7 +402,7 @@ function Divider({ label }) {
   );
 }
 
-function TextField({ label, type, placeholder, value, onChange }) {
+function TextField({ label, type, placeholder, value, onChange }: { label: string; type: string; placeholder: string; value: string; onChange: (value: string) => void }) {
   return (
     <label className="block">
       <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">
@@ -413,7 +419,7 @@ function TextField({ label, type, placeholder, value, onChange }) {
   );
 }
 
-function PrimaryButton({ label, onClick, loading }) {
+function PrimaryButton({ label, onClick, loading }: { label: string; onClick: () => void; loading: boolean }) {
   return (
     <button
       onClick={onClick}
@@ -427,7 +433,7 @@ function PrimaryButton({ label, onClick, loading }) {
   );
 }
 
-function SwitchLine({ prompt, action, onClick }) {
+function SwitchLine({ prompt, action, onClick }: { prompt: string; action: string; onClick: () => void }) {
   return (
     <p className="text-center text-[13.5px] text-slate-600 pt-1">
       {prompt}{" "}
@@ -442,7 +448,8 @@ function SwitchLine({ prompt, action, onClick }) {
   );
 }
 
-function Quote({ text, name, role }) {
+
+function Quote({ text, name, role }: { text: string; name: string; role: string }) {
   return (
     <div className="bg-white/[0.06] p-5 rounded-2xl border border-white/10">
       <p className="text-white/90 text-[14px] italic leading-relaxed">
