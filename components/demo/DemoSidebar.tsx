@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Briefcase,
@@ -56,10 +57,25 @@ export default function DemoSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center justify-center gap-1 transition ${
-                    active ? "text-indigo-600" : "text-slate-500"
+                  className={`relative flex flex-col items-center justify-center gap-1 py-2 px-3 transition-colors duration-300 ${
+                    active
+                      ? "text-indigo-800"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
+                  {/* AITO iOS-TYYLINEN LIUKUVA TAUSTAILMIÖ */}
+                  {active && (
+                    <motion.div
+                      layoutId="active-nav-pill"
+                      className="absolute inset-0 bg-indigo-100 rounded-4xl -z-10"
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+
                   <item.icon size={20} />
                   <span className="text-[10px] font-medium leading-none">
                     {item.label}
@@ -73,7 +89,9 @@ export default function DemoSidebar() {
               className="flex flex-col items-center justify-center gap-1 text-slate-500"
             >
               <MoreHorizontal size={20} />
-              <span className="text-[10px] font-medium leading-none">Lisää</span>
+              <span className="text-[10px] font-medium leading-none">
+                Lisää
+              </span>
             </button>
           </div>
         </nav>

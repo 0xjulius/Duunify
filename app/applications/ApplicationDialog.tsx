@@ -290,9 +290,8 @@ export default function ApplicationDialog({
               ) : isDemo ? (
                 /* Näytetään demossa latauslaatikon tilalla ilmoitus, jos tiedostoa ei ole */
                 <div className="max-w-md p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center">
-                  <p className="text-xs text-slate-400 font-medium italic">
-                    Ei liitteitä. Liitteiden lisäys on poissa käytöstä
-                    demotilassa.
+                  <p className="text-md text-indigo-400 font-medium ">
+                    tyohakemus_yritys.pdf <span className="text-slate-500 ml-1">(225KB)</span>
                   </p>
                 </div>
               ) : (
