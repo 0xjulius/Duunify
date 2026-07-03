@@ -29,7 +29,7 @@ const NAV_ITEMS = [
   { icon: Briefcase, label: "Hakemukset", href: "/applications" },
   { icon: Calendar, label: "Kalenteri", href: "/calendar" },
   { icon: StarPlus, label: "Suosikit", href: "/favorites" },
-  { icon: SquareActivity, label: "Toimintaloki", href: "#" },
+  { icon: SquareActivity, label: "Toimintaloki", href: "/history" },
 ];
 
 export default function Sidebar() {

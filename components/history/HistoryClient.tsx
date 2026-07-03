@@ -9,8 +9,9 @@ import {
   CalendarPlus,
   Activity,
   CalendarRange,
-  Bookmark,
+  Download,
 } from "lucide-react";
+import { exportToCsv } from "@/lib/export-csv";
 
 type EventType =
   | "created"
@@ -26,7 +27,7 @@ interface HistoryItem {
   jobTitle: string;
   oldStatus: string | null;
   newStatus: string | null;
-  createdAt: string; // ISO
+  createdAt: string;
 }
 
 interface EventMeta {
@@ -214,14 +215,45 @@ export default function HistoryClient({ items }: { items: HistoryItem[] }) {
     };
   }, [items]);
 
+  function handleExport() {
+    const rows = filtered.map((item) => {
+      const date = new Date(item.createdAt);
+      return {
+        Päivämäärä: date.toLocaleDateString("fi-FI"),
+        Kellonaika: date.toLocaleTimeString("fi-FI", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        Tapahtuma: EVENT_META[item.event].label,
+        Yritys: item.company,
+        Tehtävä: item.jobTitle,
+        "Vanha tila": item.oldStatus ?? "",
+        "Uusi tila": item.newStatus ?? "",
+      };
+    });
+
+    const today = new Date().toISOString().split("T")[0];
+    exportToCsv(`duunify-toimintaloki-${today}.csv`, rows);
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Toimintaloki</h1>
-        
-        <p className="text-slate-500 mt-1">
-          Kaikki hakemuksiisi liittyvät tapahtumat yhdessä paikassa.
-        </p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Toimintaloki</h1>
+          <p className="text-slate-500 mt-1">
+            Kaikki hakemuksiisi liittyvät tapahtumat yhdessä paikassa.
+          </p>
+        </div>
+
+        <button
+          onClick={handleExport}
+          disabled={filtered.length === 0}
+          className="shrink-0 flex items-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Download size={16} />
+          <span className="hidden sm:inline">Vie CSV</span>
+        </button>
       </header>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
@@ -252,7 +284,6 @@ export default function HistoryClient({ items }: { items: HistoryItem[] }) {
           />
         </div>
 
-        {/* Tapahtumatyyppi */}
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button
@@ -269,7 +300,6 @@ export default function HistoryClient({ items }: { items: HistoryItem[] }) {
           ))}
         </div>
 
-        {/* Ajanjakso */}
         <div className="pt-3 border-t border-slate-100">
           <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2.5">
             <CalendarRange size={13} />
@@ -322,7 +352,7 @@ export default function HistoryClient({ items }: { items: HistoryItem[] }) {
         <div className="space-y-8">
           {grouped.map(([dayKey, dayItems]) => (
             <div key={dayKey}>
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3 capitalize">
                 {formatDayLabel(dayKey)}
               </p>
 
