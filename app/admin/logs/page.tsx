@@ -80,19 +80,20 @@ export default async function AdminLogsPage() {
     .from("admin_logs")
     .select(
       `
-      id,
-      created_at,
-      action,
-      details,
-      ip_address,
-      status,
-      category,
-      profiles (
-        email,
-        role,
-        avatar_url
-      )
-    `,
+    id,
+    created_at,
+    action,
+    details,
+    ip_address,
+    status,
+    category,
+    user_id,
+    profiles!admin_logs_user_id_fkey (
+      email,
+      role,
+      avatar_url
+    )
+  `,
     )
     .order("created_at", { ascending: false })
     .limit(100)) as unknown as { data: AdminLog[] | null; error: any };
@@ -131,7 +132,8 @@ export default async function AdminLogsPage() {
               Tapahtumaloki
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              Seuraa järjestelmän tapahtumia, käyttäjien toimia ja automaattisia lokituksia.
+              Seuraa järjestelmän tapahtumia, käyttäjien toimia ja automaattisia
+              lokituksia.
             </p>
           </div>
         </div>
@@ -217,7 +219,10 @@ export default async function AdminLogsPage() {
                 </tr>
               ) : (
                 logs.map((log: AdminLog) => (
-                  <tr key={log.id} className="hover:bg-slate-50 transition border-b border-slate-100">
+                  <tr
+                    key={log.id}
+                    className="hover:bg-slate-50 transition border-b border-slate-100"
+                  >
                     <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
                       {new Date(log.created_at).toLocaleString("fi-FI")}
                     </td>

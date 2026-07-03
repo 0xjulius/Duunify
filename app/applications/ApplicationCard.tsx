@@ -302,62 +302,49 @@ export default function ApplicationCard({
 
     setLoading(true);
 
-    await supabase.from("application_history").insert({
-      application_id: app.id,
-      event: "Hakemus poistettu",
-    });
-
-    await supabase.from("applications").delete().eq("id", app.id);
-
-    setLoading(false);
-    onChange();
-  }
-
-  async function saveStatus() {
-    setLoading(true);
-
-    const previousStatus = app.status;
-
+    // Poistetaan suoraan hakemus. Viite-eheyden takia ei yritetä tehdä inserttiä
+    // tauluun, jonka päärivin olemme juuri pyyhkimässä pois.
     const { error } = await supabase
       .from("applications")
-      .update({
-        status: newStatus,
-      })
+      .delete()
       .eq("id", app.id);
 
-    if (!error) {
-      let event = "Tila muuttui";
+    setLoading(false);
 
-      if (previousStatus === "Tallennettu" && newStatus === "Haettu") {
-        event = "Hakemus lähetetty";
-      } else if (previousStatus === "Haettu" && newStatus === "Tallennettu") {
-        event = "Hakemus palautettu luonnokseksi";
-      } else if (newStatus === "Haastattelu") {
-        event = "Haastattelukutsu saatu";
-      } else if (newStatus === "Tarjous") {
-        event = "Työtarjous saatu";
-      } else if (newStatus === "Hylätty") {
-        event = "Hakemus hylätty";
-      } else if (newStatus === "Peruttu") {
-        event = "Hakemus peruttu";
-      } else if (newStatus === "Ei vastausta") {
-        event = "Ei vastausta työnantajalta";
-      }
-
-      await supabase.from("application_history").insert({
-        application_id: app.id,
-        event,
-        old_value: previousStatus,
-        new_value: newStatus,
-      });
+    if (error) {
+      console.error("Virhe poistettaessa:", error);
+      return;
     }
 
-    setLoading(false);
-    setEditingStatus(false);
     onChange();
   }
 
-  async function saveApplication() {
+  async function saveStatus(e?: React.FormEvent) {
+  if (e) e.preventDefault();
+  setLoading(true);
+
+  // 1. Päivitetään hakemuksen tila (tämä pitää jättää!)
+  const { error } = await supabase
+    .from("applications")
+    .update({
+      status: newStatus,
+    })
+    .eq("id", app.id);
+
+  setLoading(false);
+
+  if (error) {
+    console.error("Virhe tilan päivityksessä:", error);
+    return;
+  }
+
+  // Tehtävät kun päivitys onnistui
+  setEditingStatus(false);
+  onChange();
+}
+
+  async function saveApplication(e?: React.FormEvent) {
+    if (e) e.preventDefault(); // Estetään sivun uudelleenlataus, jos kutsutaan formista
     setLoading(true);
 
     const { error } = await supabase
@@ -371,17 +358,17 @@ export default function ApplicationCard({
       })
       .eq("id", app.id);
 
-    setLoading(false);
-
     if (error) {
-      console.error(error);
+      console.error("Virhe muokkauksessa:", error);
       setLoading(false);
       return;
     }
 
     await supabase.from("application_history").insert({
       application_id: app.id,
-      event: "Hakemuksen tietoja muokattu",
+      event_type: "application_edit",
+      user_id: user.id,
+      description: "Hakemuksen tietoja muokattu",
     });
 
     setLoading(false);
@@ -690,10 +677,11 @@ export default function ApplicationCard({
             </button>
           )}
 
-            <div className="absolute bottom-5 left-5">
-            <p className="text-[12px] text-slate-400 pointer-none">{app.job_url ? getSourceFromUrl(app.job_url) : "Ei saatavilla"}
+          <div className="absolute bottom-5 left-5">
+            <p className="text-[12px] text-slate-400 pointer-none">
+              {app.job_url ? getSourceFromUrl(app.job_url) : "Ei saatavilla"}
             </p>
-            </div>
+          </div>
 
           <div className="absolute bottom-5 right-5">
             <button
