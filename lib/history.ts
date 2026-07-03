@@ -119,6 +119,30 @@ export async function fetchHistoryItems(): Promise<HistoryItem[]> {
     }
   });
 
+  // 4. UUSI: Poistetut hakemukset erillisestä lokitaulusta
+  // (ei cascade-riskiä, koska ei foreign keytä applications-tauluun)
+  const { data: deletedRows, error: deletedError } = await supabase
+    .from("deleted_applications_log")
+    .select("id, company, job_title, last_status, deleted_at")
+    .eq("user_id", user.id)
+    .order("deleted_at", { ascending: false });
+
+  if (deletedError) {
+    console.error("Virhe haettaessa poistolokia:", deletedError);
+  }
+
+  (deletedRows || []).forEach((row: any) => {
+    items.push({
+      id: `del-${row.id}`,
+      event: "deleted",
+      company: row.company,
+      jobTitle: row.job_title,
+      oldStatus: row.last_status,
+      newStatus: null,
+      createdAt: row.deleted_at,
+    });
+  });
+
   items.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );

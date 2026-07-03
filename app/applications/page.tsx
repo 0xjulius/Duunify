@@ -105,35 +105,15 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 {/* Ikonin kääre */}
                 <div className="bg-gradient-to-br from-indigo-200 to-violet-600  p-3 rounded-xl">
-                  <Briefcase className="h-10 w-10 text-white" />
+                  <Briefcase className="h-6 w-6 text-white" />
                 </div>
-                <h1 className="text-4xl font-bold text-slate-900">
+                <h1 className="text-2xl font-semibold text-slate-900">
                   Hakemukset
                 </h1>
               </div>
 
-              <p className="text-slate-500 mt-3 ml-5 md:ml-[37px]">
-                Tässä näkymässä näet kaikki hakemuksesi ja niiden tilat. Pidä
-                kirjaa työnhaustasi ja seuraa edistymistäsi helposti!
-              </p>
-            </div>
-
-            {/* STATS */}
-            <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider ">
-              <p className="bg-blue-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm ">
-                Haettu <span>{stats.Haettu}</span>
-              </p>
-
-              <p className="bg-yellow-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm text-black">
-                Haastattelu <span>{stats.Haastattelu}</span>
-              </p>
-
-              <p className="bg-red-400 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
-                Hylätty <span>{stats.Hylätty}</span>
-              </p>
-
-              <p className="bg-green-500 px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
-                Tarjous <span>{stats.Tarjous}</span>
+              <p className="text-slate-500 text-sm font-medium mt-3 ml-5 md:ml-[37px]">
+                Täällä voit lisätä, hakea, tallentaa, poistaa tai muuttaa työhakemuksiesi tilaa. 
               </p>
             </div>
           </div>

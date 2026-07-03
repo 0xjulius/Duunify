@@ -4,6 +4,8 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ApplicationSheet from "@/app/applications/ApplicationDialog";
 import { Maximize2, SquarePen } from "lucide-react";
+import { deleteApplicationWithLog } from "@/lib/applications";
+import { toast } from "sonner";
 
 type Application = {
   id: string;
@@ -318,6 +320,21 @@ export default function ApplicationCard({
     onChange();
   }
 
+  async function handleDelete() {
+  const { error } = await deleteApplicationWithLog({
+    id: app.id,
+    company: app.company,
+    job_title: app.job_title,
+    status: app.status,
+  });
+
+  if (error) {
+    toast.error("Poisto epäonnistui.");
+    return;
+  }
+
+  toast.success("Hakemus poistettu.");
+}
   async function saveStatus(e?: React.FormEvent) {
     if (e) e.preventDefault();
     setLoading(true);

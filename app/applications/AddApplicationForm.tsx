@@ -107,7 +107,10 @@ export default function AddApplicationForm({
         return;
       }
     } catch {
-      toast.error("Virheellinen URL");
+      console.error(Error);
+      toast.error(
+        "Tietojen haku epäonnistui. Tarkista osoite, tai yritä uudelleen.",
+      );
       return;
     }
 
@@ -125,7 +128,8 @@ export default function AddApplicationForm({
       if (!response.ok) {
         if (response.status === 401) {
           toast.error("Kirjaudu sisään", {
-            description: "Jatka kirjautumalla käyttääksesi automaattista hakua.",
+            description:
+              "Jatka kirjautumalla käyttääksesi automaattista hakua.",
           });
           setShowLoginModal(true);
           return;
@@ -171,11 +175,16 @@ export default function AddApplicationForm({
       }
 
       // Kenttien pituusvalidioinnit
-      if (company.length > 60) throw new Error("Yrityksen nimi liian pitkä, max 60 merkkiä");
-      if (location.length > 60) throw new Error("Sijainti-kenttä liian pitkä, max 60 merkkiä");
-      if (jobTitle.length > 150) throw new Error("Työtehtävä liian pitkä, max 150 merkkiä");
-      if (notes.length > 5000) throw new Error("Liikaa muistiinpanoja, max 5000 merkkiä");
-      if (jobDescription.length > 15000) throw new Error("Työpaikkakuvaus liian pitkä, max 15000 merkkiä");
+      if (company.length > 60)
+        throw new Error("Yrityksen nimi liian pitkä, max 60 merkkiä");
+      if (location.length > 60)
+        throw new Error("Sijainti-kenttä liian pitkä, max 60 merkkiä");
+      if (jobTitle.length > 150)
+        throw new Error("Työtehtävä liian pitkä, max 150 merkkiä");
+      if (notes.length > 5000)
+        throw new Error("Liikaa muistiinpanoja, max 5000 merkkiä");
+      if (jobDescription.length > 15000)
+        throw new Error("Työpaikkakuvaus liian pitkä, max 15000 merkkiä");
 
       const minSalary = salaryMin ? Number(salaryMin) : null;
       const maxSalary = salaryMax ? Number(salaryMax) : null;
@@ -194,12 +203,13 @@ export default function AddApplicationForm({
         const fileExt = file.name.split(".").pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-        const { data: storageData, error: storageError } = await supabase.storage
-          .from("attachments")
-          .upload(fileName, file);
+        const { data: storageData, error: storageError } =
+          await supabase.storage.from("attachments").upload(fileName, file);
 
         if (storageError) {
-          throw new Error(`Tiedoston lataus epäonnistui: ${storageError.message}`);
+          throw new Error(
+            `Tiedoston lataus epäonnistui: ${storageError.message}`,
+          );
         }
 
         cvUrl = storageData.path;
@@ -278,16 +288,47 @@ export default function AddApplicationForm({
       onSubmit={addApplication}
       className=" bg-white rounded-2xl p-8 shadow-sm w-full xl:w-4/5 xl:mx-auto"
     >
-      <div className="mb-8 ">
+      <div className="flex">
         <h2 className="text-2xl font-bold text-slate-900">Uusi mahdollisuus</h2>
+          {/* Info-ikoni vihjetekstillä */}
+        <div className="ml-2 group relative inline-block cursor-help text-slate-400 hover:text-slate-600 transition-colors">
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
 
-        <p className="text-slate-500 mt-1">Seuraa uutta työmahdollisuutta.</p>
+          {/* Pieni kupla joka ilmestyy päälle vietäessä */}
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-slate-900 text-white text-xs rounded-lg p-2.5 shadow-xl z-10 font-normal leading-relaxed pointer-events-none">
+            <p className="font-semibold mb-1 text-slate-200">
+              Automaattitäytön tuetut sivustot tällä hetkellä:
+            </p>
+            <ul className="list-disc list-inside space-y-0.5 text-slate-300">
+              <li>duunitori.fi</li>
+              <li>jobly.fi</li>
+            </ul>
+            {/* Pieni nuoli kuplan alla */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900" />
+          </div>
+        </div>
+      </div>
+      <div>
+                <p className="text-slate-500 mt-1 mb-6">Aloita liittämällä linkki automaattista täyttöä varten tai kirjaa tiedot itse.</p>
       </div>
 
       {/* URL AUTOFILL */}
       <div className="mb-6">
         <label className={labelStyle}>Hakuilmoituksen linkki</label>
-        <div className="flex gap-2">
+
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="url"
             placeholder="https://duunitori.fi/..."
@@ -299,20 +340,34 @@ export default function AddApplicationForm({
             type="button"
             onClick={autofillFromUrl}
             disabled={loadingJob || !jobUrl}
-            className=" p-4 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition flex items-center gap-1.5"
+            className="w-full sm:w-auto h-11 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100 disabled:cursor-not-allowed text-white font-medium text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2 shrink-0"
           >
             {loadingJob ? (
               <>
-                <span className="animate-spin inline-block w-5 h-3.5 border-2 border-white/30 border-t-white rounded-full" />
-                Haetaan...
+                <span className="animate-spin inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                <span>Täytetään...</span>
               </>
             ) : (
-              "Hae tiedot"
+              <>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span>Täytä tiedot automaattisesti</span>
+              </>
             )}
           </button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* LEFT COLUMN */}
         <div className="space-y-4">
@@ -440,8 +495,12 @@ export default function AddApplicationForm({
           />
         </div>
         <div className="md:col-span-1">
-          <AddAttachment notes={notes} setNotes={setNotes} file={file} 
-          setFile={setFile}  />
+          <AddAttachment
+            notes={notes}
+            setNotes={setNotes}
+            file={file}
+            setFile={setFile}
+          />
         </div>
 
         {/* DESCRIPTION — full width */}

@@ -103,14 +103,14 @@ export default function SavedJobsPage() {
           {/* HEADER */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 lg:mb-8">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
+              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-3">
                 <span className="bg-gradient-to-br from-indigo-200 to-violet-600 p-2.5 sm:p-3 rounded-xl text-amber-600 shrink-0">
-                  <Bookmark className="h-7 w-7 sm:h-10 sm:w-10 text-white" />
+                  <Bookmark className="h-6 w-6 text-white" />
                 </span>
                 Tallennetut työpaikat
               </h1>
               <p className="text-slate-500 mt-2 text-sm sm:text-base">
-                Työpaikat, jotka haluat hakea myöhemmin.
+                Työpaikat, jotka haluat laittaa talteen.
               </p>
             </div>
             <div className="flex gap-2 sm:gap-3">

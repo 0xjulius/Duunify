@@ -15,6 +15,7 @@ import {
   deleteCalendarEvent,
   toggleCalendarEventCompleted,
 } from "@/lib/calendar";
+import { Calendar } from "lucide-react";
 
 export default function CalendarClient({
   initialApplications,
@@ -66,13 +67,16 @@ export default function CalendarClient({
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Otsikkoalue */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-100">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Kalenteri
-          </h1>
-          <p className="text-sm text-slate-500">
+        <div className="flex items-center gap-4">
+        <div className="bg-gradient-to-br from-indigo-200 to-violet-600 p-3.5 rounded-2xl shadow-md h-13 w-13">
+            <Calendar className="h-6 w-6 text-white" />  
+        </div>
+          <div className="flex flex-col">
+          <h2 className="text-2xl font-bold text-slate-900">Kalenterinäkymä</h2>
+          <p className="mt-1 text-slate-500 text-sm xl:text-md font-medium">
             Seuraa hakuprosessiesi tärkeitä päivämääriä.
           </p>
+        </div>
         </div>
         <button
           onClick={() => setShowAdd(true)}

@@ -62,7 +62,7 @@ export default function DashboardHeader() {
 
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Yleiskatsaus</h2>
-          <p className="mt-1 text-slate-500 text-sm xl:text-md">
+          <p className="mt-1 text-slate-500 text-sm xl:text-md font-medium">
             Työnhakusi yhdellä silmäyksellä
           </p>
         </div>
