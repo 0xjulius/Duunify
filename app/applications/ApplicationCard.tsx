@@ -320,28 +320,28 @@ export default function ApplicationCard({
   }
 
   async function saveStatus(e?: React.FormEvent) {
-  if (e) e.preventDefault();
-  setLoading(true);
+    if (e) e.preventDefault();
+    setLoading(true);
 
-  // 1. Päivitetään hakemuksen tila (tämä pitää jättää!)
-  const { error } = await supabase
-    .from("applications")
-    .update({
-      status: newStatus,
-    })
-    .eq("id", app.id);
+    // 1. Päivitetään hakemuksen tila (tämä pitää jättää!)
+    const { error } = await supabase
+      .from("applications")
+      .update({
+        status: newStatus,
+      })
+      .eq("id", app.id);
 
-  setLoading(false);
+    setLoading(false);
 
-  if (error) {
-    console.error("Virhe tilan päivityksessä:", error);
-    return;
+    if (error) {
+      console.error("Virhe tilan päivityksessä:", error);
+      return;
+    }
+
+    // Tehtävät kun päivitys onnistui
+    setEditingStatus(false);
+    onChange();
   }
-
-  // Tehtävät kun päivitys onnistui
-  setEditingStatus(false);
-  onChange();
-}
 
   async function saveApplication(e?: React.FormEvent) {
     if (e) e.preventDefault();
@@ -366,7 +366,9 @@ export default function ApplicationCard({
     }
 
     // 2. 💡 LISÄTTY: Haetaan kirjautunut käyttäjä lennosta, jotta saadaan user.id
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (user) {
       // 3. Tallennetaan muokkaushistoria tietokannan sarakkeiden mukaisesti
@@ -406,7 +408,8 @@ export default function ApplicationCard({
 
   return (
     <div
-      className={`relative flex flex-col h-full rounded-2xl border pb-[52px] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+      onClick={() => setOpen(true)}
+      className={`cursor-pointer relative flex flex-col h-full rounded-2xl border pb-[52px] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isOffer
           ? "border-emerald-300 ring-1 ring-emerald-200"
           : "border-slate-200"
@@ -414,10 +417,7 @@ export default function ApplicationCard({
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <div
-          onClick={() => setOpen(true)}
-          className="cursor-pointer flex items-center gap-3"
-        >
+        <div className="flex items-center gap-3">
           <CompanyAvatar company={app.company} />
           <div>
             <h2 className="text-[17px] font-semibold leading-snug text-slate-900">
@@ -427,7 +427,12 @@ export default function ApplicationCard({
           </div>
         </div>
         <button
-          onClick={() => setEditingApplication(true)}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation(); // 🛑 Estää klikkausta nousemasta ulompaan diviin!
+            setEditingApplication(true);
+            setOpen(false);
+          }}
           title="Muokkaa ilmoitusta"
           className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-blue-700 transition-colors"
         >
@@ -464,7 +469,13 @@ export default function ApplicationCard({
       {/* Divider */}
       <div className="my-4 border-t border-slate-100" />
       {/* Status row */}
-      <div className="flex items-center gap-2.5">
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(false);
+        }}
+        className="flex items-center gap-2.5"
+      >
         {editingStatus ? (
           <div className="flex w-full items-center gap-2">
             <select
@@ -515,12 +526,12 @@ export default function ApplicationCard({
               <IconRefresh />
               Tila
             </button>
-
             {app.job_url && (
               <a
                 href={app.job_url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()} // 🛑 Estää klikkausta nousemasta ulompaan diviin
                 className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 hover:underline shrink-0"
               >
                 Avaa linkki
@@ -545,12 +556,16 @@ export default function ApplicationCard({
 
       {/* EDIT FORM */}
       {editingApplication && (
-        <div className="mt-4 space-y-3 rounded-2xl border border-violet-200 bg-violet-50 p-4">
+        <div
+          onClick={(e) => e.stopPropagation()} // 🛑 Estää kaikki lomakkeen sisäiset klikkaukset kuplimasta ulompaan diviin
+          className="mt-4 space-y-3 rounded-2xl border border-violet-200 bg-violet-50 p-4"
+        >
           <input
             value={editForm.company}
             onChange={(e) =>
               setEditForm({ ...editForm, company: e.target.value })
             }
+            onClick={(e) => e.stopPropagation()} // Varmistetaan vielä tekstikentän oma klikkaus
             placeholder="Yritys"
             className="w-full rounded-xl border border-slate-200 px-3 py-2"
           />
