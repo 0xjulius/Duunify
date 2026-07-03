@@ -15,7 +15,6 @@ type Application = {
   applied_date: string;
   job_description: string;
   job_url?: string;
-  // New fields from scraper
   salary_min?: number | null;
   salary_max?: number | null;
   employment_type?: string | null;

@@ -15,20 +15,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}` // Käyttää Vercelin osoitetta automaattisesti
+      : "http://localhost:3000",
+  ),
   title: {
     default: "Duunify | Älykäs työhakemusten hallinta ja työnhakutyökalu",
     template: "%s | Duunify",
   },
   description:
     "Duunify on moderni työnhakutyökalu, jolla hallitset työhakemuksesi, seuraat prosessia ja pysyt ajan tasalla työnhaussasi. Aloita ilmaiseksi ja tehosta työnhakuasi.",
-  keywords: ["työnhaku", "työhakemus", "hakemusten hallinta", "työnhakutyökalu", "CV", "Duunify"],
+  keywords: [
+    "työnhaku",
+    "työhakemus",
+    "hakemusten hallinta",
+    "työnhakutyökalu",
+    "CV",
+    "Duunify",
+  ],
   authors: [{ name: "Duunify Team" }],
   creator: "Duunify",
   openGraph: {
     type: "website",
     url: "https://duunify.com",
     title: "Duunify | Älykäs työhakemusten hallinta",
-    description: "Hallitse työhakemuksiasi helposti ja pysy ajan tasalla työnhaussasi.",
+    description:
+      "Hallitse työhakemuksiasi helposti ja pysy ajan tasalla työnhaussasi.",
     siteName: "Duunify",
     images: [{ url: "/og-image-social.png", width: 1200, height: 630 }],
   },

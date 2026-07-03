@@ -44,7 +44,12 @@ export default function ApplicationDialog({
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Alustetaan paikallinen cv_url-tila aina kun hakemus vaihtuu tai dialogi avautuu
+  useEffect(() => {
+    if (open && app) {
+      setCurrentCvUrl(app.cv_url || null);
+    }
+  }, [open, app]);
+
   useEffect(() => {
     async function getSignedUrl() {
       if (!currentCvUrl) {

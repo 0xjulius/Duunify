@@ -8,8 +8,8 @@ import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
 import { Bookmark, Filter, Clock, Search, X } from "lucide-react";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
-import { Dialog, DialogContent, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import AddApplicationForm from "@/app/applications/AddApplicationForm";
+
 
 type FavoriteJob = {
   id: string;
@@ -24,6 +24,7 @@ type FavoriteJob = {
   job_description?: string;
   job_url?: string;
   applied_date?: string;
+  cv_url?: string;
 };
 
 export default function SavedJobsPage() {
