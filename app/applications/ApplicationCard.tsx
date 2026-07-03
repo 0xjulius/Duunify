@@ -344,9 +344,10 @@ export default function ApplicationCard({
 }
 
   async function saveApplication(e?: React.FormEvent) {
-    if (e) e.preventDefault(); // Estetään sivun uudelleenlataus, jos kutsutaan formista
+    if (e) e.preventDefault();
     setLoading(true);
 
+    // 1. Päivitetään hakemuksen tiedot
     const { error } = await supabase
       .from("applications")
       .update({
@@ -364,12 +365,18 @@ export default function ApplicationCard({
       return;
     }
 
-    await supabase.from("application_history").insert({
-      application_id: app.id,
-      event_type: "application_edit",
-      user_id: user.id,
-      description: "Hakemuksen tietoja muokattu",
-    });
+    // 2. 💡 LISÄTTY: Haetaan kirjautunut käyttäjä lennosta, jotta saadaan user.id
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      // 3. Tallennetaan muokkaushistoria tietokannan sarakkeiden mukaisesti
+      await supabase.from("application_history").insert({
+        application_id: app.id,
+        event_type: "application_edit",
+        user_id: user.id, // 👈 Nyt muuttuja löytyy ja Vercel-virhe poistuu!
+        description: "Hakemuksen tietoja muokattu",
+      });
+    }
 
     setLoading(false);
     setEditingApplication(false);
