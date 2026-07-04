@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Shield, ArrowLeft, CheckCircle2, FileText, Lock } from "lucide-react";
+import { Shield, CheckCircle2, FileText, Lock } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
 import SimpleNavbar from "@/components/SimpleNav";
@@ -19,7 +18,7 @@ export default function PrivacyPolicyPage() {
         .duunify-mono { font-family: 'JetBrains Mono', monospace; }
       `}</style>
 
-      {/* TAUSTAPATTERNI – Täsmälleen etusivun arvoilla */}
+      {/* TAUSTAPATTERNI */}
       <div
         className="absolute inset-0 opacity-[0.06] pointer-events-none z-0"
         style={{
@@ -29,46 +28,10 @@ export default function PrivacyPolicyPage() {
         }}
       />
 
-          {/* NAV WAIT */}
-          <SimpleNavbar />
-    
-          {/* NAV-VALMIS 
-          <header className="duunify-modal sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-            <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
-    
-                <span className="duunify-display font-bold text-slate-900">
-                  Duunify
-                </span>
-              </Link>
-    
-              <div className="flex items-center gap-5">
-                <Link
-                  href="/"
-                  className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-                >
-                  <ArrowLeft size={16} /> Palaa takaisin
-                </Link>
-    
-                <button
-                  onClick={() => setShowLogin(true)}
-                  className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
-                  style={{
-                    background: "linear-gradient(135deg, #6D67F2, #5750E0)",
-                  }}
-                >
-                  Aloita ilmaiseksi
-                </button>
-              </div>
-            </div>
-          </header >
-          */}
-    
+      <SimpleNavbar />
 
       {/* PÄÄSISÄLTÖ */}
       <main className="duunify-modal max-w-6xl mx-auto px-6 pt-16 pb-24 relative z-10">
-        
         {/* HITUSET JA OTSAKKEET */}
         <div className="mb-10 text-center md:text-left">
           <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full">
@@ -77,30 +40,54 @@ export default function PrivacyPolicyPage() {
           <h1 className="duunify-display mt-4 text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
             Tietosuojaseloste
           </h1>
-          <p className="mt-2 text-sm text-slate-400">Päivitetty viimeksi: 1. heinäkuuta 2026</p>
+          <p className="mt-2 text-sm text-slate-400">
+            Päivitetty viimeksi: 4. heinäkuuta 2026
+          </p>
         </div>
 
         {/* VALKOINEN BOKSI */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-10 lg:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            
             {/* VASEN OSATARKASTELU */}
             <aside className="lg:col-span-4">
               <div className="lg:sticky lg:top-24 bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <h3 className="duunify-mono text-[11px] tracking-wider uppercase font-bold text-slate-400 mb-4">Pähkinänkuoressa</h3>
-                
+                <h3 className="duunify-mono text-[11px] tracking-wider uppercase font-bold text-slate-400 mb-4">
+                  Pähkinänkuoressa
+                </h3>
+
                 <div className="space-y-5 text-sm text-slate-600 leading-relaxed">
                   <div className="flex gap-3">
-                    <CheckCircle2 className="text-emerald-500 mt-0.5 shrink-0" size={18} />
-                    <p><strong className="text-slate-900">Data on sinun.</strong> Emme myy tai luovuta hakemustietojasi kolmansille osapuolille.</p>
+                    <CheckCircle2
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                      size={18}
+                    />
+                    <p>
+                      <strong className="text-slate-900">Data on sinun.</strong>{" "}
+                      Hakemustietojasi ei myydä tai luovuteta kolmansille
+                      osapuolille kaupallisiin tarkoituksiin.
+                    </p>
                   </div>
                   <div className="flex gap-3">
-                    <CheckCircle2 className="text-emerald-500 mt-0.5 shrink-0" size={18} />
-                    <p><strong className="text-slate-900">Avoimuus.</strong> Keräämme vain ne tiedot, jotka itse annat tai joiden URL:n syötät.</p>
+                    <CheckCircle2
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                      size={18}
+                    />
+                    <p>
+                      <strong className="text-slate-900">Avoimuus.</strong>{" "}
+                      Palveluun tallentuu vain ne tiedot, jotka itse syötät tai
+                      haet linkkien kautta.
+                    </p>
                   </div>
                   <div className="flex gap-3">
-                    <CheckCircle2 className="text-emerald-500 mt-0.5 shrink-0" size={18} />
-                    <p><strong className="text-slate-900">Poistotakuu.</strong> Voit poistaa kaikki tietosi milloin tahansa suoraan asetuksista.</p>
+                    <CheckCircle2
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                      size={18}
+                    />
+                    <p>
+                      <strong className="text-slate-900">Poistotakuu.</strong>{" "}
+                      Voit poistaa kaikki tietosi ja käyttäjätilisi milloin
+                      tahansa sovelluksen asetuksista.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -108,43 +95,73 @@ export default function PrivacyPolicyPage() {
 
             {/* LAKITEKSTIT */}
             <div className="lg:col-span-8 space-y-10 text-slate-600 text-[15px] leading-relaxed">
-              
               <section>
                 <h2 className="duunify-display text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
                   <span className="w-1 h-6 bg-[#6D67F2] rounded-full" />
                   1. Yleistä ja rekisterinpitäjä
                 </h2>
                 <p className="mb-4">
-                  Duunify ("me", "palvelu") on sitoutunut suojelemaan yksityisyyttäsi. Tässä tietosuojaselosteessa kerromme, miten keräämme, käsittelemme ja säilytämme henkilötietojasi, kun käytät sovellustamme työhakemustesi hallinnointiin.
+                  Duunify-palvelussa kunnioitetaan yksityisyyttäsi. Tässä
+                  tietosuojaselosteessa kerrotaan, miten palveluun tallennettuja
+                  tietoja kerätään, käsitellään ja säilytetään, kun käytät
+                  sovellusta työhakemustesi hallinnointiin.
                 </p>
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm space-y-1">
-                  <strong className="text-slate-900 block mb-1">Rekisterinpitäjän yhteystiedot:</strong>
-                  <p>Duunify Tietosuojavastaava</p>
-                  <p>Sähköposti: privacy@duunify.com</p>
-                  <p>Verkkosivusto: www.duunify.com</p>
+                  <strong className="text-slate-900 block mb-1">
+                    Yhteystiedot tietosuoja-asioissa:
+                  </strong>
+                  <p>Duunify-palvelun ylläpito</p>
+                  <p>Yhteydenotot: Verkkosivuston tukilomakkeen kautta</p>
+                  <a
+                    className="text-indigo-500 hover:underline text-sm font-semibold"
+                    href="/contact"
+                  >
+                    Tukilomake
+                  </a>
                 </div>
               </section>
 
               <section>
                 <h2 className="duunify-display text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3 mt-6">
                   <span className="w-1 h-6 bg-[#6D67F2] rounded-full" />
-                  2. Mitä tietoja keräämme?
+                  2. Mitä tietoja sovellus kerää?
                 </h2>
                 <p className="mb-4">
-                  Keräämme vain tietoja, jotka ovat välttämättömiä palvelun tarjoamiseksi ja hakuprosessisi helpottamiseksi:
+                  Palveluun kerätään vain tietoja, jotka ovat välttämättömiä
+                  sovelluksen tarjoamiseksi ja hakuprosessisi helpottamiseksi:
                 </p>
                 <ul className="space-y-3 pl-1 text-sm">
                   <li className="flex items-start gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#6D67F2] mt-2 shrink-0" />
-                    <p><strong className="text-slate-900">Käyttäjätilin tiedot:</strong> Sähköpostiosoite ja nimi (autentikoitaessa palveluun).</p>
+                    <p>
+                      <strong className="text-slate-900">
+                        Käyttäjätilin tiedot:
+                      </strong>{" "}
+                      Sähköpostiosoite ja nimi, joita käytetään palveluun
+                      tunnistautumisessa ja tilin ylläpidossa.
+                    </p>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#6D67F2] mt-2 shrink-0" />
-                    <p><strong className="text-slate-900">Työhakemustiedot:</strong> Työpaikkailmoituksen URL-osoitteet (esim. Duunitori tai Työmarkkinatori), yrityksen nimi, tehtävänimike, hakuajat, muistiinpanot sekä hakemuksen tila.</p>
+                    <p>
+                      <strong className="text-slate-900">
+                        Työhakemustiedot:
+                      </strong>{" "}
+                      Käyttäjän syöttämät työpaikkailmoituksen URL-osoitteet,
+                      yritysten nimet, tehtävänikkeet, hakuajat, omat
+                      muistiinpanot sekä hakemusten vaiheet.
+                    </p>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#6D67F2] mt-2 shrink-0" />
-                    <p><strong className="text-slate-900">Tekniset tiedot:</strong> Anonyymit käyttölokit virhetilanteiden selvittämiseksi ja palvelun suorituskyvyn parantamiseksi.</p>
+                    <p>
+                      <strong className="text-slate-900">
+                        Tekniset lokitiedot:
+                      </strong>{" "}
+                      Anonyymit virhelokit, joita käytetään yksinomaan teknisten
+                      ongelmien selvittämiseen ja sovelluksen vakauden
+                      parantamiseen.
+                    </p>
                   </li>
                 </ul>
               </section>
@@ -155,33 +172,80 @@ export default function PrivacyPolicyPage() {
                   3. Tietojen käsittelyn tarkoitus
                 </h2>
                 <p className="mb-6">
-                  Käsittelemme tietojasi puhtaasti tarjotaksemme toimivan sovelluksen työnhakusi tueksi:
+                  Tietojasi käsitellään ainoastaan palvelun
+                  ydintoiminnallisuuksien mahdollistamiseksi:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm">
                     <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
                       <FileText size={18} />
                     </div>
-                    <h4 className="font-bold text-slate-900 mb-1">Palvelun tarjoaminen</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">Hakemustesi tallentamiseen, automaattiseen tietojen noutamiseen ja trendien visualisointiin aikajanalla.</p>
+                    <h4 className="font-bold text-slate-900 mb-1">
+                      Palvelun tarjoaminen
+                    </h4>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      Hakemustesi turvalliseen tallentamiseen, automaattiseen
+                      tietojen hakemiseen ja tilastojen visualisointiin.
+                    </p>
                   </div>
                   <div className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm">
                     <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
                       <Lock size={18} />
                     </div>
-                    <h4 className="font-bold text-slate-900 mb-1">Tietoturva & Suojaus</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">Käyttöoikeuksien varmistamiseen, tilisi suojaamiseen ja luvattoman käytön estämiseen.</p>
+                    <h4 className="font-bold text-slate-900 mb-1">
+                      Tietoturva & Suojaus
+                    </h4>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      Käyttöoikeuksien todentamiseen, istuntojen hallintaan ja
+                      luvattoman datan käsittelyn estämiseen.
+                    </p>
                   </div>
                 </div>
+                <section>
+                  <h2 className="duunify-display text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3 mt-6">
+                    <span className="w-1 h-6 bg-[#6D67F2] rounded-full" />
+                    4. Evästeet ja kävijäseuranta
+                  </h2>
+                  <p className="mb-4">
+                    Palvelu käyttää välttämättömiä teknisiä menetelmiä sivuston
+                    toiminnan varmistamiseen ja kehittämiseen:
+                  </p>
+                  <ul className="space-y-3 pl-1 text-sm">
+                    <li className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#6D67F2] mt-2 shrink-0" />
+                      <p>
+                        <strong className="text-slate-900">
+                          Istunnon hallinta:
+                        </strong>{" "}
+                        Selaimen paikallista tallennustilaa (LocalStorage) tai
+                        istuntoevästeitä käytetään pitämään sinut kirjautuneena
+                        sisään palveluun. Nämä ovat palvelun toiminnan kannalta
+                        välttämättömiä.
+                      </p>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#6D67F2] mt-2 shrink-0" />
+                      <p>
+                        <strong className="text-slate-900">
+                          Kävijätilastot:
+                        </strong>{" "}
+                        Sivustolla käytetään Vercel Analytics -palvelua
+                        kävijämäärän ja sivuston suorituskyvyn seuraamiseen.
+                        Työkalu on yksityisyyttä kunnioittava: se ei käytä
+                        seurantatunnisteita tai evästeitä, eikä se kerää tai
+                        tallenna henkilötietoja tai IP-osoitteita.
+                      </p>
+                    </li>
+                  </ul>
+                </section>
               </section>
-
             </div>
           </div>
         </div>
       </main>
 
       {/* FOOTER */}
-      <Footer/>
+      <Footer />
 
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </div>

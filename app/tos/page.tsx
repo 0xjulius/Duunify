@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Scale,
-  ArrowLeft,
   CheckCircle2,
   AlertTriangle,
   UserCheck,
@@ -25,7 +24,7 @@ export default function TermsOfServicePage() {
         .duunify-mono { font-family: 'JetBrains Mono', monospace; }
       `}</style>
 
-      {/* TAUSTAPATTERNI – Täsmälleen etusivun arvoilla */}
+      {/* TAUSTAPATTERNI */}
       <div
         className="absolute inset-0 opacity-[0.06] pointer-events-none z-0"
         style={{
@@ -35,41 +34,7 @@ export default function TermsOfServicePage() {
         }}
       />
 
-      {/* NAV WAIT */}
       <SimpleNavbar />
-
-      {/* NAV-VALMIS 
-      <header className="duunify-modal sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
-
-            <span className="duunify-display font-bold text-slate-900">
-              Duunify
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-5">
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <ArrowLeft size={16} /> Palaa takaisin
-            </Link>
-
-            <button
-              onClick={() => setShowLogin(true)}
-              className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-transform active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, #6D67F2, #5750E0)",
-              }}
-            >
-              Aloita ilmaiseksi
-            </button>
-          </div>
-        </div>
-      </header >
-      */}
 
       {/* PÄÄSISÄLTÖ */}
       <main className="duunify-modal max-w-6xl mx-auto px-6 pt-16 pb-24 relative z-10">
@@ -82,7 +47,7 @@ export default function TermsOfServicePage() {
             Käyttöehdot
           </h1>
           <p className="mt-2 text-sm text-slate-400">
-            Päivitetty viimeksi: 1. heinäkuuta 2026
+            Päivitetty viimeksi: 4. heinäkuuta 2026
           </p>
         </div>
 
@@ -142,14 +107,14 @@ export default function TermsOfServicePage() {
                   1. Palvelun kuvaus ja ehtojen voimassaolo
                 </h2>
                 <p className="mb-4">
-                  Duunify tarjoaa verkkopohjaisen työkalun työhakemusten
+                  Duunify tarjoaa verkkopohjaisen palvelun työhakemusten
                   organisointiin, seurantaan ja hallintaan. Luomalla
                   käyttäjätilin tai käyttämällä palvelua vahvistat, että olet
                   lukenut, ymmärtänyt ja hyväksynyt nämä käyttöehdot itseäsi
                   sitoviksi.
                 </p>
                 <p>
-                  Pidätämme oikeuden päivittää tai muuttaa näitä ehtoja
+                  Palvelun ylläpitäjä pidättää oikeuden päivittää tai muuttaa näitä ehtoja
                   tarvittaessa. Olennaisista muutoksista ilmoitetaan käyttäjille
                   sovelluksen kautta tai sähköpostitse.
                 </p>
@@ -204,10 +169,9 @@ export default function TermsOfServicePage() {
                   3. Oikeudet ja vastuunrajoitukset
                 </h2>
                 <p className="mb-6">
-                  Panostamme palvelumme jatkuvaan kehittämiseen ja korkeaan
-                  käytettävyyteen. Palvelu tarjotaan kuitenkin 'sellaisena kuin
-                  se on', emmekä voi taata sen keskeytyksetöntä toimivuutta
-                  kaikissa olosuhteissa.
+                  Palvelua kehitetään jatkuvasti käyttökokemuksen parantamiseksi.
+                  Se tarjotaan kuitenkin 'sellaisena kuin se on', eikä sen
+                  keskeytyksettömästä toimivuudesta voida antaa takuita kaikissa olosuhteissa.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -215,12 +179,13 @@ export default function TermsOfServicePage() {
                       <UserCheck size={18} />
                     </div>
                     <h4 className="font-bold text-slate-900 mb-1">
-                      Immateriaalioikeudet
+                      Omistajuus ja tekijänoikeudet
                     </h4>
                     <p className="text-sm text-slate-500 leading-relaxed">
                       Kaikki oikeudet Duunify-brändiin, lähdekoodiin ja
-                      ulkoasuun kuuluvat meille. Sinun tallentamasi data ja
-                      hakemukset pysyvät täysin sinun omistanasi.
+                      ulkoasuun kuuluvat palvelun ylläpitäjälle. Käyttäjän tallentama
+                      data, ansioluettelot ja hakemukset pysyvät täysin käyttäjän
+                      omana omaisuutena.
                     </p>
                   </div>
                   <div className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -231,12 +196,11 @@ export default function TermsOfServicePage() {
                       Vastuunrajoitus
                     </h4>
                     <p className="text-sm text-slate-500 leading-relaxed">
-                      Duunify ei vastaa palvelun käytöstä mahdollisesti
+                      Palvelun ylläpitäjä ei vastaa sovelluksen käytöstä mahdollisesti
                       aiheutuvista välillisistä vahingoista tai tietojen
-                      menetyksestä. Emme myöskään vastaa palvelun häiriöistä tai
-                      toiminnallisuuden muutoksista tilanteissa, joissa
-                      kolmannen osapuolen sivusto tai rajapinta muuttaa muotoaan
-                      tai lopettaa toimintansa.
+                      menetyksestä. Vastuuta ei myöskään ole häiriöistä,
+                      jotka johtuvat kolmansien osapuolten rajapintamuutoksista tai 
+                      palveluntarjoajien katkoista.
                     </p>
                   </div>
                 </div>
@@ -246,7 +210,6 @@ export default function TermsOfServicePage() {
         </div>
       </main>
 
-      {/* FOOTER */}
       <Footer />
 
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
