@@ -117,7 +117,7 @@ export async function createCalendarEvent(input: {
   eventTime: string | null;
   notes: string | null;
 }) {
-  return supabase.from("calendar_events").insert({
+  const response = await supabase.from("calendar_events").insert({
     user_id: input.userId,
     type: input.type,
     title: input.title,
@@ -126,6 +126,15 @@ export async function createCalendarEvent(input: {
     event_time: input.eventTime,
     notes: input.notes,
   });
+
+  // Tulostetaan tarkka virhe selaimen konsoliin, jos tallennus epäonnistuu
+  if (response.error) {
+    console.error("Supabase-virhe:", response.error.message);
+    console.error("Vihje:", response.error.hint);
+    console.error("Yksityiskohdat:", response.error.details);
+  }
+
+  return response;
 }
 
 export async function deleteCalendarEvent(id: string) {
