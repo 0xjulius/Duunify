@@ -20,6 +20,7 @@ import Footer from "@/components/Footer";
 import WaitlistSignup from "@/components/WaitlistSignup";
 import { LandingIndexCard } from "@/components/LandingIndexCard";
 import NavBarWait from "@/components/NavBarWait";
+import TimerComponent from "@/components/ui/TimerComponent"
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -99,9 +100,10 @@ export default function LandingPage() {
             Ei luottokorttia. Ei sitoutumista.
           </p>
           <div className="text-center">
-            <h3 className="mt-4 text-2xl font-bold text-slate-900">
+                        <h3 className="mt-4 text-2xl font-bold text-slate-900">
               Haluatko ensimmäisten joukossa kokeilemaan?
             </h3>
+            <TimerComponent/>
             <p className="mt-2 text-slate-600">
               Liity odotuslistalle ja saat kutsun heti, kun avaamme palvelun
               uusille käyttäjille.
@@ -124,7 +126,7 @@ export default function LandingPage() {
             </div>
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
               Koko hakuprosessisi,{" "}
-              <span className="text-[#6D67F2]">yhdellä silmäyksellä</span>
+              <span className="text-[#6D67F2]"><br/>yhdellä silmäyksellä</span>
             </h2>
             <p className="mt-4 text-slate-500 leading-relaxed">
               Excel-taulukko kertoo mitä olet tehnyt. Duunifyn dashboard kertoo
