@@ -3,8 +3,6 @@ import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { ratelimit } from "@/lib/ratelimit";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function escapeHtml(input: string) {
   return input
     .replace(/&/g, "&amp;")
@@ -25,8 +23,9 @@ export async function POST(req: NextRequest) {
         { error: "Liikaa yrityksiä. Yritä myöhemmin uudelleen." },
         { status: 429 },
       );
-    }
-
+      }
+      
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await req.json();
     const { name, email, subject, message } = body;
 
