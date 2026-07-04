@@ -4,6 +4,9 @@ import * as cheerio from "cheerio";
 import { ratelimit } from "../../../lib/ratelimit";
 import { createClient } from "@/lib/supabase-server";
 
+export const preferredRegion = ["arn1", "fra1"];
+export const dynamic = "force-dynamic";
+
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -18,11 +21,9 @@ function isAllowedJobSite(url: string) {
   }
 }
 
-// Suomennus- ja siivousfunktio employmentTypelle
 function suomennaTyoaika(tyyppiInput: any): string {
   if (!tyyppiInput) return "Ei määritelty";
 
-  // Muutetaan input aina merkkijonotaulukoksi ja siivotaan välit
   let tyypit: string[] = [];
   if (Array.isArray(tyyppiInput)) {
     tyypit = tyyppiInput.map(t => String(t).trim().toUpperCase());
@@ -30,10 +31,8 @@ function suomennaTyoaika(tyyppiInput: any): string {
     tyypit = String(tyyppiInput).split(",").map(t => t.trim().toUpperCase());
   }
 
-  // Suodatetaan pois "OTHER" ja poistetaan duplikaatit
   const uniikitTyypit = [...new Set(tyypit.filter(t => t !== "OTHER" && t !== ""))];
 
-  // Jos oli vain FULL_TIME (tai useampi, jotka siivottiin yhteen)
   if (uniikitTyypit.length === 1 && uniikitTyypit[0] === "FULL_TIME") {
     return "Kokoaikainen";
   }
@@ -121,22 +120,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "JobPosting not found" }, { status: 404 });
     }
 
-    // --- PARSITAAN LAADUKKAAMMIN ---
+    const company = jobData.hiringOrganization?.name?.trim() || "";
 
-    // 1. Yrityksen nimi
-    let company = jobData.hiringOrganization?.name || "";
-    if (company) {
-      company = company
-        .split(" ")
-        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(" ");
-    }
-
-    // 2. Yrityksen logo
     const logoData = jobData.hiringOrganization?.logo;
     const companyLogo = typeof logoData === "object" ? logoData?.url : logoData || null;
 
-    // 3. Sijainnit
     let location = "";
     if (Array.isArray(jobData.jobLocation)) {
       location = jobData.jobLocation
@@ -150,13 +138,11 @@ export async function POST(req: NextRequest) {
     const salaryMin = jobData.baseSalary?.value?.minValue || null;
     const salaryMax = jobData.baseSalary?.value?.maxValue || null;
     
-    // TÄSSÄ KOHTAA OTETAAN RAUKADATA JA AJETAAN SE APUFUNKTION LÄPI
     const employmentType = suomennaTyoaika(jobData.employmentType);
 
     const validThrough = jobData.validThrough || "";
     const datePosted = jobData.datePosted || "";
 
-    // Kuvauksen siistiminen HTML-muodoista
     let description = jobData.description || "";
     description = description
       .replace(/\\n/g, "\n")
@@ -175,7 +161,6 @@ export async function POST(req: NextRequest) {
 
     description = description.slice(0, 15000);
 
-    // Palautetaan data frontendiin
     return NextResponse.json({
       title,
       company,
@@ -184,7 +169,7 @@ export async function POST(req: NextRequest) {
       description,
       salaryMin,
       salaryMax,
-      employmentType, // Palauttaa nyt siististi "Kokoaikainen"
+      employmentType,
       validThrough,
       datePosted,
     });
