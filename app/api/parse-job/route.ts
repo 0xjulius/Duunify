@@ -4,7 +4,8 @@ import * as cheerio from "cheerio";
 import { ratelimit } from "../../../lib/ratelimit";
 import { createClient } from "@/lib/supabase-server";
 
-export const preferredRegion = ["arn1", "fra1"];
+export const runtime = "nodejs";
+export const preferredRegion = ["arn1"];
 export const dynamic = "force-dynamic";
 
 const USER_AGENTS = [
@@ -116,12 +117,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (!response.ok) {
+      const bodySnippet = await response.text().catch(() => "");
+      console.error("Haku epäonnistui:", {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        bodyPreview: bodySnippet.slice(0, 500),
+      });
+
       return NextResponse.json(
         { error: `Site returned ${response.status}` },
         { status: 502 },
       );
     }
-
     const html = await response.text();
     const $ = cheerio.load(html);
     const title = $("h1").first().text().trim() || $("title").text().trim();
