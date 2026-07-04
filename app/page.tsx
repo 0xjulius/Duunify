@@ -84,16 +84,17 @@ export default function LandingPage() {
             </button>
           </div>*/}
 
-          <Link
-            href="/demo"
-            className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 hover:shadow-md"
-          >
-            <PlayCircle
-              size={24}
-              className="text-violet-600 group-hover:scale-110 transition-transform"
-            />
-            Katso demo-versiota!
+<Link
+  href="/demo"
+  className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 border-violet-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-600/10 animate-none hover:animate-none relative overflow-hidden active:scale-[0.98]"
+>
+  <PlayCircle
+    size={24}
+    className="text-violet-600 group-hover:scale-110 group-hover:rotate-[360deg] transition-transform duration-500 ease-out"
+  />
+  <span className="relative z-10">Katso demo-versiota!</span>
           </Link>
+          
           <p className="mt-3 text-sm text-slate-400 mb-12">
             Ei luottokorttia. Ei sitoutumista.
           </p>
@@ -110,54 +111,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="ominaisuudet" className="duunify-modal py-20 md:py-28">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
-              Kaikki mitä tarvitset hakuprosessiin
-            </h2>
-            <p className="mt-4 text-slate-500">
-              Suunniteltu suomalaista työnhakua varten.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<Zap size={20} />}
-              title="Automaattinen täyttö"
-              description="Liitä linkki Duunitorista tai Työmarkkinatorista, ja tiedot täyttyvät puolestasi."
-            />
-            <FeatureCard
-              icon={<Briefcase size={20} />}
-              title="Hakemusten seuranta"
-              description="Näe yhdellä silmäyksellä missä vaiheessa jokainen hakemuksesi on."
-            />
-            <FeatureCard
-              icon={<Calendar size={20} />}
-              title="Älykäs kalenteri"
-              description="Haastattelut, hakuaikojen päättymiset ja omat muistutukset samassa näkymässä — merkitse suoritetuksi yhdellä klikkauksella."
-            />
-            <FeatureCard
-              icon={<BarChart3 size={20} />}
-              title="Visuaalinen yleiskatsaus"
-              description="Hakemusten status, trendi ja aktiivisuus kuukausien ajalta — näet heti missä kohtaa hakuprosessiasi olet."
-            />
-            <FeatureCard
-              icon={<History size={20} />}
-              title="Toimintaloki"
-              description="Jokainen tilamuutos, muistiinpano ja tapahtuma tallentuu automaattisesti aikajanalle, jota voi suodattaa ja hakea."
-            />
-            <FeatureCard
-              icon={<Star size={20} />}
-              title="Suosikit"
-              description="Merkitse kiinnostavimmat mahdollisuudet ja palaa niihin myöhemmin."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* DASHBOARD SHOWCASE */}
+       {/* DASHBOARD SHOWCASE */}
       <section
         id="dashboard"
         className="duunify-modal py-20 md:py-28 bg-slate-50 overflow-hidden"
@@ -295,36 +249,54 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="miten-toimii" className="duunify-modal py-20 md:py-28">
+      {/* FEATURES */}
+      <section id="ominaisuudet" className="duunify-modal py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
-              Kolme askelta
+              Kaikki mitä tarvitset hakuprosessiin
             </h2>
+            <p className="mt-4 text-slate-500">
+              Suunniteltu suomalaista työnhakua varten.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <StepCard
-              number="01"
-              title="Liitä linkki"
-              description="Kopioi työpaikkailmoituksen URL Duunitorista tai Työmarkkinatorista."
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard
+              icon={<Zap size={20} />}
+              title="Automaattinen täyttö"
+              description="Liitä linkki Duunitorista tai Työmarkkinatorista, ja tiedot täyttyvät puolestasi."
             />
-            <StepCard
-              number="02"
-              title="Tarkista tiedot"
-              description="Yritys, tehtävä, palkka ja kuvaus täyttyvät automaattisesti — muokkaa tarpeen mukaan."
+            <FeatureCard
+              icon={<Briefcase size={20} />}
+              title="Hakemusten seuranta"
+              description="Näe yhdellä silmäyksellä missä vaiheessa jokainen hakemuksesi on."
             />
-            <StepCard
-              number="03"
-              title="Seuraa etenemistä"
-              description="Päivitä tilaa hakemuksen edetessä, saa muistutukset ajoissa ja katso kehitystäsi dashboardilta."
+            <FeatureCard
+              icon={<Calendar size={20} />}
+              title="Älykäs kalenteri"
+              description="Haastattelut, hakuaikojen päättymiset ja omat muistutukset samassa näkymässä — merkitse suoritetuksi yhdellä klikkauksella."
+            />
+            <FeatureCard
+              icon={<BarChart3 size={20} />}
+              title="Visuaalinen yleiskatsaus"
+              description="Hakemusten status, trendi ja aktiivisuus kuukausien ajalta — näet heti missä kohtaa hakuprosessiasi olet."
+            />
+            <FeatureCard
+              icon={<History size={20} />}
+              title="Toimintaloki"
+              description="Jokainen tilamuutos, muistiinpano ja tapahtuma tallentuu automaattisesti aikajanalle, jota voi suodattaa ja hakea."
+            />
+            <FeatureCard
+              icon={<Star size={20} />}
+              title="Suosikit"
+              description="Merkitse kiinnostavimmat mahdollisuudet ja palaa niihin myöhemmin."
             />
           </div>
         </div>
       </section>
 
-      {/* WHY NOT EXCEL */}
+     {/* WHY NOT EXCEL */}
       <section className="duunify-modal py-20 md:py-28 bg-slate-50">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-14">
@@ -366,6 +338,36 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* HOW IT WORKS */}
+      <section id="miten-toimii" className="duunify-modal py-20 md:py-28">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center max-w-xl mx-auto mb-16">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+              Kolme askelta
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <StepCard
+              number="01"
+              title="Liitä linkki"
+              description="Kopioi työpaikkailmoituksen URL Duunitorista tai Työmarkkinatorista."
+            />
+            <StepCard
+              number="02"
+              title="Tarkista tiedot"
+              description="Yritys, tehtävä, palkka ja kuvaus täyttyvät automaattisesti — muokkaa tarpeen mukaan."
+            />
+            <StepCard
+              number="03"
+              title="Seuraa etenemistä"
+              description="Päivitä tilaa hakemuksen edetessä, saa muistutukset ajoissa ja katso kehitystäsi dashboardilta."
+            />
+          </div>
+        </div>
+      </section>
+
 
       {/* FINAL CTA */}
       <section className="duunify-modal py-20 md:py-28">
