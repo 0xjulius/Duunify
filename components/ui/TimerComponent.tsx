@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 
 export default function ProfessionalFomoTimer() {
   // Asetetaan maali tasan 7 päivän päähän tästä hetkestä
-  const [targetDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const [targetDate] = useState(() => new Date("2026-07-11T12:00:00"));
   const [timeLeft, setTimeLeft] = useState({ paivat: 7, tunnit: 0, minuutit: 0, sekunnit: 0 });
 
   useEffect(() => {
