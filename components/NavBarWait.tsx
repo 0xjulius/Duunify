@@ -21,18 +21,20 @@ export default function NavBarWait() {
 
           {/* Navigaatio */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+              <a
+              href="#dashboard"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Yleiskatsaus
+            </a>
+            
             <a
               href="#ominaisuudet"
               className="hover:text-indigo-600 transition-colors"
             >
               Ominaisuudet
             </a>
-            <a
-              href="#dashboard"
-              className="hover:text-indigo-600 transition-colors"
-            >
-              Yleiskatsaus
-            </a>
+          
             <a
               href="#miten-toimii"
               className="hover:text-indigo-600 transition-colors"
