@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { createLog } from "@/lib/logger";
+import { X } from "lucide-react";
 
 export default function LoginModal({
   isOpen,
@@ -24,12 +25,21 @@ export default function LoginModal({
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // UUSI: ehtojen hyväksyntä — pakollinen ennen tilin luomista.
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   if (!isOpen) return null;
 
+  const { checks, passedCount } = getPasswordStrength(password);
+  const meetsRequirements =
+    checks.length && checks.lowercase && checks.uppercase && checks.number;
+
   async function login() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     setLoading(false);
 
     if (error) {
@@ -51,7 +61,23 @@ export default function LoginModal({
   }
 
   async function register() {
+    // UUSI: salasanan turvallisuustarkistus ennen kuin mitään lähetetään
+    // Supabaselle. Estää heikkojen salasanojen luomisen jo käyttöliittymässä.
+    if (!meetsRequirements) {
+      toast.error(
+        "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta.",
+      );
+      return;
+    }
+
+    // UUSI: ehtojen hyväksyntä pakollinen.
+    if (!acceptTerms) {
+      toast.error("Sinun täytyy hyväksyä käyttöehdot ja tietosuojaseloste.");
+      return;
+    }
+
     setLoading(true);
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -60,6 +86,7 @@ export default function LoginModal({
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
+
     setLoading(false);
 
     if (error) {
@@ -92,10 +119,6 @@ export default function LoginModal({
 
   return (
     <div
-      // MUUTOS 1: overflow-y-auto lisätty. Tämä on turvaverkko — jos sisältö
-      // on jostain syystä silti korkeampi kuin näyttö (esim. hyvin pieni
-      // näyttö vaakatilassa), käyttäjä pääsee vierittämään koko modaalin
-      // näkyviin sen sijaan että se leikkautuisi näytön reunoista.
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 py-8"
       style={{
         background: "rgba(13, 11, 38, 0.7)",
@@ -131,6 +154,15 @@ export default function LoginModal({
         className="duunify-modal duunify-perspective w-full max-w-4xl my-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Sulje"
+          className="absolute -top-3 -right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-lg ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 active:scale-95 md:hidden"
+        >
+          <X size={20} strokeWidth={2.5} />
+        </button>
+
         <div className={`duunify-card-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ---------- FRONT FACE ---------- */}
           <div
@@ -164,7 +196,10 @@ export default function LoginModal({
                   loading={googleLoading}
                 />
                 <Divider label="tai" />
-                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+                <form
+                  className="space-y-3"
+                  onSubmit={(e) => e.preventDefault()}
+                >
                   <TextField
                     label="Sähköpostiosoite"
                     type="email"
@@ -179,7 +214,11 @@ export default function LoginModal({
                     value={password}
                     onChange={setPassword}
                   />
-                  <PrimaryButton label="Kirjaudu sisään" onClick={login} loading={loading} />
+                  <PrimaryButton
+                    label="Kirjaudu sisään"
+                    onClick={login}
+                    loading={loading}
+                  />
                 </form>
                 <SwitchLine
                   prompt="Eikö sinulla ole vielä tunnusta?"
@@ -207,7 +246,10 @@ export default function LoginModal({
                   loading={googleLoading}
                 />
                 <Divider label="tai" />
-                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+                <form
+                  className="space-y-3"
+                  onSubmit={(e) => e.preventDefault()}
+                >
                   <TextField
                     label="Koko nimi"
                     type="text"
@@ -222,14 +264,35 @@ export default function LoginModal({
                     value={email}
                     onChange={setEmail}
                   />
-                  <TextField
-                    label="Salasana"
-                    type="password"
-                    placeholder="Vähintään 8 merkkiä"
-                    value={password}
-                    onChange={setPassword}
+                  <div>
+                    <TextField
+                      label="Salasana"
+                      type="password"
+                      placeholder="Vähintään 8 merkkiä"
+                      value={password}
+                      onChange={setPassword}
+                    />
+                    {/* UUSI: vahvuusmittari näkyy heti kun käyttäjä alkaa kirjoittaa */}
+                    {password.length > 0 && (
+                      <PasswordStrengthMeter
+                        checks={checks}
+                        passedCount={passedCount}
+                      />
+                    )}
+                  </div>
+
+                  {/* UUSI: ehtojen hyväksyntä */}
+                  <TermsCheckbox
+                    checked={acceptTerms}
+                    onChange={setAcceptTerms}
                   />
-                  <PrimaryButton label="Luo tunnus" onClick={register} loading={loading} />
+
+                  <PrimaryButton
+                    label="Luo tunnus"
+                    onClick={register}
+                    loading={loading}
+                    disabled={!acceptTerms || !meetsRequirements}
+                  />
                 </form>
                 <SwitchLine
                   prompt="Oliko sinulla sittenkin tunnus?"
@@ -255,6 +318,136 @@ export default function LoginModal({
   );
 }
 
+/* ---------------------------- Password strength ---------------------------- */
+
+function getPasswordStrength(password: string) {
+  const checks = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+  const passedCount = Object.values(checks).filter(Boolean).length;
+  return { checks, passedCount };
+}
+
+function PasswordStrengthMeter({
+  checks,
+  passedCount,
+}: {
+  checks: {
+    length: boolean;
+    lowercase: boolean;
+    uppercase: boolean;
+    number: boolean;
+    special: boolean;
+  };
+  passedCount: number;
+}) {
+  // Erikoismerkki on bonus, ei pakollinen — siksi label lasketaan
+  // neljästä pakollisesta + tästä yhdestä bonuksesta.
+  const requiredMet =
+    checks.length && checks.lowercase && checks.uppercase && checks.number;
+
+  let label = "Heikko";
+  let barColor = "bg-red-400";
+  let textColor = "text-red-500";
+
+  if (passedCount >= 5) {
+    label = "Vahva";
+    barColor = "bg-violet-500";
+    textColor = "text-violet-600";
+  } else if (requiredMet) {
+    label = "Hyvä";
+    barColor = "bg-emerald-500";
+    textColor = "text-emerald-600";
+  } else if (passedCount >= 3) {
+    label = "Kohtalainen";
+    barColor = "bg-amber-500";
+    textColor = "text-amber-600";
+  }
+
+  const items: { key: keyof typeof checks; label: string }[] = [
+    { key: "length", label: "Vähintään 8 merkkiä" },
+    { key: "uppercase", label: "Iso kirjain (A–Z)" },
+    { key: "lowercase", label: "Pieni kirjain (a–z)" },
+    { key: "number", label: "Numero (0–9)" },
+  ];
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+            style={{ width: `${(passedCount / 5) * 100}%` }}
+          />
+        </div>
+        <span className={`text-[11px] font-semibold ${textColor}`}>
+          {label}
+        </span>
+      </div>
+
+      <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
+        {items.map((item) => (
+          <li
+            key={item.key}
+            className={`text-[11px] flex items-center gap-1.5 ${
+              checks[item.key] ? "text-emerald-600" : "text-slate-400"
+            }`}
+          >
+            <span>{checks[item.key] ? "✓" : "○"}</span>
+            {item.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ---------------------------- Terms checkbox ---------------------------- */
+
+function TermsCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="flex items-start gap-2.5 text-[13px] text-slate-600 cursor-pointer select-none pt-1">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-[#6D67F2] focus:ring-2 focus:ring-[#6D67F2]/25 cursor-pointer"
+      />
+      <span>
+        Hyväksyn{" "}
+        <a
+          href="/tos"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="font-semibold text-[#6D67F2] hover:text-[#5750E0] hover:underline"
+        >
+          käyttöehdot
+        </a>{" "}
+        ja{" "}
+        <a
+          href="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="font-semibold text-[#6D67F2] hover:text-[#5750E0] hover:underline"
+        >
+          tietosuojaselosteen
+        </a>
+      </span>
+    </label>
+  );
+}
 /* ---------------------------- Sub-components ---------------------------- */
 
 function BrandPanel({
@@ -275,16 +468,11 @@ function BrandPanel({
   className?: string;
 }) {
   return (
-    // MUUTOS 2: "hidden md:flex" lisätty. Tämä on pääkorjaus — ilman tätä
-    // brändipaneeli pinoutuu lomakkeen PÄÄLLE mobiilissa (koska grid-cols
-    // asettuu vasta md-breakpointista ylöspäin), jolloin koko kortin
-    // korkeus moninkertaistuu ja rekisteröintilomakkeen kentät/nappi
-    // työntyvät näytön ulkopuolelle. Mobiilissa käyttäjä näkee nyt vain
-    // itse lomakkeen, brändipaneeli palaa näkyviin taas md-koosta ylöspäin.
     <div
       className={`hidden md:flex relative p-10 md:p-12 flex-col justify-between text-white overflow-hidden ${className}`}
       style={{
-        background: "linear-gradient(165deg, #211A5C 0%, #181440 55%, #120F33 100%)",
+        background:
+          "linear-gradient(165deg, #211A5C 0%, #181440 55%, #120F33 100%)",
       }}
     >
       <div
@@ -301,7 +489,9 @@ function BrandPanel({
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
           {eyebrow} · Nro {serial}
         </div>
-        <h2 className="duunify-display mt-4 text-3xl font-bold tracking-tight">{heading}</h2>
+        <h2 className="duunify-display mt-4 text-3xl font-bold tracking-tight">
+          {heading}
+        </h2>
         <p className="mt-4 text-indigo-100/80 text-[15px] leading-relaxed max-w-[30ch]">
           {tagline}
         </p>
@@ -309,7 +499,9 @@ function BrandPanel({
 
       <div className="relative z-10">{footer}</div>
 
-      <div className={`absolute bottom-8 ${side === "left" ? "right-8" : "left-8"} hidden md:flex`}>
+      <div
+        className={`absolute bottom-8 ${side === "left" ? "right-8" : "left-8"} hidden md:flex`}
+      >
         <div className="w-16 h-16 rounded-full border border-dashed border-amber-300/40 flex items-center justify-center rotate-[-12deg]">
           <span className="duunify-mono text-[8px] tracking-widest text-amber-300/60 text-center leading-tight">
             DUUNIFY
@@ -323,7 +515,8 @@ function BrandPanel({
 }
 
 function Perforation({ side }: { side: string }) {
-  const edgeClass = side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2";
+  const edgeClass =
+    side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2";
   return (
     <div
       className={`hidden md:flex absolute top-6 bottom-6 w-px ${edgeClass} flex-col items-center justify-between`}
@@ -348,7 +541,9 @@ function FormShell({
   return (
     <div className="max-w-sm w-full mx-auto space-y-5">
       <div>
-        <h3 className="duunify-display text-2xl font-bold text-slate-900">{heading}</h3>
+        <h3 className="duunify-display text-2xl font-bold text-slate-900">
+          {heading}
+        </h3>
         <p className="text-slate-500 mt-1.5 text-[14px]">{sub}</p>
       </div>
       {children}
@@ -376,10 +571,22 @@ function GoogleButton({
         <span className="w-[18px] h-[18px] rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
       ) : (
         <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+          <path
+            fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+          />
         </svg>
       )}
       {loading ? "Ohjataan Googleen..." : label}
@@ -417,7 +624,9 @@ function TextField({
 }) {
   return (
     <label className="block">
-      <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">{label}</span>
+      <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">
+        {label}
+      </span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -433,17 +642,19 @@ function PrimaryButton({
   label,
   onClick,
   loading,
+  disabled = false,
 }: {
   label: string;
   onClick: () => void;
   loading: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      disabled={loading}
+      disabled={loading || disabled}
       type="submit"
-      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
       style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
     >
       {loading ? "Odota..." : label}
@@ -474,10 +685,20 @@ function SwitchLine({
   );
 }
 
-function Quote({ text, name, role }: { text: string; name: string; role: string }) {
+function Quote({
+  text,
+  name,
+  role,
+}: {
+  text: string;
+  name: string;
+  role: string;
+}) {
   return (
     <div className="bg-white/[0.06] p-5 rounded-2xl border border-white/10">
-      <p className="text-white/90 text-[14px] italic leading-relaxed">"{text}"</p>
+      <p className="text-white/90 text-[14px] italic leading-relaxed">
+        "{text}"
+      </p>
       <div className="flex items-center mt-3.5 gap-2.5">
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500" />
         <div>
@@ -497,9 +718,16 @@ function StatsRow() {
   return (
     <div className="grid grid-cols-2 gap-3">
       {stats.map((s) => (
-        <div key={s.label} className="bg-white/[0.06] p-4 rounded-2xl border border-white/10">
-          <p className="duunify-display text-xl font-bold text-amber-300">{s.value}</p>
-          <p className="text-[11px] text-indigo-200/70 mt-0.5 leading-snug">{s.label}</p>
+        <div
+          key={s.label}
+          className="bg-white/[0.06] p-4 rounded-2xl border border-white/10"
+        >
+          <p className="duunify-display text-xl font-bold text-amber-300">
+            {s.value}
+          </p>
+          <p className="text-[11px] text-indigo-200/70 mt-0.5 leading-snug">
+            {s.label}
+          </p>
         </div>
       ))}
     </div>
