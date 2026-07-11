@@ -158,7 +158,7 @@ export default function LoginModal({
           type="button"
           onClick={onClose}
           aria-label="Sulje"
-          className="absolute -top-3 -right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-lg ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 active:scale-95 md:hidden"
+          className="absolute -top-3 -right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-lg ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 active:scale-95"
         >
           <X size={20} strokeWidth={2.5} />
         </button>
