@@ -12,16 +12,18 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0]" />
-            <span className="font-bold text-slate-900">Duunify</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D67F2] to-[#5750E0] flex items-center justify-center ">             <span className="duunify-display font-bold text-white text-lg leading-none">D</span></div>
+
+
+            <span className="duunify-display font-bold text-indigo-500 text-lg">Duunify</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+                        <a href="#dashboard" className="hover:text-slate-900">
+              Yleiskatsaus
+            </a>
             <a href="#ominaisuudet" className="hover:text-slate-900">
               Ominaisuudet
-            </a>
-            <a href="#dashboard" className="hover:text-slate-900">
-              Yleiskatsaus
             </a>
             <a href="#miten-toimii" className="hover:text-slate-900">
               Miten toimii
@@ -33,7 +35,7 @@ export default function Navbar() {
               onClick={() => setShowLoginModal(true)}
               className="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2"
             >
-              Kirjaudu sisään
+              Kirjaudu
             </button>
             <button
               onClick={() => setShowLoginModal(true)}
@@ -42,7 +44,7 @@ export default function Navbar() {
                 background: "linear-gradient(135deg, #6D67F2, #5750E0)",
               }}
             >
-              Aloita ilmaiseksi
+              Aloita <span className="hidden">ilmaiseksi</span>
             </button>
           </div>
         </div>
