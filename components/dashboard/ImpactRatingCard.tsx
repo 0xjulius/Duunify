@@ -14,23 +14,15 @@ interface Props {
   favorites: number;
 }
 
-
 export function ImpactRatingSkeleton() {
   return (
     <div className="relative flex h-[166px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm animate-pulse">
-      {/* Yläreunan ikoni-paikka */}
       <div className="absolute right-4 top-4 h-4 w-4 rounded-full bg-slate-100" />
-
-      {/* Otsikko */}
       <div className="h-4 w-32 rounded bg-slate-100 text-slate-800" />
-
-      {/* Luku ja emoji */}
       <div className="flex items-end gap-3">
         <div className="h-12 w-24 rounded-lg bg-slate-100" />
         <div className="h-10 w-10 rounded-full bg-slate-100" />
       </div>
-
-      {/* Status-teksti */}
       <div className="h-4 w-40 rounded bg-slate-100" />
     </div>
   );
@@ -40,16 +32,25 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
   const p = Number(pending ?? 0);
   const r = Number(rejected ?? 0);
 
-  // Lasketaan suoraan vireillä olevat (suosikkeja ei huomioida)
-  const finalRating = r > 0 ? p / r : p; 
+  // Uusi käyttäjä: ei vielä lähetettyjä hakemuksia eikä hylkäyksiä.
+  // Tämä pitää käsitellä omana tilanaan — kyse ei ole huonosta
+  // tuloksesta, vaan siitä ettei työnhaku ole vielä alkanut.
+  const hasActivity = p > 0 || r > 0;
 
-  const displayRating = finalRating.toFixed(2);
+  // Lasketaan suoraan vireillä olevat (suosikkeja ei huomioida)
+  const finalRating = r > 0 ? p / r : p;
+
+  const displayRating = hasActivity ? finalRating.toFixed(2) : "–";
 
   let colorClass = "text-amber-600";
   let statusText = "Tasapainossa";
   let emoji = "⚖️";
 
-  if (finalRating >= 3.0) {
+  if (!hasActivity) {
+    colorClass = "text-slate-400";
+    statusText = "Aloita lähettämällä ensimmäinen hakemuksesi";
+    emoji = "🚀";
+  } else if (finalRating >= 3.0) {
     colorClass = "text-violet-600";
     statusText = "Maailmanluokan suoritus";
     emoji = "🌍";
@@ -85,11 +86,11 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
     colorClass = "text-red-400";
     statusText = "Vaatii kehitystä";
     emoji = "⚠️";
-  } else if (finalRating <=0.2) {
+  } else {
     colorClass = "text-red-500";
     statusText = "Pystyt parempaan.";
-      emoji = "❗";
-  } 
+    emoji = "❗";
+  }
 
   return (
     <div className="relative flex h-41.5 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
