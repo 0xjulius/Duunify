@@ -23,6 +23,9 @@ export default function LoginModal({
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  // Erillinen loading-tila Google-napille, ettei se lukitu email-lomakkeen
+  // kanssa samaan tilaan (muuten molemmat napit "jumittuvat" yhtä aikaa).
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -60,30 +63,60 @@ export default function LoginModal({
   }
 
   async function register() {
-  setLoading(true);
+    setLoading(true);
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+        // Korjattu: ohjataan /auth/callback-reitin kautta, joka vaihtaa
+        // koodin istunnoksi ennen kuin käyttäjä päätyy /dashboard-sivulle.
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
-      // Korjattu: ohjataan /auth/callback-reitin kautta, joka vaihtaa
-      // koodin istunnoksi ennen kuin käyttäjä päätyy /dashboard-sivulle.
-      emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-    },
-  });
+    });
 
-  setLoading(false);
+    setLoading(false);
 
-  if (error) {
-    toast.error(translateAuthError(error.message));
-    return;
+    if (error) {
+      toast.error(translateAuthError(error.message));
+      return;
+    }
+
+    toast.success("Tarkista sähköpostisi.");
   }
 
-  toast.success("Tarkista sähköpostisi.");
-}
+  async function loginWithGoogle() {
+    setGoogleLoading(true);
+
+    // signInWithOAuth ohjaa selaimen pois sivulta Googlen kirjautumiseen,
+    // joten tämä ei "palauta" onnistuessaan mitään käsiteltävää —
+    // error tulee vain jos itse pyynnön käynnistys epäonnistuu
+    // (esim. provider ei ole päällä Supabasen Auth-asetuksissa).
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        // Sama /auth/callback-reitti kuin sähköpostivahvistuksessa: se
+        // vaihtaa Googlen palauttaman koodin istunnoksi ennen dashboardia.
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+      },
+    });
+
+    if (error) {
+      setGoogleLoading(false);
+      toast.error(translateAuthError(error.message));
+      await createLog({
+        action: "login_failed",
+        details: "Google OAuth -kirjautuminen epäonnistui",
+        category: "auth",
+        status: "failure",
+      });
+    }
+    // Onnistuessa selain navigoi pois sivulta, joten loading-tilaa
+    // ei tarvitse (eikä voi luotettavasti) nollata täällä.
+  }
 
   return (
     <div
@@ -139,7 +172,7 @@ export default function LoginModal({
               footer={
                 <Quote
                   text="Tämä on paras tapa hallita omaa työtäni."
-                  name="Julupertsa"
+                  name="Kehittäjä"
                   role="Power user"
                 />
               }
@@ -151,7 +184,11 @@ export default function LoginModal({
                 heading="Tervetuloa takaisin"
                 sub="Kirjaudu sisään päästäksesi hallintapaneeliin."
               >
-                <GoogleButton label="Jatka Googlella" />
+                <GoogleButton
+                  label="Jatka Googlella"
+                  onClick={loginWithGoogle}
+                  loading={googleLoading}
+                />
                 <Divider label="tai" />
                 <form
                   className="space-y-3"
@@ -197,7 +234,11 @@ export default function LoginModal({
                 heading="Luo tunnus"
                 sub="Aloita ilmaiseksi — ei vaadi luottokorttia."
               >
-                <GoogleButton label="Rekisteröidy Googlella" />
+                <GoogleButton
+                  label="Rekisteröidy Googlella"
+                  onClick={loginWithGoogle}
+                  loading={googleLoading}
+                />
                 <Divider label="tai" />
                 <form
                   className="space-y-3"
@@ -255,12 +296,6 @@ export default function LoginModal({
 }
 
 /* ---------------------------- Sub-components ---------------------------- */
-type QuoteProps = {
-  text: string;
-  name: string;
-  role: string;
-};
-
 
 function BrandPanel({
   side,
@@ -277,7 +312,7 @@ function BrandPanel({
   heading: string;
   tagline: string;
   footer: React.ReactNode; // ReactNode hyväksyy esim. <Quote /> komponentin
-  className?: string;     // Kysymysmerkki tarkoittaa, että tämä on valinnainen
+  className?: string; // Kysymysmerkki tarkoittaa, että tämä on valinnainen
 }) {
   return (
     <div
@@ -345,7 +380,15 @@ function Perforation({ side }: { side: string }) {
   );
 }
 
-function FormShell({ heading, sub, children }: { heading: string; sub: string; children: React.ReactNode  }) {
+function FormShell({
+  heading,
+  sub,
+  children,
+}: {
+  heading: string;
+  sub: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="max-w-sm w-full mx-auto space-y-5">
       <div>
@@ -359,31 +402,45 @@ function FormShell({ heading, sub, children }: { heading: string; sub: string; c
   );
 }
 
-function GoogleButton({ label }: { label: string }) {
+function GoogleButton({
+  label,
+  onClick,
+  loading,
+}: {
+  label: string;
+  onClick: () => void;
+  loading: boolean;
+}) {
   return (
     <button
       type="button"
-      className="w-full h-12 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-semibold text-[14px] text-slate-700 flex items-center justify-center gap-2.5"
+      onClick={onClick}
+      disabled={loading}
+      className="w-full h-12 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-semibold text-[14px] text-slate-700 flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
     >
-      <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
-        <path
-          fill="#4285F4"
-          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        />
-        <path
-          fill="#34A853"
-          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        />
-        <path
-          fill="#FBBC05"
-          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        />
-        <path
-          fill="#EA4335"
-          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        />
-      </svg>
-      {label}
+      {loading ? (
+        <span className="w-[18px] h-[18px] rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
+      ) : (
+        <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
+          <path
+            fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+          />
+        </svg>
+      )}
+      {loading ? "Ohjataan Googleen..." : label}
     </button>
   );
 }
@@ -403,7 +460,19 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-function TextField({ label, type, placeholder, value, onChange }: { label: string; type: string; placeholder: string; value: string; onChange: (value: string) => void }) {
+function TextField({
+  label,
+  type,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
     <label className="block">
       <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">
@@ -420,13 +489,21 @@ function TextField({ label, type, placeholder, value, onChange }: { label: strin
   );
 }
 
-function PrimaryButton({ label, onClick, loading }: { label: string; onClick: () => void; loading: boolean }) {
+function PrimaryButton({
+  label,
+  onClick,
+  loading,
+}: {
+  label: string;
+  onClick: () => void;
+  loading: boolean;
+}) {
   return (
     <button
       onClick={onClick}
       disabled={loading}
       type="submit"
-      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99]"
+      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
       style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
     >
       {loading ? "Odota..." : label}
@@ -434,7 +511,15 @@ function PrimaryButton({ label, onClick, loading }: { label: string; onClick: ()
   );
 }
 
-function SwitchLine({ prompt, action, onClick }: { prompt: string; action: string; onClick: () => void }) {
+function SwitchLine({
+  prompt,
+  action,
+  onClick,
+}: {
+  prompt: string;
+  action: string;
+  onClick: () => void;
+}) {
   return (
     <p className="text-center text-[13.5px] text-slate-600 pt-1">
       {prompt}{" "}
@@ -449,8 +534,15 @@ function SwitchLine({ prompt, action, onClick }: { prompt: string; action: strin
   );
 }
 
-
-function Quote({ text, name, role }: { text: string; name: string; role: string }) {
+function Quote({
+  text,
+  name,
+  role,
+}: {
+  text: string;
+  name: string;
+  role: string;
+}) {
   return (
     <div className="bg-white/[0.06] p-5 rounded-2xl border border-white/10">
       <p className="text-white/90 text-[14px] italic leading-relaxed">
@@ -460,7 +552,9 @@ function Quote({ text, name, role }: { text: string; name: string; role: string 
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500" />
         <div>
           <p className="text-[12.5px] font-bold leading-tight">{name}</p>
-          <p className="text-[11px] text-indigo-200/70 leading-tight">{role}</p>
+          <p className="text-[11px] text-indigo-200/70 leading-tight">
+            {role}
+          </p>
         </div>
       </div>
     </div>
