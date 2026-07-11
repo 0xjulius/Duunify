@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}` // Käyttää Vercelin osoitetta automaattisesti
+    process.env.NODE_ENV === "production"
+      ? "https://duunify.com"
       : "http://localhost:3000",
   ),
   title: {
