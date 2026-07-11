@@ -17,10 +17,8 @@ import {
 } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
-import WaitlistSignup from "@/components/WaitlistSignup";
 import { LandingIndexCard } from "@/components/LandingIndexCard";
-import NavBarWait from "@/components/NavBarWait";
-import TimerComponent from "@/components/ui/TimerComponent"
+import NavBar from "@/components/NavBar";
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -35,7 +33,7 @@ export default function LandingPage() {
       `}</style>
 
       {/* NAV */}
-      <NavBarWait />
+      <NavBar />
 
       {/* HERO */}
       <section className="duunify-modal relative overflow-hidden">
@@ -64,7 +62,6 @@ export default function LandingPage() {
             aikatauluttaa ja visualisoi koko hakuprosessisi — automaattisella
             tietojen haulla suoraan työpaikkailmoituksesta.
           </p>
-          {/* HIDDEN FOR NOW
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setShowLoginModal(true)}
@@ -79,15 +76,15 @@ export default function LandingPage() {
 
             <button
               onClick={() => setShowLoginModal(true)}
-              className="w-full sm:w-auto font-semibold text-slate-700 px-7 py-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 transition"
+              className="w-full sm:w-auto font-semibold text-slate-700 px-7 py-3.5 rounded-2xl border border-slate-200 hover:bg-slate-200 transition bg-slate-50"
             >
               Kirjaudu sisään
             </button>
-          </div>*/}
+          </div>
 
 <Link
   href="/demo"
-  className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 border-violet-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-600/10 animate-none hover:animate-none relative overflow-hidden active:scale-[0.98]"
+  className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 border-violet-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-600/10 animate-none hover:animate-none relative overflow-hidden active:scale-[0.98] mt-8"
 >
   <PlayCircle
     size={24}
@@ -99,17 +96,6 @@ export default function LandingPage() {
           <p className="mt-3 text-sm text-slate-400 mb-12">
             Ei luottokorttia. Ei sitoutumista.
           </p>
-          <div className="text-center">
-                        <h3 className="mt-4 text-2xl font-bold text-slate-900">
-              Haluatko ensimmäisten joukossa kokeilemaan?
-            </h3>
-            <TimerComponent/>
-            <p className="mt-2 text-slate-600">
-              Liity odotuslistalle ja saat kutsun heti, kun avaamme palvelun
-              uusille käyttäjille.
-            </p>
-          </div>
-          <WaitlistSignup />
         </div>
       </section>
 
@@ -381,7 +367,7 @@ export default function LandingPage() {
             Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa
             haltuun.
           </p>
-          {/* HIDDEN FOR NOW
+          
           <button
             onClick={() => setShowLoginModal(true)}
             className="mt-8 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
@@ -400,9 +386,7 @@ export default function LandingPage() {
               <CheckCircle2 size={16} className="text-emerald-500" />
               Ei mainoksia
             </span>
-          </div>
-          */}
-          <WaitlistSignup />
+          </div>       
         </div>
       </section>
 

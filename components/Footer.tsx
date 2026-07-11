@@ -26,7 +26,7 @@ export default function Footer() {
     {
       title: "Tili",
       links: [
-        { label: "Liity odotuslistalle", href: "" },
+        { label: "Liity tai kirjaudu", href: "/login" },
       ],
     },
   ];
