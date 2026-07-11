@@ -47,9 +47,9 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
   let emoji = "⚖️";
 
   if (!hasActivity) {
-    colorClass = "text-slate-400";
-    statusText = "Aloita lähettämällä ensimmäinen hakemuksesi";
-    emoji = "🚀";
+    colorClass = "text-slate-400 text-lg";
+    statusText = "Lähetä ensimmäinen hakemuksesi.";
+    emoji = "❓";
   } else if (finalRating >= 3.0) {
     colorClass = "text-violet-600";
     statusText = "Maailmanluokan suoritus";
