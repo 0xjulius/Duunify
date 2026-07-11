@@ -14,29 +14,22 @@ export default function LoginModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void; // Kysymysmerkki tekee siitä valinnaisen
+  onSuccess?: () => void;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [mode, setMode] = useState("login");
   const flipped = mode === "register";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  // Erillinen loading-tila Google-napille, ettei se lukitu email-lomakkeen
-  // kanssa samaan tilaan (muuten molemmat napit "jumittuvat" yhtä aikaa).
   const [googleLoading, setGoogleLoading] = useState(false);
 
   if (!isOpen) return null;
 
   async function login() {
     setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (error) {
@@ -47,16 +40,11 @@ export default function LoginModal({
         category: "auth",
         status: "failure",
       });
-      setLoading(false);
       return;
     }
 
     toast.success("Tervetuloa takaisin 👋");
-
-    if (onSuccess) {
-      onSuccess();
-    }
-
+    if (onSuccess) onSuccess();
     onClose();
     router.push("/dashboard");
     router.refresh();
@@ -64,42 +52,28 @@ export default function LoginModal({
 
   async function register() {
     setLoading(true);
-
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
-        // Korjattu: ohjataan /auth/callback-reitin kautta, joka vaihtaa
-        // koodin istunnoksi ennen kuin käyttäjä päätyy /dashboard-sivulle.
+        data: { full_name: fullName },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
-
     setLoading(false);
 
     if (error) {
       toast.error(translateAuthError(error.message));
       return;
     }
-
     toast.success("Tarkista sähköpostisi.");
   }
 
   async function loginWithGoogle() {
     setGoogleLoading(true);
-
-    // signInWithOAuth ohjaa selaimen pois sivulta Googlen kirjautumiseen,
-    // joten tämä ei "palauta" onnistuessaan mitään käsiteltävää —
-    // error tulee vain jos itse pyynnön käynnistys epäonnistuu
-    // (esim. provider ei ole päällä Supabasen Auth-asetuksissa).
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // Sama /auth/callback-reitti kuin sähköpostivahvistuksessa: se
-        // vaihtaa Googlen palauttaman koodin istunnoksi ennen dashboardia.
         redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
@@ -114,13 +88,15 @@ export default function LoginModal({
         status: "failure",
       });
     }
-    // Onnistuessa selain navigoi pois sivulta, joten loading-tilaa
-    // ei tarvitse (eikä voi luotettavasti) nollata täällä.
   }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      // MUUTOS 1: overflow-y-auto lisätty. Tämä on turvaverkko — jos sisältö
+      // on jostain syystä silti korkeampi kuin näyttö (esim. hyvin pieni
+      // näyttö vaakatilassa), käyttäjä pääsee vierittämään koko modaalin
+      // näkyviin sen sijaan että se leikkautuisi näytön reunoista.
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 py-8"
       style={{
         background: "rgba(13, 11, 38, 0.7)",
         backdropFilter: "blur(6px)",
@@ -140,8 +116,6 @@ export default function LoginModal({
           transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
         }
         .duunify-card-inner.is-flipped { transform: rotateY(180deg); }
-        /* Both faces share the same grid cell, so the card auto-sizes to
-           whichever face (login or register) is taller — nothing clips. */
         .duunify-face-stack { grid-area: 1 / 1; min-width: 0; }
         .duunify-face {
           backface-visibility: hidden;
@@ -154,11 +128,11 @@ export default function LoginModal({
       `}</style>
 
       <div
-        className="duunify-modal duunify-perspective w-full max-w-4xl"
+        className="duunify-modal duunify-perspective w-full max-w-4xl my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`duunify-card-inner ${flipped ? "is-flipped" : ""}`}>
-          {/* ---------- FRONT FACE: brand left / login right ---------- */}
+          {/* ---------- FRONT FACE ---------- */}
           <div
             className="duunify-face duunify-face-stack w-full rounded-[28px] overflow-hidden shadow-2xl bg-white grid md:grid-cols-[44%_56%]"
             aria-hidden={flipped}
@@ -178,7 +152,7 @@ export default function LoginModal({
               }
             />
 
-            <div className="relative p-8 md:p-12 flex flex-col justify-center">
+            <div className="relative p-6 sm:p-8 md:p-12 flex flex-col justify-center">
               <Perforation side="left" />
               <FormShell
                 heading="Tervetuloa takaisin"
@@ -190,10 +164,7 @@ export default function LoginModal({
                   loading={googleLoading}
                 />
                 <Divider label="tai" />
-                <form
-                  className="space-y-3"
-                  onSubmit={(e) => e.preventDefault()}
-                >
+                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
                   <TextField
                     label="Sähköpostiosoite"
                     type="email"
@@ -208,11 +179,7 @@ export default function LoginModal({
                     value={password}
                     onChange={setPassword}
                   />
-                  <PrimaryButton
-                    label="Kirjaudu sisään"
-                    onClick={login}
-                    loading={loading}
-                  />
+                  <PrimaryButton label="Kirjaudu sisään" onClick={login} loading={loading} />
                 </form>
                 <SwitchLine
                   prompt="Eikö sinulla ole vielä tunnusta?"
@@ -223,12 +190,12 @@ export default function LoginModal({
             </div>
           </div>
 
-          {/* ---------- BACK FACE: register left / brand right ---------- */}
+          {/* ---------- BACK FACE ---------- */}
           <div
             className="duunify-face duunify-face-stack duunify-face-back w-full rounded-[28px] overflow-hidden shadow-2xl bg-white grid md:grid-cols-[56%_44%]"
             aria-hidden={!flipped}
           >
-            <div className="relative p-8 md:p-12 flex flex-col justify-center order-2 md:order-1">
+            <div className="relative p-6 sm:p-8 md:p-12 flex flex-col justify-center order-2 md:order-1">
               <Perforation side="right" />
               <FormShell
                 heading="Luo tunnus"
@@ -240,10 +207,7 @@ export default function LoginModal({
                   loading={googleLoading}
                 />
                 <Divider label="tai" />
-                <form
-                  className="space-y-3"
-                  onSubmit={(e) => e.preventDefault()}
-                >
+                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
                   <TextField
                     label="Koko nimi"
                     type="text"
@@ -265,11 +229,7 @@ export default function LoginModal({
                     value={password}
                     onChange={setPassword}
                   />
-                  <PrimaryButton
-                    label="Luo tunnus"
-                    onClick={register}
-                    loading={loading}
-                  />
+                  <PrimaryButton label="Luo tunnus" onClick={register} loading={loading} />
                 </form>
                 <SwitchLine
                   prompt="Oliko sinulla sittenkin tunnus?"
@@ -311,18 +271,22 @@ function BrandPanel({
   eyebrow: string;
   heading: string;
   tagline: string;
-  footer: React.ReactNode; // ReactNode hyväksyy esim. <Quote /> komponentin
-  className?: string; // Kysymysmerkki tarkoittaa, että tämä on valinnainen
+  footer: React.ReactNode;
+  className?: string;
 }) {
   return (
+    // MUUTOS 2: "hidden md:flex" lisätty. Tämä on pääkorjaus — ilman tätä
+    // brändipaneeli pinoutuu lomakkeen PÄÄLLE mobiilissa (koska grid-cols
+    // asettuu vasta md-breakpointista ylöspäin), jolloin koko kortin
+    // korkeus moninkertaistuu ja rekisteröintilomakkeen kentät/nappi
+    // työntyvät näytön ulkopuolelle. Mobiilissa käyttäjä näkee nyt vain
+    // itse lomakkeen, brändipaneeli palaa näkyviin taas md-koosta ylöspäin.
     <div
-      className={`relative p-10 md:p-12 flex flex-col justify-between text-white overflow-hidden ${className}`}
+      className={`hidden md:flex relative p-10 md:p-12 flex-col justify-between text-white overflow-hidden ${className}`}
       style={{
-        background:
-          "linear-gradient(165deg, #211A5C 0%, #181440 55%, #120F33 100%)",
+        background: "linear-gradient(165deg, #211A5C 0%, #181440 55%, #120F33 100%)",
       }}
     >
-      {/* faint blueprint grid texture, not a generic blur-blob */}
       <div
         className="absolute inset-0 opacity-[0.07]"
         style={{
@@ -337,10 +301,7 @@ function BrandPanel({
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
           {eyebrow} · Nro {serial}
         </div>
-
-        <h2 className="duunify-display mt-4 text-3xl font-bold tracking-tight">
-          {heading}
-        </h2>
+        <h2 className="duunify-display mt-4 text-3xl font-bold tracking-tight">{heading}</h2>
         <p className="mt-4 text-indigo-100/80 text-[15px] leading-relaxed max-w-[30ch]">
           {tagline}
         </p>
@@ -348,10 +309,7 @@ function BrandPanel({
 
       <div className="relative z-10">{footer}</div>
 
-      {/* stamp seal, lower corner — a wink at "job ticket" */}
-      <div
-        className={`absolute bottom-8 ${side === "left" ? "right-8" : "left-8"} hidden md:flex`}
-      >
+      <div className={`absolute bottom-8 ${side === "left" ? "right-8" : "left-8"} hidden md:flex`}>
         <div className="w-16 h-16 rounded-full border border-dashed border-amber-300/40 flex items-center justify-center rotate-[-12deg]">
           <span className="duunify-mono text-[8px] tracking-widest text-amber-300/60 text-center leading-tight">
             DUUNIFY
@@ -365,9 +323,7 @@ function BrandPanel({
 }
 
 function Perforation({ side }: { side: string }) {
-  // Dashed seam with punch-hole notches, evoking a torn ticket stub.
-  const edgeClass =
-    side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2";
+  const edgeClass = side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2";
   return (
     <div
       className={`hidden md:flex absolute top-6 bottom-6 w-px ${edgeClass} flex-col items-center justify-between`}
@@ -392,9 +348,7 @@ function FormShell({
   return (
     <div className="max-w-sm w-full mx-auto space-y-5">
       <div>
-        <h3 className="duunify-display text-2xl font-bold text-slate-900">
-          {heading}
-        </h3>
+        <h3 className="duunify-display text-2xl font-bold text-slate-900">{heading}</h3>
         <p className="text-slate-500 mt-1.5 text-[14px]">{sub}</p>
       </div>
       {children}
@@ -422,22 +376,10 @@ function GoogleButton({
         <span className="w-[18px] h-[18px] rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
       ) : (
         <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
-          <path
-            fill="#4285F4"
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-          />
-          <path
-            fill="#34A853"
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-          />
-          <path
-            fill="#EA4335"
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-          />
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
         </svg>
       )}
       {loading ? "Ohjataan Googleen..." : label}
@@ -475,9 +417,7 @@ function TextField({
 }) {
   return (
     <label className="block">
-      <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">
-        {label}
-      </span>
+      <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -534,27 +474,15 @@ function SwitchLine({
   );
 }
 
-function Quote({
-  text,
-  name,
-  role,
-}: {
-  text: string;
-  name: string;
-  role: string;
-}) {
+function Quote({ text, name, role }: { text: string; name: string; role: string }) {
   return (
     <div className="bg-white/[0.06] p-5 rounded-2xl border border-white/10">
-      <p className="text-white/90 text-[14px] italic leading-relaxed">
-        "{text}"
-      </p>
+      <p className="text-white/90 text-[14px] italic leading-relaxed">"{text}"</p>
       <div className="flex items-center mt-3.5 gap-2.5">
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500" />
         <div>
           <p className="text-[12.5px] font-bold leading-tight">{name}</p>
-          <p className="text-[11px] text-indigo-200/70 leading-tight">
-            {role}
-          </p>
+          <p className="text-[11px] text-indigo-200/70 leading-tight">{role}</p>
         </div>
       </div>
     </div>
@@ -569,16 +497,9 @@ function StatsRow() {
   return (
     <div className="grid grid-cols-2 gap-3">
       {stats.map((s) => (
-        <div
-          key={s.label}
-          className="bg-white/[0.06] p-4 rounded-2xl border border-white/10"
-        >
-          <p className="duunify-display text-xl font-bold text-amber-300">
-            {s.value}
-          </p>
-          <p className="text-[11px] text-indigo-200/70 mt-0.5 leading-snug">
-            {s.label}
-          </p>
+        <div key={s.label} className="bg-white/[0.06] p-4 rounded-2xl border border-white/10">
+          <p className="duunify-display text-xl font-bold text-amber-300">{s.value}</p>
+          <p className="text-[11px] text-indigo-200/70 mt-0.5 leading-snug">{s.label}</p>
         </div>
       ))}
     </div>
