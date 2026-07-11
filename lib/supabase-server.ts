@@ -1,3 +1,4 @@
+// lib/supabase-server.ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -9,11 +10,21 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set() {},
-        remove() {},
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // setAll kutsutaan joskus Server Componentista (esim. layout.tsx
+            // renderöinnin aikana), jolloin evästeiden kirjoitus ei ole
+            // sallittua. Tämä on turvallista jättää huomiotta JOS sinulla on
+            // middleware joka päivittää session — ks. huomio alla.
+          }
+        },
       },
     },
   );
