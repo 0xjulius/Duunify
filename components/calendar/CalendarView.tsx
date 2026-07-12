@@ -7,7 +7,6 @@ import { fi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { UnifiedEvent, EVENT_COLORS, EVENT_TYPE_LABELS } from "@/lib/calendar";
 
-// Määritetään kalenteritapahtuman tyyppi, joka sisältää react-big-calendarin vaatimat start ja end -päivät
 interface CalendarEvent extends UnifiedEvent {
   start: Date;
   end: Date;
@@ -33,7 +32,6 @@ export default function CalendarView({
   const [date, setDate] = useState<Date>(focusDate || new Date());
   const [view, setView] = useState<View>(Views.MONTH);
 
-  // Synkronoidaan focusDate, jos se muuttuu ulkoisesti (esim. minikalenterista)
   useEffect(() => {
     if (focusDate) {
       setDate(focusDate);
@@ -49,7 +47,6 @@ export default function CalendarView({
 
   const displayDate = focusDate || date;
 
-  // Muutetaan UnifiedEvent-muoto react-big-calendarille sopivaksi CalendarEventiksi
   const calendarEvents: CalendarEvent[] = events.map((e) => ({
     ...e,
     start: new Date(e.date),
@@ -57,9 +54,10 @@ export default function CalendarView({
   }));
 
   return (
-    <div className="h-[600px] w-full flex flex-col">
-      {/* Korvattu vanha style jsx helpommin ylläpidettävällä globaalilla tyylillä tai inline-CSS:llä */}
+    <div className="h-[600px] w-full flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
+      {/* Mukautettu tyylitiedosto ylikirjoittamaan react-big-calendar molemmissa teemoissa */}
       <style dangerouslySetInnerHTML={{ __html: `
+        /* Yleiset korjaukset ja mobiiliresponsiivisuus */
         @media (max-width: 768px) {
           .rbc-toolbar {
             flex-direction: column !important;
@@ -86,6 +84,62 @@ export default function CalendarView({
             display: none !important;
           }
         }
+
+        /* DARK MODE - Ylikirjoitukset react-big-calendar-komponentille */
+        .dark .rbc-off-range-bg {
+          background: #020617 !important;
+        }
+        .dark .rbc-header {
+          color: #94a3b8 !important;
+          border-bottom: 1px solid #1e293b !important;
+        }
+        .dark .rbc-header + .rbc-header {
+          border-left: 1px solid #1e293b !important;
+        }
+        .dark .rbc-day-bg {
+          border-bottom: 1px solid #1e293b !important;
+        }
+        .dark .rbc-day-bg + .rbc-day-bg {
+          border-left: 1px solid #1e293b !important;
+        }
+        .dark .rbc-month-row {
+          border-top: 1px solid #1e293b !important;
+        }
+        .dark .rbc-month-view {
+          border: 1px solid #1e293b !important;
+        }
+        .dark .rbc-today {
+          background-color: #1e293b / 40 !important;
+        }
+        
+        /* Työkalurivin painikkeet dark modessa */
+        .dark .rbc-toolbar button {
+          color: #cbd5e1 !important;
+          border: 1px solid #1e293b !important;
+        }
+        .dark .rbc-toolbar button:hover {
+          background-color: #1e293b !important;
+        }
+        .dark .rbc-toolbar button.rbc-active {
+          background-color: #334155 !important;
+          color: #ffffff !important;
+          box-shadow: none !important;
+        }
+
+        /* Agendanäkymän korjaukset tummassa tilassa */
+        .dark .rbc-agenda-view table.rbc-agenda-table {
+          border: 1px solid #1e293b !important;
+        }
+        .dark .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+          border-top: 1px solid #1e293b !important;
+        }
+        .dark .rbc-agenda-view table.rbc-agenda-table th {
+          border-bottom: 2px solid #1e293b !important;
+          color: #94a3b8 !important;
+        }
+        .dark .rbc-agenda-date-cell, .dark .rbc-agenda-time-cell {
+          color: #cbd5e1 !important;
+        }
       `}} />
 
       <Calendar
@@ -108,7 +162,6 @@ export default function CalendarView({
         }}
         onSelectEvent={(e) => onSelectEvent(e as CalendarEvent)}
         eventPropGetter={(event: CalendarEvent) => {
-          // Varmistetaan turvallinen fallback-väri, jos tyyppiä ei löydy
           const typeKey = event.type as keyof typeof EVENT_COLORS;
           const colors = EVENT_COLORS[typeKey] || { bg: "#f1f5f9", text: "#334155", dot: "#94a3b8" };
           
@@ -135,9 +188,9 @@ export default function CalendarView({
       />
 
       {/* Selitteet */}
-      <div className="flex gap-4 mt-4 flex-wrap border-t pt-4">
+      <div className="flex gap-4 mt-4 flex-wrap border-t border-slate-100 dark:border-slate-800/60 pt-4">
         {Object.entries(EVENT_COLORS).map(([type, colors]) => (
-          <div key={type} className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div key={type} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ backgroundColor: colors.dot }}

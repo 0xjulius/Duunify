@@ -27,8 +27,8 @@ export default async function CalendarPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <div className="flex-shrink-0 border-slate-200 bg-white ">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+      <div className="flex-shrink-0 border-r border-slate-200 dark:border-slate-900 bg-white dark:bg-slate-900 transition-colors duration-200">
         <Sidebar />
       </div>
 

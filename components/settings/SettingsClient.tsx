@@ -39,26 +39,27 @@ export default function SettingsClient({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+    <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto text-slate-900 dark:text-slate-50 transition-colors duration-200">
       <main className="flex-1 p-8">
         <div className="max-w-5xl mx-auto">
           <header className="mb-8">
-            <h1 className="text-2xl font-bold">Asetukset</h1>
-            <p className="text-slate-500">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Asetukset</h1>
+            <p className="text-slate-500 dark:text-slate-400">
               Hallitse tiliäsi ja muokkaa asetuksiasi.
             </p>
           </header>
 
           <div className="flex flex-col md:flex-row gap-12 items-start">
+            {/* SIVUPALKIN VALINTANAPIT (TOGGLE) */}
             <aside className="w-full md:w-64 flex-shrink-0 space-y-1 md:sticky md:top-8">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollTo(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     active === item.id
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60"
                   }`}
                 >
                   <item.icon size={18} /> {item.name}
@@ -67,15 +68,16 @@ export default function SettingsClient({
             </aside>
 
             <div className="flex-1 w-full space-y-6">
+              {/* PROFIILI */}
               <section
                 id="profiili"
                 ref={(el) => {
                   sectionRefs.current["profiili"] = el;
                 }}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-8"
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
               >
-                <h2 className="font-bold text-lg mb-1">Profiilitiedot</h2>
-                <p className="text-sm text-slate-500 mb-6">
+                <h2 className="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100">Profiilitiedot</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                   Muokkaa yhteystietojasi ja profiilikuvaasi.
                 </p>
                 <div className="flex flex-col md:flex-row gap-8">
@@ -87,16 +89,16 @@ export default function SettingsClient({
                   <div className="flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-slate-400 mb-1">Nimi</p>
-                        <p className="text-sm font-medium text-slate-900 capitalize">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Nimi</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 capitalize">
                           {fullName || "—"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-400 mb-1">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
                           Sähköposti
                         </p>
-                        <p className="text-sm font-medium text-slate-900">
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                           {email}
                         </p>
                       </div>
@@ -109,32 +111,34 @@ export default function SettingsClient({
                 </div>
               </section>
 
+              {/* TILI */}
               <section
                 id="tili"
                 ref={(el) => {
                   sectionRefs.current["tili"] = el;
                 }}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-8"
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
               >
-                <h2 className="font-bold text-lg mb-1">
+                <h2 className="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100">
                   Tili ja kirjautuminen
                 </h2>
-                <p className="text-sm text-slate-500 mb-6">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                   Vaihda salasanasi tarvittaessa.
                 </p>
                 <PasswordChangeForm />
               </section>
 
+              {/* ILMOITUKSET */}
               <section
                 id="ilmoitukset"
                 ref={(el) => {
                   sectionRefs.current["ilmoitukset"] = el;
                 }}
-                className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm scroll-mt-8"
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-bold text-lg">Ilmoitukset</h2>
-                  <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                  <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100">Ilmoitukset</h2>
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full">
                     Tulossa pian
                   </span>
                 </div>
@@ -148,10 +152,22 @@ export default function SettingsClient({
                       key={i}
                       className="flex justify-between items-center py-2"
                     >
-                      <p className="text-sm">{item}</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{item}</p>
+                      
+                      {/* KYTKIN/TOGGLENAPPI KORJATTU */}
                       <div
-                        className={`w-11 h-6 rounded-full ${i < 2 ? "bg-indigo-600" : "bg-slate-300"}`}
-                      />
+                        className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 ${
+                          i < 2 
+                            ? "bg-indigo-600 dark:bg-indigo-500" 
+                            : "bg-slate-300 dark:bg-slate-700"
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-sm transition-transform duration-200 ${
+                            i < 2 ? "translate-x-5" : "translate-x-0"
+                          }`}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -161,16 +177,17 @@ export default function SettingsClient({
         </div>
       </main>
 
-      <footer className="p-8 border-t border-slate-200 bg-white">
-        <div className="max-w-5xl mx-auto flex justify-between items-center text-sm text-slate-500">
+      {/* ALATUNNISTE */}
+      <footer className="p-8 border-t border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 transition-colors">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
           <div>
-            <span className="font-bold text-slate-900">Duunify</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">Duunify</span>
             <span className="ml-2">© 2026 Kaikki oikeudet pidätetään.</span>
           </div>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-900">Tietosuoja</a>
-            <a href="#" className="hover:text-slate-900">Käyttöehdot</a>
-            <a href="#" className="hover:text-slate-900">Yhteystiedot</a>
+            <a href="#" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Tietosuoja</a>
+            <a href="#" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Käyttöehdot</a>
+            <a href="#" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Yhteystiedot</a>
           </div>
         </div>
       </footer>

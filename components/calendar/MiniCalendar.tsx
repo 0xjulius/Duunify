@@ -57,21 +57,21 @@ export default function MiniCalendar({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm transition-colors duration-200">
       <div className="flex items-center justify-between mb-4">
-        <p className="font-bold text-slate-900 text-sm capitalize">
+        <p className="font-bold text-slate-900 dark:text-slate-100 text-sm capitalize">
           {cursor.toLocaleDateString("fi-FI", { month: "long", year: "numeric" })}
         </p>
         <div className="flex gap-1">
           <button
             onClick={() => setCursor(new Date(year, month - 1, 1))}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
           >
             <ChevronLeft size={14} />
           </button>
           <button
             onClick={() => setCursor(new Date(year, month + 1, 1))}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
           >
             <ChevronRight size={14} />
           </button>
@@ -80,7 +80,7 @@ export default function MiniCalendar({
 
       <div style={gridStyle} className="mb-1.5">
         {WEEKDAY_LABELS.map((d) => (
-          <div key={d} className="text-center text-[10px] font-bold text-slate-400">
+          <div key={d} className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
             {d}
           </div>
         ))}
@@ -102,8 +102,14 @@ export default function MiniCalendar({
                 onSelectDate(date);
               }}
               style={{ aspectRatio: "1 / 1" }}
-              className={`w-full rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-0.5 transition
-                ${isSelected ? "bg-indigo-600 text-white" : isToday ? "bg-indigo-50 text-indigo-700 font-bold" : "text-slate-600 hover:bg-slate-100"}
+              className={`w-full rounded-lg text-xs font-medium flex flex-col items-center justify-center gap-0.5 transition-all
+                ${
+                  isSelected 
+                    ? "bg-indigo-600 dark:bg-indigo-500 text-white font-bold" 
+                    : isToday 
+                    ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold" 
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }
               `}
             >
               {date.getDate()}
