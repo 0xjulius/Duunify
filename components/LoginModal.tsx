@@ -158,7 +158,7 @@ export default function LoginModal({
           type="button"
           onClick={onClose}
           aria-label="Sulje"
-          className="absolute -top-3 -right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-lg ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+          className="absolute -top-3 -right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white dark:hover:bg-slate-700 dark:ring-slate-700 dark:bg-slate-800 dark:text-slate-300 text-slate-600 shadow-lg ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-900 active:scale-95"
         >
           <X size={20} strokeWidth={2.5} />
         </button>
@@ -166,7 +166,7 @@ export default function LoginModal({
         <div className={`duunify-card-inner ${flipped ? "is-flipped" : ""}`}>
           {/* ---------- FRONT FACE ---------- */}
           <div
-            className="duunify-face duunify-face-stack w-full rounded-[28px] overflow-hidden shadow-2xl bg-white grid md:grid-cols-[44%_56%]"
+            className="duunify-face duunify-face-stack w-full rounded-[28px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 grid md:grid-cols-[44%_56%]"
             aria-hidden={flipped}
           >
             <BrandPanel
@@ -231,7 +231,7 @@ export default function LoginModal({
 
           {/* ---------- BACK FACE ---------- */}
           <div
-            className="duunify-face duunify-face-stack duunify-face-back w-full rounded-[28px] overflow-hidden shadow-2xl bg-white grid md:grid-cols-[56%_44%]"
+            className="duunify-face duunify-face-stack duunify-face-back w-full rounded-[28px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 grid md:grid-cols-[56%_44%]"
             aria-hidden={!flipped}
           >
             <div className="relative p-6 sm:p-8 md:p-12 flex flex-col justify-center order-2 md:order-1">
@@ -416,7 +416,7 @@ function TermsCheckbox({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <label className="flex items-start gap-2.5 text-[13px] text-slate-600 cursor-pointer select-none pt-1">
+    <label className="flex items-start gap-2.5 text-[13px] text-slate-600 dark:text-slate-200 cursor-pointer select-none pt-1">
       <input
         type="checkbox"
         checked={checked}
@@ -505,8 +505,6 @@ function BrandPanel({
         <div className="w-16 h-16 rounded-full border border-dashed border-amber-300/40 flex items-center justify-center rotate-[-12deg]">
           <span className="duunify-mono text-[8px] tracking-widest text-amber-300/60 text-center leading-tight">
             DUUNIFY
-            <br />
-            OY
           </span>
         </div>
       </div>
@@ -522,9 +520,9 @@ function Perforation({ side }: { side: string }) {
       className={`hidden md:flex absolute top-6 bottom-6 w-px ${edgeClass} flex-col items-center justify-between`}
       aria-hidden="true"
     >
-      <span className="w-3 h-3 rounded-full bg-[#EEF0FB]" />
+      <span className="w-3 h-3 rounded-full bg-[#EEF0FB] dark:bg-slate-800 dark:border-slate-700" />
       <div className="flex-1 border-l border-dashed border-slate-200 w-px" />
-      <span className="w-3 h-3 rounded-full bg-[#EEF0FB]" />
+      <span className="w-3 h-3 rounded-full bg-[#EEF0FB] dark:bg-slate-800 dark:border-slate-700" />
     </div>
   );
 }
@@ -541,7 +539,7 @@ function FormShell({
   return (
     <div className="max-w-sm w-full mx-auto space-y-5">
       <div>
-        <h3 className="duunify-display text-2xl font-bold text-slate-900">
+        <h3 className="duunify-display text-2xl font-bold text-slate-900 dark:text-slate-100">
           {heading}
         </h3>
         <p className="text-slate-500 mt-1.5 text-[14px]">{sub}</p>
@@ -565,7 +563,7 @@ function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="w-full h-12 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors font-semibold text-[14px] text-slate-700 flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
+      className="w-full h-12 rounded-xl border border-slate-200 hover:bg-slate-50 dark:border-slate-700 transition-colors font-semibold text-[14px] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {loading ? (
         <span className="w-[18px] h-[18px] rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
@@ -598,10 +596,10 @@ function Divider({ label }: { label: string }) {
   return (
     <div className="relative py-1">
       <div className="absolute inset-0 flex items-center">
-        <div className="w-full border-t border-slate-100" />
+        <div className="w-full border-t border-slate-100 dark:border-slate-800" />
       </div>
       <div className="relative flex justify-center">
-        <span className="bg-white px-2.5 duunify-mono text-[10px] tracking-widest uppercase text-slate-400">
+        <span className="bg-white dark:bg-slate-900 px-2.5 duunify-mono text-[10px] tracking-widest uppercase text-slate-400">
           {label}
         </span>
       </div>
@@ -624,7 +622,7 @@ function TextField({
 }) {
   return (
     <label className="block">
-      <span className="text-[12.5px] font-medium text-slate-600 mb-1.5 block">
+      <span className="text-[12.5px] font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
         {label}
       </span>
       <input
@@ -632,7 +630,7 @@ function TextField({
         onChange={(e) => onChange(e.target.value)}
         type={type}
         placeholder={placeholder}
-        className="w-full h-12 rounded-xl bg-slate-50 px-4 text-[14px] text-slate-900 placeholder:text-slate-400 border border-transparent focus:border-[#A5A1F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6D67F2]/15 transition"
+        className="w-full h-12 rounded-xl bg-slate-50 dark:bg-slate-800 px-4 text-[14px] text-slate-900 placeholder:text-slate-400 border border-transparent focus:border-[#A5A1F5] dark:text-white focus:bg-white focus:outline-none dark:placeholder:text-slate-500 focus:ring-2 focus:ring-[#6D67F2]/15 dark:focus:bg-slate-950 transition"
       />
     </label>
   );
@@ -672,7 +670,7 @@ function SwitchLine({
   onClick: () => void;
 }) {
   return (
-    <p className="text-center text-[13.5px] text-slate-600 pt-1">
+    <p className="text-center text-[13.5px] text-slate-600 dark:text-slate-300 pt-1">
       {prompt}{" "}
       <button
         type="button"
