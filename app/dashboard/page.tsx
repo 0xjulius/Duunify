@@ -56,7 +56,6 @@ type StatFilterType =
 export default function DashboardPage() {
   const router = useRouter();
 
-  // Säilytetään alkuperäinen data suodattamista varten modalissa
   const [rawApplications, setRawApplications] = useState<
     DashboardApplication[]
   >([]);
@@ -75,13 +74,32 @@ export default function DashboardPage() {
   const [open, setOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Tila StatsCard-modalin hallintaan
   const [activeStatFilter, setActiveStatFilter] =
     useState<StatFilterType>(null);
 
   useEffect(() => {
     fetchDashboardStats();
   }, []);
+
+  // Päivitetty muotoilufunktio sisältämään kellonajan
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      const pvm = date.toLocaleDateString("fi-FI", {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+      });
+      const klo = date.toLocaleTimeString("fi-FI", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `${pvm} klo ${klo}`;
+    } catch (e) {
+      return "";
+    }
+  };
 
   async function fetchDashboardStats() {
     setLoading(true);
@@ -155,7 +173,6 @@ export default function DashboardPage() {
     setLoading(false);
   }
 
-  // Haetaan oikea lista stats-modalille valinnan perusteella
   const getStatModalJobs = () => {
     return rawApplications.filter((app) => {
       const s = app.status?.toLowerCase().trim() || "";
@@ -202,7 +219,6 @@ export default function DashboardPage() {
     if (["suosikki", "tallennettu"].includes(s)) {
       return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400";
     }
-    // "Haettu" / muut vireillä olevat
     return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
   };
 
@@ -480,9 +496,9 @@ export default function DashboardPage() {
                 <div
                   key={job.id}
                   onClick={() => {
-                    setActiveStatFilter(null); // Suljetaan stats-modal heti
-                    setSelectedApplication(job); // Asetetaan valittu työpaikka
-                    setOpen(true); // Avataan tarkempi dialogi
+                    setActiveStatFilter(null);
+                    setSelectedApplication(job);
+                    setOpen(true);
                   }}
                   className="py-3 sm:py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 -mx-2 rounded-xl transition-colors text-left"
                 >
@@ -490,9 +506,21 @@ export default function DashboardPage() {
                     <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
                       {job.job_title}
                     </h4>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                      {job.company} • {job.location}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                      <span className="truncate">
+                        {job.company} • {job.location}
+                      </span>
+                      {job.created_at && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-700">
+                            •
+                          </span>
+                          <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                            {formatDate(job.created_at)}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div className="shrink-0">
