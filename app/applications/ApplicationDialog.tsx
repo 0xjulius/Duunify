@@ -249,22 +249,11 @@ export default function ApplicationDialog({
     : null;
 
   return (
-   <Dialog open={open} onOpenChange={onOpenChange}>
-  <DialogContent 
-    onTouchStart={handleTouchStart}
-    onTouchMove={handleTouchMove}
-    onTouchEnd={handleTouchEnd}
-    style={{
-      // Käytetään CSS-muuttujaa siirtymälle, jotta Shadcn:n omat keskitykset eivät hajoa
-      "--swipe-x": `${translateX}px`,
-      transform: translateX > 0 ? "translate3d(calc(-50% + var(--swipe-x)), -50%, 0)" : undefined,
-      transition: isSwiping ? "none" : "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-    } as React.CSSProperties}
-    className="!max-w-3xl !w-[95vw] md:!w-[90vw] h-auto max-h-[85vh] md:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl select-none"
-  >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="!max-w-3xl !w-[95vw] md:!w-[90vw] !max-h-[85vh] md:!max-h-[90vh] p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl">
         
         {/* Sulkunappi */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-20">
           <DialogClose asChild>
             <Button
               variant="ghost"
@@ -277,8 +266,17 @@ export default function ApplicationDialog({
           </DialogClose>
         </div>
 
-        {/* Scrollautuva sisältö */}
-        <div className="flex-1 overflow-y-auto p-5 md:p-8 space-y-6">
+        {/* SWIPE-WRAPPER: Tämä hoitaa peukaloeleen turvallisesti ilman että dialogin kuori hajoaa */}
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            transform: translateX > 0 ? `translate3d(${translateX}px, 0, 0)` : undefined,
+            transition: isSwiping ? "none" : "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          className="w-full max-h-[85vh] md:max-h-[90vh] overflow-y-auto p-5 md:p-8 space-y-6 flex flex-col select-none text-left"
+        >
           
           {/* YLÄOSIO: Otsikot ja Tila-rivitys */}
           <div className="space-y-4">
@@ -441,7 +439,7 @@ export default function ApplicationDialog({
           </div>
 
           {/* TYÖPAIKKAKUVAUS */}
-          <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-5">
+          <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-5 flex-1">
             <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-50">Työpaikkakuvaus</h3>
             <div className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-xs md:text-sm pt-1">
               {app.job_description || "Ei kuvausta saatavilla."}
