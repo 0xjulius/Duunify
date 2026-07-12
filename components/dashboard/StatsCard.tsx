@@ -96,7 +96,7 @@ export default function StatsCard({
 >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className={`text-sm font-semibold ${palette.title}`}>{title}</p>
+          <p className={`text-sm font-semibold md:text-xs xl:text-sm ${palette.title}`}>{title}</p>
 
           <h2
             className={`mt-1 text-3xl font-bold ${palette.value} dark:drop-shadow-[0_0_10px_rgba(255,255,255,.08)]`}
