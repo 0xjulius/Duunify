@@ -69,16 +69,18 @@ export default function RootLayout({
   return (
     <html
       lang="fi"
-      suppressHydrationWarning
+      suppressHydrationWarning 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        {/* Tänne voit lisätä esim. faviconit tai Google Analyticsin skriptin */}
-      </head>
+      <head />
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
+        <ThemeProvider 
+          attribute="class" 
+          defaultTheme="light" 
+          enableSystem={false}
+        >
           <ModalProvider>{children}</ModalProvider>
-          </ThemeProvider>
+        </ThemeProvider>
         <AppToaster />
       </body>
     </html>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import {
   Briefcase,
@@ -33,6 +34,11 @@ const MOCK_INTENSITIES = [
 
 export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 selection:bg-indigo-500/30">

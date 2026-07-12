@@ -1,15 +1,9 @@
-// components/theme-provider.tsx
-"use client";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+"use client"
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-    >
-      {children}
-    </NextThemesProvider>
-  );
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { type ThemeProviderProps } from "next-themes" // Importtaa tyypit tästä
+
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
 }
