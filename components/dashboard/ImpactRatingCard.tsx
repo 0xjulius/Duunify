@@ -34,6 +34,33 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
   const r = Number(rejected ?? 0);
   const [infoOpen, setInfoOpen] = useState(false);
 
+  // Swipe-tilat dialogille
+  const [touchStart, setTouchStart] = useState(0);
+  const [translateX, setTranslateX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsSwiping(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSwiping) return;
+    const currentTouch = e.targetTouches[0].clientX;
+    const diff = currentTouch - touchStart;
+    if (diff > 0) {
+      setTranslateX(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    if (translateX > 100) {
+      setInfoOpen(false);
+    }
+    setTranslateX(0);
+  };
+
   const hasActivity = p > 0 || r > 0;
   const finalRating = r > 0 ? p / r : p;
   const displayRating = hasActivity ? finalRating.toFixed(2) : "–";
@@ -89,7 +116,7 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
   }
 
   return (
-    <div className="relative flex h-41.5 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
+    <div className="relative flex h-[166px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
       <div className="absolute right-4 top-4">
         <button
           type="button"
@@ -113,13 +140,23 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
       </div>
 
       <p className={`text-sm font-medium ${colorClass}`}>{statusText}</p>
+      
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            left: infoOpen && translateX > 0 ? `calc(50% + ${translateX}px)` : "50%",
+            transition: isSwiping ? "none" : "left 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          className="!max-w-md !w-[95vw] h-auto max-h-[85vh] p-6 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl select-none"
+        >
           <DialogHeader>
             <DialogTitle>Työnhakuindeksi</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+          <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300 mt-4 text-left">
             <p>
               Työnhakuindeksi kertoo, kuinka hyvin työnhakusi etenee vertaamalla
               aktiivisia hakemuksiasi hylättyihin hakemuksiin.
