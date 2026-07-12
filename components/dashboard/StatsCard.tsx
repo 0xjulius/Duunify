@@ -68,16 +68,32 @@ export default function StatsCard({
   const Component = onClick ? "button" : "div";
 
   return (
-    <Component
-      onClick={onClick}
-      className={`w-full relative group rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90
-dark:bg-slate-900/80
-backdrop-blur-xl p-6 shadow-sm transition-all duration-300 text-left ${
-        onClick
-          ? `cursor-pointer hover:shadow-md ${palette.hoverBorder}`
-          : "hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600"
-      }`}
-    >
+   <Component
+  onClick={onClick}
+  className={`w-full relative group rounded-2xl border border-slate-200/80 dark:border-slate-700/70
+  bg-white/90 dark:bg-slate-900/80
+  backdrop-blur-xl
+  p-6
+  shadow-md dark:shadow-black/30
+  transition-all duration-300
+  text-left
+  ${
+    onClick
+      ? `
+        cursor-pointer
+        hover:-translate-y-0.5
+        hover:shadow-xl
+        active:scale-[0.98]
+        active:brightness-105
+        ${palette.hoverBorder}
+      `
+      : `
+        hover:shadow-lg
+        hover:border-slate-300
+        dark:hover:border-slate-600
+      `
+  }`}
+>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className={`text-sm font-semibold ${palette.title}`}>{title}</p>
