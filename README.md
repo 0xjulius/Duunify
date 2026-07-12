@@ -102,8 +102,13 @@ duunify/
 │   └── demo/
 │       ├── page.tsx
 │       ├── applications/
+│       │   └── page.tsx
 │       ├── calendar/
+│       │   └── page.tsx
+│       ├── history/
+│       │   └── page.tsx
 │       └── favorites/
+│           └── page.tsx
 │
 ├── components/                           # Jaettavat React-komponentit
 │   │
@@ -167,6 +172,7 @@ duunify/
 │   │   ├── skeletons.tsx
 │   │   ├── table.tsx
 │   │   ├── TimerComponent.tsx
+│   │   ├── theme-provider.tsx
 │   │   └── tooltip.tsx
 │   │
 │   ├── Footer.tsx
