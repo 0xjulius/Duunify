@@ -119,63 +119,43 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
             <DialogTitle>Työnhakuindeksi</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
             <p>
-              <strong>Työnhakuindeksi</strong> kertoo, kuinka hyvin työnhakusi
-              etenee vertaamalla aktiivisia hakemuksiasi hylättyihin
-              hakemuksiin.
+              Työnhakuindeksi kertoo, kuinka hyvin työnhakusi etenee vertaamalla
+              aktiivisia hakemuksiasi hylättyihin hakemuksiin.
             </p>
 
-            <div className="rounded-lg bg-slate-100 dark:bg-slate-800 p-3 font-medium">
-              Kaava: Vireillä olevat hakemukset / Hylätyt hakemukset
+            <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Kaava
+              </p>
+              <p className="mt-1 font-semibold">
+                Vireillä olevat hakemukset ÷ Hylätyt hakemukset
+              </p>
             </div>
 
-            <p>
-              Suosikkeja ei lasketa mukaan, koska ne ovat vasta talteen
-              tallennettuja työpaikkoja eivätkä vielä lähetettyjä hakemuksia.
+            <p className="text-sm">
+              <strong>Suurempi arvo on parempi.</strong> Suosikkeja ei lasketa
+              mukaan, koska ne eivät ole vielä lähetettyjä hakemuksia.
             </p>
 
-            <div className="space-y-2">
-              <p>
-                <strong>Tulkinta</strong>
-              </p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+              <p className="font-semibold mb-2">Nopea tulkinta</p>
 
-              <p>
-                🌍 <strong>3.0+</strong> Maailmanluokan suoritus
-              </p>
-
-              <p>
-                🏆 <strong>2.5–2.99</strong> Poikkeuksellisen erinomainen
-              </p>
-
-              <p>
-                ⭐ <strong>2.0–2.49</strong> Huipputasoinen
-              </p>
-
-              <p>
-                🔥 <strong>1.5–1.99</strong> Erittäin korkea
-              </p>
-
-              <p>
-                📈 <strong>1.1–1.49</strong> Korkeatasoinen
-              </p>
-
-              <p>
-                ✅ <strong>0.9–1.09</strong> Hyvä taso
-              </p>
-
-              <p>
-                ⚖️ <strong>0.5–0.89</strong> Tyydyttävä
-              </p>
-
-              <p>
-                🔧 <strong>0.2–0.49</strong> Kehityskelpoinen
-              </p>
-
-              <p>
-                ⚠️ <strong>Alle 0.2</strong> Lisää aktiivisia hakemuksia
-                parantaaksesi mahdollisuuksiasi.
-              </p>
+              <ul className="space-y-1">
+                <li>
+                  🌍 <strong>2.0+</strong> Erinomainen
+                </li>
+                <li>
+                  📈 <strong>1.0–1.99</strong> Hyvä taso
+                </li>
+                <li>
+                  ⚖️ <strong>0.5–0.99</strong> Kohtalainen
+                </li>
+                <li>
+                  ⚠️ <strong>Alle 0.5</strong> Lisää aktiivisia hakemuksia.
+                </li>
+              </ul>
             </div>
           </div>
         </DialogContent>
