@@ -44,14 +44,23 @@ type DashboardApplication = {
   created_at?: string;
 };
 
-type StatFilterType = "total" | "pending" | "favorites" | "interviews" | "offers" | "rejected" | null;
+type StatFilterType =
+  | "total"
+  | "pending"
+  | "favorites"
+  | "interviews"
+  | "offers"
+  | "rejected"
+  | null;
 
 export default function DashboardPage() {
   const router = useRouter();
-  
+
   // Säilytetään alkuperäinen data suodattamista varten modalissa
-  const [rawApplications, setRawApplications] = useState<DashboardApplication[]>([]);
-  
+  const [rawApplications, setRawApplications] = useState<
+    DashboardApplication[]
+  >([]);
+
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -65,9 +74,10 @@ export default function DashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
+
   // Tila StatsCard-modalin hallintaan
-  const [activeStatFilter, setActiveStatFilter] = useState<StatFilterType>(null);
+  const [activeStatFilter, setActiveStatFilter] =
+    useState<StatFilterType>(null);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -105,11 +115,12 @@ export default function DashboardPage() {
           if (["suosikki", "tallennettu"].includes(s)) acc.favorites++;
           else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
           else if (["tarjous", "offer"].includes(s)) acc.offers++;
-          else if (["hylätty", "hylätyt", "rejected"].includes(s)) acc.rejected++;
+          else if (["hylätty", "hylätyt", "rejected"].includes(s))
+            acc.rejected++;
           else acc.pending++;
           return acc;
         },
-        { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 }
+        { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 },
       );
 
       const today = new Date();
@@ -121,8 +132,8 @@ export default function DashboardPage() {
 
       const activeDaysCount = last7Days.filter((date) =>
         applications.some(
-          (app) => app.created_at && app.created_at.split("T")[0] === date
-        )
+          (app) => app.created_at && app.created_at.split("T")[0] === date,
+        ),
       ).length;
 
       const totalActive =
@@ -152,7 +163,17 @@ export default function DashboardPage() {
         case "total":
           return !["suosikki", "tallennettu"].includes(s);
         case "pending":
-          return !["suosikki", "tallennettu", "haastattelu", "interview", "tarjous", "offer", "hylätty", "hylätyt", "rejected"].includes(s);
+          return ![
+            "suosikki",
+            "tallennettu",
+            "haastattelu",
+            "interview",
+            "tarjous",
+            "offer",
+            "hylätty",
+            "hylätyt",
+            "rejected",
+          ].includes(s);
         case "favorites":
           return ["suosikki", "tallennettu"].includes(s);
         case "interviews":
@@ -167,15 +188,40 @@ export default function DashboardPage() {
     });
   };
 
+  const getStatusBadgeClass = (status: string) => {
+    const s = status?.toLowerCase().trim() || "";
+    if (["haastattelu", "interview"].includes(s)) {
+      return "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400";
+    }
+    if (["tarjous", "offer"].includes(s)) {
+      return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+    }
+    if (["hylätty", "hylätyt", "rejected"].includes(s)) {
+      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+    }
+    if (["suosikki", "tallennettu"].includes(s)) {
+      return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400";
+    }
+    // "Haettu" / muut vireillä olevat
+    return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+  };
+
   const getStatModalTitle = () => {
     switch (activeStatFilter) {
-      case "total": return "Kaikki lähetetyt hakemukset";
-      case "pending": return "Meneillään olevat haut";
-      case "favorites": return "Tallennetut suosikit";
-      case "interviews": return "Kutsutut haastattelut";
-      case "offers": return "Saadut työtarjoukset";
-      case "rejected": return "Päättyneet / Hylätyt hakemukset";
-      default: return "";
+      case "total":
+        return "Kaikki lähetetyt hakemukset";
+      case "pending":
+        return "Meneillään olevat haut";
+      case "favorites":
+        return "Tallennetut suosikit";
+      case "interviews":
+        return "Kutsutut haastattelut";
+      case "offers":
+        return "Saadut työtarjoukset";
+      case "rejected":
+        return "Päättyneet / Hylätyt hakemukset";
+      default:
+        return "";
     }
   };
 
@@ -191,8 +237,8 @@ export default function DashboardPage() {
           open={open}
           onOpenChange={setOpen}
         />
-        
-          <DashboardHeader />
+
+        <DashboardHeader />
 
         <div className="flex flex-col gap-6">
           <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
@@ -389,19 +435,19 @@ export default function DashboardPage() {
       </main>
 
       {/* INTERAKTIIVINEN STATS MODAL METRIIKOILLE */}
-      <div 
+      <div
         onClick={() => setActiveStatFilter(null)}
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm transition-all duration-300 cursor-pointer ${
-          activeStatFilter 
-            ? "opacity-100 pointer-events-auto" 
+          activeStatFilter
+            ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
         }`}
       >
-        <div 
-          onClick={(e) => e.stopPropagation()} 
+        <div
+          onClick={(e) => e.stopPropagation()}
           className={`bg-white dark:bg-[#1e2230] border border-slate-200 dark:border-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh] cursor-default transition-all duration-300 ${
-            activeStatFilter 
-              ? "opacity-100 scale-100 translate-y-0" 
+            activeStatFilter
+              ? "opacity-100 scale-100 translate-y-0"
               : "opacity-0 scale-95 translate-y-4"
           }`}
         >
@@ -415,7 +461,7 @@ export default function DashboardPage() {
                 Yhteensä {getStatModalJobs().length} paikkaa
               </p>
             </div>
-            <button 
+            <button
               onClick={() => setActiveStatFilter(null)}
               className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
@@ -431,7 +477,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               getStatModalJobs().map((job) => (
-                <div 
+                <div
                   key={job.id}
                   onClick={() => {
                     setActiveStatFilter(null); // Suljetaan stats-modal heti
@@ -448,9 +494,11 @@ export default function DashboardPage() {
                       {job.company} • {job.location}
                     </p>
                   </div>
-                  
+
                   <div className="shrink-0">
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 capitalize">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg capitalize ${getStatusBadgeClass(job.status)}`}
+                    >
                       {job.status}
                     </span>
                   </div>
