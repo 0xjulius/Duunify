@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import {
@@ -45,10 +45,7 @@ const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   OTHER: "Muu",
 };
 
-function formatDialogSalary(
-  min?: number | null,
-  max?: number | null,
-): string | null {
+function formatDialogSalary(min?: number | null, max?: number | null): string | null {
   if (!min && !max) return null;
   const fmt = (n: number) => n.toLocaleString("fi-FI") + " €";
   if (min && max) return `${fmt(min)} – ${fmt(max)}`;
@@ -57,7 +54,6 @@ function formatDialogSalary(
   return null;
 }
 
-// Yhtenäinen sirukomponentti harmaalla taustalla (kuten kortissa)
 function DialogMetaChip({
   icon,
   children,
@@ -84,6 +80,51 @@ export default function ApplicationDialog({
   const [currentCvUrl, setCurrentCvUrl] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // --- SWIPE TO CLOSE LOGIIKKA ---
+  const touchStartX = useRef<number>(0);
+  const touchCurrentX = useRef<number>(0);
+  const [translateX, setTranslateX] = useState<number>(0);
+  const [isSwiping, setIsSwiping] = useState<boolean>(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    touchCurrentX.current = e.targetTouches[0].clientX;
+    setIsSwiping(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSwiping) return;
+    const currentX = e.targetTouches[0].clientX;
+    touchCurrentX.current = currentX;
+    
+    // Laske siirtymä (sallitaan vain oikealle pyyhkäisy, eli arvo > 0)
+    const diffX = currentX - touchStartX.current;
+    if (diffX > 0) {
+      setTranslateX(diffX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    const swipeDistance = touchCurrentX.current - touchStartX.current;
+    
+    // Jos pyyhkäisy oikealle on yli 80 pikseliä, suljetaan dialogi
+    if (swipeDistance > 80) {
+      onOpenChange(false);
+    }
+    
+    // Palautetaan dialogi takaisin keskelle
+    setTranslateX(0);
+  };
+
+  // Nollataan siirtymät kun dialogi sulkeutuu/avautuu
+  useEffect(() => {
+    if (!open) {
+      setTranslateX(0);
+    }
+  }, [open]);
+  // -------------------------------
 
   useEffect(() => {
     if (open && app) {
@@ -208,8 +249,20 @@ export default function ApplicationDialog({
     : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-3xl !w-[95vw] md:!w-[90vw] !max-h-[90vh] p-0 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl">
+   <Dialog open={open} onOpenChange={onOpenChange}>
+  <DialogContent 
+    onTouchStart={handleTouchStart}
+    onTouchMove={handleTouchMove}
+    onTouchEnd={handleTouchEnd}
+    style={{
+      // Käytetään CSS-muuttujaa siirtymälle, jotta Shadcn:n omat keskitykset eivät hajoa
+      "--swipe-x": `${translateX}px`,
+      transform: translateX > 0 ? "translate3d(calc(-50% + var(--swipe-x)), -50%, 0)" : undefined,
+      transition: isSwiping ? "none" : "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+    } as React.CSSProperties}
+    className="!max-w-3xl !w-[95vw] md:!w-[90vw] h-auto max-h-[85vh] md:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl select-none"
+  >
+        
         {/* Sulkunappi */}
         <div className="absolute top-4 right-4 z-10">
           <DialogClose asChild>
@@ -226,6 +279,7 @@ export default function ApplicationDialog({
 
         {/* Scrollautuva sisältö */}
         <div className="flex-1 overflow-y-auto p-5 md:p-8 space-y-6">
+          
           {/* YLÄOSIO: Otsikot ja Tila-rivitys */}
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -237,29 +291,25 @@ export default function ApplicationDialog({
                   {app.job_title}
                 </h2>
               </div>
-
-              {/* Status ja linkki siististi oikealla / alla */}
+              
+              {/* VÄRIKOODATTU STATUS JA LINKKI */}
               <div className="flex flex-wrap items-center gap-3">
-                <span
-                  className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wide border ${
-                    app.status === "Tallennettu"
-                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40"
-                      : app.status === "Haettu"
-                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
-                        : app.status === "Haastattelu"
-                          ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30"
-                          : app.status === "Hylätty"
-                            ? "bg-slate-100 text-slate-700 border-slate-300 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30"
-                            : app.status === "Tarjous"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40"
-                              : "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20"
-                  }`}
-                >
-                  {app.status === "Tarjous"
-                    ? "🎉 Työtarjous saatu"
-                    : app.status || "Haettu"}
+                <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wide border ${
+                  app.status === "Tallennettu"
+                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40"
+                    : app.status === "Haettu"
+                    ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
+                    : app.status === "Haastattelu"
+                    ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30"
+                    : app.status === "Hylätty"
+                    ? "bg-slate-100 text-slate-700 border-slate-300 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30"
+                    : app.status === "Tarjous"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40"
+                    : "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20"
+                }`}>
+                  {app.status === "Tarjous" ? "🎉 Työtarjous saatu" : app.status || "Haettu"}
                 </span>
-
+                
                 {app.job_url && (
                   <a
                     href={app.job_url}
@@ -295,15 +345,13 @@ export default function ApplicationDialog({
 
               {app.applied_date && (
                 <DialogMetaChip icon={<Calendar size={14} />}>
-                  Haettu{" "}
-                  {new Date(app.applied_date).toLocaleDateString("fi-FI")}
+                  Haettu {new Date(app.applied_date).toLocaleDateString("fi-FI")}
                 </DialogMetaChip>
               )}
 
               {app.valid_through && (
                 <DialogMetaChip icon={<Clock size={14} />}>
-                  Päättyy{" "}
-                  {new Date(app.valid_through).toLocaleDateString("fi-FI")}
+                  Päättyy {new Date(app.valid_through).toLocaleDateString("fi-FI")}
                 </DialogMetaChip>
               )}
             </div>
@@ -311,24 +359,19 @@ export default function ApplicationDialog({
 
           {/* RINNAKKAIN DESKTOPILLA: Liitteet & Muistiinpanot */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 dark:border-slate-800 pt-6">
+            
             {/* LIITETIEDOSTOT */}
             <div className="space-y-3">
               <h3 className="font-semibold text-sm flex items-center gap-2 text-slate-900 dark:text-slate-50">
-                <Paperclip size={16} className="text-slate-400" />{" "}
-                Liitetiedostot
+                <Paperclip size={16} className="text-slate-400" /> Liitetiedostot
               </h3>
 
               {currentCvUrl ? (
                 downloadUrl ? (
                   <div className="flex items-center justify-between p-3 rounded-xl border bg-slate-50 border-slate-100 dark:bg-slate-800/40 dark:border-slate-800 w-full">
                     <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 truncate mr-4">
-                      <FileText
-                        size={16}
-                        className="text-slate-400 flex-shrink-0"
-                      />
-                      <span className="truncate">
-                        {currentCvUrl.split("/").pop()}
-                      </span>
+                      <FileText size={16} className="text-slate-400 flex-shrink-0" />
+                      <span className="truncate">{currentCvUrl.split("/").pop()}</span>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Button
@@ -337,11 +380,7 @@ export default function ApplicationDialog({
                         variant="outline"
                         className="h-8 gap-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs"
                       >
-                        <a
-                          href={downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                        <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
                           <Download size={12} /> Avaa
                         </a>
                       </Button>
@@ -357,17 +396,12 @@ export default function ApplicationDialog({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 animate-pulse">
-                    Luodaan suojattua linkkiä...
-                  </p>
+                  <p className="text-xs text-slate-400 animate-pulse">Luodaan suojattua linkkiä...</p>
                 )
               ) : isDemo ? (
                 <div className="w-full p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20 text-center">
                   <p className="text-sm text-indigo-500 dark:text-indigo-400 font-medium">
-                    tyohakemus_yritys.pdf{" "}
-                    <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">
-                      (225KB)
-                    </span>
+                    tyohakemus_yritys.pdf <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(225KB)</span>
                   </p>
                 </div>
               ) : (
@@ -376,9 +410,7 @@ export default function ApplicationDialog({
                     <div className="flex flex-col items-center justify-center p-4 text-center">
                       <Upload size={18} className="text-slate-400 mb-1" />
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-[180px]">
-                        {uploading
-                          ? "Ladataan..."
-                          : "Klikkaa tästä lisätäksesi liite"}
+                        {uploading ? "Ladataan..." : "Klikkaa tästä lisätäksesi liite"}
                       </p>
                     </div>
                     <input
@@ -401,23 +433,21 @@ export default function ApplicationDialog({
               </h3>
               <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800 text-sm h-24 overflow-y-auto">
                 {app.notes || (
-                  <span className="italic text-slate-400 dark:text-slate-500">
-                    Ei muistiinpanoja
-                  </span>
+                  <span className="italic text-slate-400 dark:text-slate-500">Ei muistiinpanoja</span>
                 )}
               </div>
             </div>
+
           </div>
 
           {/* TYÖPAIKKAKUVAUS */}
           <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-5">
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-50">
-              Työpaikkakuvaus
-            </h3>
+            <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-50">Työpaikkakuvaus</h3>
             <div className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-xs md:text-sm pt-1">
               {app.job_description || "Ei kuvausta saatavilla."}
             </div>
           </div>
+
         </div>
       </DialogContent>
     </Dialog>
