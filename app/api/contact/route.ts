@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         { error: "Liikaa yrityksiä. Yritä myöhemmin uudelleen." },
         { status: 429 },
       );
-      }
+    }
       
     const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await req.json();
@@ -107,11 +107,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Varmistetaan, että vastaanottajan sähköposti on asetettu ympäristömuuttujiin
+    const recipientEmail = process.env.CONTACT_RECEIVER_EMAIL;
+    if (!recipientEmail) {
+      console.error("CONTACT_RECEIVER_EMAIL puuttuu ympäristömuuttujista.");
+      return NextResponse.json({ success: true }); // Palautetaan silti success, koska viesti on jo DB:ssä
+    }
+
     // 2. Lähetetään sähköposti Resendillä
     try {
       await resend.emails.send({
         from: "Duunify <yhteydenotot@duunify.com>", // vaatii vahvistetun domainin
-        to: "julius.aalto@gmail.com",
+        to: recipientEmail,
         replyTo: trimmedEmail,
         subject: `Uusi yhteydenotto: ${trimmedSubject}`,
         html: `
