@@ -231,7 +231,7 @@ export default function LandingPage() {
             <FeatureCard
               icon={<Zap size={20} />}
               title="Automaattinen täyttö"
-              description="Liitä linkki Duunitorista tai Työmarkkinatorista, ja tiedot täyttyvät puolestasi."
+              description="Liitä linkki Duunitori tai Jobbly -sivustoilta, ja tiedot täyttyvät puolestasi."
             />
             <FeatureCard
               icon={<Briefcase size={20} />}
@@ -267,7 +267,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-14">
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-              Meksi ei vain Excel?
+              Miksi ei vain Excel?
             </h2>
             <p className="mt-4 text-slate-500 dark:text-slate-400">
               Taulukko tallentaa rivejä. Duunify ymmärtää hakuprosessisi.
@@ -338,7 +338,7 @@ export default function LandingPage() {
       <section className="duunify-modal py-20 md:py-28">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-            Valmis Järjestämään työnhakusi?
+            Valmis järjestämään työnhakusi?
           </h2>
           <p className="mt-4 text-slate-500 dark:text-slate-400">
             Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa
