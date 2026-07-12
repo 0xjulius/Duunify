@@ -1,12 +1,13 @@
 "use client";
 
 import { Info } from "lucide-react";
+import { useState } from "react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Props {
   pending: number;
@@ -31,6 +32,7 @@ export function ImpactRatingSkeleton() {
 export default function ImpactRatingCard({ pending, rejected }: Props) {
   const p = Number(pending ?? 0);
   const r = Number(rejected ?? 0);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const hasActivity = p > 0 || r > 0;
   const finalRating = r > 0 ? p / r : p;
@@ -89,47 +91,19 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
   return (
     <div className="relative flex h-41.5 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
       <div className="absolute right-4 top-4">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" aria-label="Tietoa vaikutuskykymittarista">
-                <Info
-                  size={16}
-                  className="text-slate-400 dark:text-slate-500 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
-                />
-              </button>
-            </TooltipTrigger>
-
-            <TooltipContent className="max-w-xs p-3">
-              <p className="text-xs leading-relaxed">
-                <strong>Vaikutuskyky</strong> kertoo, kuinka hyvin työnhakusi
-                etenee vertaamalla aktiivisia hakemuksiasi saamiisi hylkäyksiin.
-                <br />
-                <br />
-                <span className="font-medium text-slate-500 dark:text-slate-400">
-                  Kaava: Vireillä olevat / Hylätyt
-                </span>
-                <br />
-                Suosikkeja ei lasketa mukaan, koska ne ovat vasta talteen
-                tallennettuja työpaikkoja eivätkä vielä lähetettyjä hakemuksia.
-                <br />
-                <br />
-                <strong>Tulkinta:</strong>
-                <br />
-                🔥 <strong>+1.0</strong> – Korkea konversio. Hakemuksia on
-                vähintään yhtä paljon kuin hylkäyksiä.
-                <br />
-                ⚖️ <strong>0.5–0.99</strong> – Työnhakusi on tasapainossa.
-                <br />
-                ⚠️ <strong>Alle 0.5</strong> – Lisää aktiivisia hakemuksia
-                parantaaksesi mahdollisuuksiasi työllistyä.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <button
+          type="button"
+          onClick={() => setInfoOpen(true)}
+          className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+          aria-label="Tietoa työnhakuindeksistä"
+        >
+          <Info size={16} />
+        </button>
       </div>
 
-      <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400">Työnhaku indeksi</h3>
+      <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+        Työnhaku indeksi
+      </h3>
 
       <div className="flex items-end gap-3">
         <span className={`text-5xl font-extrabold ${colorClass}`}>
@@ -139,6 +113,73 @@ export default function ImpactRatingCard({ pending, rejected }: Props) {
       </div>
 
       <p className={`text-sm font-medium ${colorClass}`}>{statusText}</p>
+      <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Työnhakuindeksi</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <p>
+              <strong>Työnhakuindeksi</strong> kertoo, kuinka hyvin työnhakusi
+              etenee vertaamalla aktiivisia hakemuksiasi hylättyihin
+              hakemuksiin.
+            </p>
+
+            <div className="rounded-lg bg-slate-100 dark:bg-slate-800 p-3 font-medium">
+              Kaava: Vireillä olevat hakemukset / Hylätyt hakemukset
+            </div>
+
+            <p>
+              Suosikkeja ei lasketa mukaan, koska ne ovat vasta talteen
+              tallennettuja työpaikkoja eivätkä vielä lähetettyjä hakemuksia.
+            </p>
+
+            <div className="space-y-2">
+              <p>
+                <strong>Tulkinta</strong>
+              </p>
+
+              <p>
+                🌍 <strong>3.0+</strong> Maailmanluokan suoritus
+              </p>
+
+              <p>
+                🏆 <strong>2.5–2.99</strong> Poikkeuksellisen erinomainen
+              </p>
+
+              <p>
+                ⭐ <strong>2.0–2.49</strong> Huipputasoinen
+              </p>
+
+              <p>
+                🔥 <strong>1.5–1.99</strong> Erittäin korkea
+              </p>
+
+              <p>
+                📈 <strong>1.1–1.49</strong> Korkeatasoinen
+              </p>
+
+              <p>
+                ✅ <strong>0.9–1.09</strong> Hyvä taso
+              </p>
+
+              <p>
+                ⚖️ <strong>0.5–0.89</strong> Tyydyttävä
+              </p>
+
+              <p>
+                🔧 <strong>0.2–0.49</strong> Kehityskelpoinen
+              </p>
+
+              <p>
+                ⚠️ <strong>Alle 0.2</strong> Lisää aktiivisia hakemuksia
+                parantaaksesi mahdollisuuksiasi.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
