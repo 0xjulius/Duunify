@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
 import Sidebar from "@/components/Sidebar";
@@ -18,8 +17,6 @@ import {
   Calendar,
   ArrowRight,
   Star,
-  Moon,
-  Sun,
   X,
 } from "lucide-react";
 import ApplicationTrendChart from "@/components/dashboard/ApplicationTrendChart";
@@ -36,7 +33,6 @@ import {
   StatsSkeleton,
   ImpactRatingSkeleton,
   ChartSkeleton,
-  ListSkeleton,
 } from "@/components/ui/skeletons";
 
 type DashboardApplication = {
@@ -49,20 +45,6 @@ type DashboardApplication = {
 };
 
 type StatFilterType = "total" | "pending" | "favorites" | "interviews" | "offers" | "rejected" | null;
-
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  
-  return (
-    <button 
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-white shadow-sm transition-all text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1e2230] dark:text-slate-300 dark:hover:bg-[#252a3d]"
-      aria-label="Vaihda teemaa"
-    >
-      {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-600" />}
-    </button>
-  );
-}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -210,11 +192,7 @@ export default function DashboardPage() {
           onOpenChange={setOpen}
         />
         
-        {/* Yläpalkki, jossa otsikko ja teemakytkin rinnakkain */}
-        <div className="flex items-center justify-between w-full">
           <DashboardHeader />
-          <ThemeToggle />
-        </div>
 
         <div className="flex flex-col gap-6">
           <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
