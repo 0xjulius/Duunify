@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FiMail, FiGithub, FiLinkedin, FiTwitter } from "react-icons/fi";
+import { FiMail, FiGithub, FiLinkedin } from "react-icons/fi";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -33,13 +33,10 @@ export default function Footer() {
 
   return (
      <footer
-      className="duunify-modal relative overflow-hidden"
-      style={{
-        background: "linear-gradient(165deg, #6D67F2 0%, #5750E0 60%, #4A44C7 100%)",
-      }}
+      className="duunify-modal relative overflow-hidden bg-[linear-gradient(165deg,#6D67F2_0%,#5750E0_60%,#4A44C7_100%)] dark:bg-none dark:bg-slate-950 border-t dark:border-slate-900 transition-colors duration-200"
     >
-        <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+      <div
+        className="absolute inset-0 opacity-[0.08] dark:opacity-[0.02] pointer-events-none"
         style={{
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
@@ -49,16 +46,16 @@ export default function Footer() {
       <div className="relative max-w-6xl mx-auto px-6 pt-16 pb-10">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
           {/* Brändi + kuvaus */}
-           <div className="col-span-2 md:col-span-2">
+          <div className="col-span-2 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                <span className="duunify-display font-bold text-[#5750E0] text-sm">D</span>
+              <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center border dark:border-slate-800">
+                <span className="duunify-display font-bold text-[#5750E0] dark:text-indigo-400 text-sm">D</span>
               </div>
-              <span className="duunify-display font-bold text-white text-lg">
+              <span className="duunify-display font-bold text-white dark:text-slate-100 text-lg">
                 Duunify
               </span>
             </Link>
-            <p className="text-sm text-indigo-100/80 leading-relaxed max-w-xs mb-5">
+            <p className="text-sm text-indigo-100/80 dark:text-slate-400 leading-relaxed max-w-xs mb-5">
               Työhakemusten hallinta, joka näyttää missä oikeasti menet.
               Automaattinen täyttö, älykäs kalenteri ja visuaalinen
               yleiskatsaus samassa paikassa.
@@ -67,7 +64,7 @@ export default function Footer() {
               <Link
                 href="/contact"
                 aria-label="Sähköposti"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#6D67F2] hover:border-[#6D67F2]/30 transition"
+                className="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#6D67F2] dark:hover:text-indigo-400 hover:border-[#6D67F2]/30 dark:hover:border-slate-700 transition"
               >
                 <FiMail size={16} />
               </Link>
@@ -77,18 +74,17 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#6D67F2] hover:border-[#6D67F2]/30 transition"
+                className="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#6D67F2] dark:hover:text-indigo-400 hover:border-[#6D67F2]/30 dark:hover:border-slate-700 transition"
               >
                 <FiLinkedin size={16} />
               </Link>
-              
               
               <Link
                 href="https://github.com/0xjulius"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#6D67F2] hover:border-[#6D67F2]/30 transition"
+                className="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#6D67F2] dark:hover:text-indigo-400 hover:border-[#6D67F2]/30 dark:hover:border-slate-700 transition"
               >
                 <FiGithub size={16} />
               </Link>
@@ -98,7 +94,7 @@ export default function Footer() {
           {/* Linkkisarakkeet */}
           {columns.map((col) => (
             <div key={col.title}>
-              <h3 className="duunify-mono text-lg font-bold uppercase tracking-wider text-amber-300/90 mb-4">
+              <h3 className="duunify-mono text-sm font-bold uppercase tracking-wider text-amber-300/90 dark:text-slate-400 mb-4">
                 {col.title}
               </h3>
               <ul className="space-y-3">
@@ -106,7 +102,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-indigo-100/80 hover:text-white transition-colors"
+                      className="text-sm text-indigo-100/80 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -117,14 +113,14 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Alaosa: copyright + oikeudelliset linkit uudelleen kompaktisti */}
-          <div className="pt-8 border-t border-white/15 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-indigo-100/70">
+        {/* Alaosa */}
+        <div className="pt-8 border-t border-white/15 dark:border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-indigo-100/70 dark:text-slate-500">
           <p>© {currentYear} Duunify | 0xjulius | Kaikki oikeudet pidätetään.</p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-white transition-colors">
+            <Link href="/privacy" className="hover:text-white dark:hover:text-slate-300 transition-colors">
               Tietosuoja
             </Link>
-            <Link href="/tos" className="hover:text-white transition-colors">
+            <Link href="/tos" className="hover:text-white dark:hover:text-slate-300 transition-colors">
               Käyttöehdot
             </Link>
             <span className="flex items-center gap-1.5">

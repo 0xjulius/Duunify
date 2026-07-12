@@ -24,7 +24,7 @@ export default function LandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500/30 transition-colors duration-200">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
         .duunify-modal { font-family: 'Inter', sans-serif; }
@@ -38,26 +38,26 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="duunify-modal relative overflow-hidden">
         <div
-          className="absolute inset-0 opacity-[0.06]"
+          className="absolute inset-0 opacity-[0.3] dark:opacity-[0.1]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(30,27,75,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(30,27,75,0.6) 1px, transparent 1px)",
+              "linear-gradient(rgba(99,102,241,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.3) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
         />
 
         <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32 text-center">
-          <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6D67F2]" />
+          <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] dark:text-[#8681F8] uppercase bg-[#6D67F2]/8 dark:bg-[#6D67F2]/10 px-3 py-1.5 rounded-full border border-[#6D67F2]/10 dark:border-[#6D67F2]/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#6D67F2] dark:bg-[#8681F8]" />
             Nyt Duunitori ja Jobly -sivustojen tuki
           </div>
 
-          <h1 className="duunify-display mt-6 text-4xl md:text-6xl font-bold tracking-tight text-slate-900 max-w-3xl mx-auto">
+          <h1 className="duunify-display mt-6 text-4xl md:text-6xl font-bold tracking-tight text-slate-900 dark:text-white max-w-3xl mx-auto">
             Työnhaku, joka näyttää{" "}
-            <span className="text-[#6D67F2]">missä oikeasti menet</span>
+            <span className="text-[#6D67F2] dark:text-[#8681F8]">missä oikeasti menet</span>
           </h1>
 
-          <p className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed mb-8">
+          <p className="mt-6 text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed mb-8">
             Lopeta hakemusten seuraaminen Excelissä. Duunify tallentaa,
             aikatauluttaa ja visualisoi koko hakuprosessisi — automaattisella
             tietojen haulla suoraan työpaikkailmoituksesta.
@@ -65,7 +65,7 @@ export default function LandingPage() {
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setShowLoginModal(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 text-white font-bold px-7 py-3.5 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 text-white font-bold px-7 py-3.5 rounded-2xl transition-transform active:scale-[0.98] shadow-lg shadow-indigo-200 dark:shadow-indigo-950/50"
               style={{
                 background: "linear-gradient(135deg, #6D67F2, #5750E0)",
               }}
@@ -76,75 +76,75 @@ export default function LandingPage() {
 
             <button
               onClick={() => setShowLoginModal(true)}
-              className="w-full sm:w-auto font-semibold text-slate-700 px-7 py-3.5 rounded-2xl border border-slate-200 hover:bg-slate-200 transition bg-slate-50"
+              className="w-full sm:w-auto font-semibold text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition bg-slate-50 dark:bg-slate-900"
             >
               Kirjaudu sisään
             </button>
           </div>
 
-<Link
-  href="/demo"
-  className="group inline-flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 border-violet-300 text-slate-700 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-600/10 animate-none hover:animate-none relative overflow-hidden active:scale-[0.98] mt-8"
->
-  <PlayCircle
-    size={24}
-    className="text-violet-600 group-hover:scale-110 group-hover:rotate-[360deg] transition-transform duration-500 ease-out"
-  />
-  <span className="relative z-10">Katso demo-versiota!</span>
+          <Link
+            href="/demo"
+            className="group inline-flex items-center gap-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold px-8 py-4 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-600/5 dark:hover:shadow-indigo-500/5 relative overflow-hidden active:scale-[0.98] mt-8"
+          >
+            <PlayCircle
+              size={24}
+              className="text-violet-600 dark:text-indigo-400 group-hover:scale-110 group-hover:rotate-[360deg] transition-transform duration-500 ease-out"
+            />
+            <span className="relative z-10">Katso demo-versiota!</span>
           </Link>
           
-          <p className="mt-3 text-sm text-slate-400 mb-12">
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500 mb-12">
             Ei luottokorttia. Ei sitoutumista.
           </p>
         </div>
       </section>
 
-       {/* DASHBOARD SHOWCASE */}
+      {/* DASHBOARD SHOWCASE */}
       <section
         id="dashboard"
-        className="duunify-modal py-20 md:py-28 bg-slate-50 overflow-hidden"
+        className="duunify-modal py-20 md:py-28 bg-slate-50 dark:bg-slate-900/40 border-y border-slate-100 dark:border-slate-900 overflow-hidden transition-colors"
       >
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] uppercase bg-[#6D67F2]/8 px-3 py-1.5 rounded-full mb-5">
+            <div className="inline-flex items-center gap-2 duunify-mono text-[11px] tracking-[0.18em] text-[#6D67F2] dark:text-[#8681F8] uppercase bg-[#6D67F2]/8 dark:bg-[#6D67F2]/10 px-3 py-1.5 rounded-full mb-5 border border-[#6D67F2]/10 dark:border-[#6D67F2]/20">
               <BarChart3 size={13} />
               Yleiskatsaus
             </div>
-            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
               Koko hakuprosessisi,{" "}
-              <span className="text-[#6D67F2]"><br/>yhdellä silmäyksellä</span>
+              <span className="text-[#6D67F2] dark:text-[#8681F8]"><br/>yhdellä silmäyksellä</span>
             </h2>
-            <p className="mt-4 text-slate-500 leading-relaxed">
+            <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
               Excel-taulukko kertoo mitä olet tehnyt. Duunifyn dashboard kertoo
               mihin suuntaan olet menossa — ja mitä kannattaisi tehdä
               seuraavaksi.
             </p>
           </div>
 
-          {/* Kaksi korostettua mittaria: Työnhaku-indeksi ja Aktiivisuus */}
           <div className="mb-8">
             <LandingIndexCard />
           </div>
 
-          {/* Iso visuaalinen esikatselu, dataton mutta uskottava */}
+          {/* Iso visuaalinen esikatselu */}
           <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-xl p-6 transition-colors">
               <div className="flex items-center justify-between mb-5">
-                <p className="font-bold text-slate-900 text-sm">
+                <p className="font-bold text-slate-900 dark:text-slate-200 text-sm">
                   Hakemukset tilan mukaan
                 </p>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                   Esimerkki
                 </span>
               </div>
 
               <div className="flex items-center gap-4">
                 <div
-                  className="w-24 h-24 rounded-full shrink-0"
+                  className="w-24 h-24 rounded-full shrink-0 transition-all duration-300"
                   style={{
                     background:
-                      "conic-gradient(#6D67F2 0% 35%, #F59E0B 35% 55%, #22C55E 55% 70%, #EF4444 70% 85%, #E2E8F0 85% 100%)",
+                      "conic-gradient(#6D67F2 0% 35%, #F59E0B 35% 55%, #22C55E 55% 70%, #EF4444 70% 85%, var(--tw-pie-empty, #E2E8F0) 85% 100%)",
                   }}
+                  className="w-24 h-24 rounded-full shrink-0 [calc(var(--tw-pie-empty):#E2E8F0)] dark:[--tw-pie-empty:#334155]"
                 />
                 <div className="flex-1 space-y-2">
                   <LegendRow color="#6D67F2" label="Haettu" value="35%" />
@@ -154,70 +154,49 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-slate-900">24</p>
-                  <p className="text-xs text-slate-400">hakemusta yhteensä</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">24</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">hakemusta yhteensä</p>
                 </div>
-                <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-2.5 py-1.5 rounded-lg">
+                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 px-2.5 py-1.5 rounded-lg">
                   <CheckCircle size={13} />↑ 18% edelliseen kuukauteen
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-xl p-6 transition-colors">
               <div className="flex items-center justify-between mb-5">
-                <p className="font-bold text-slate-900 text-sm">
+                <p className="font-bold text-slate-900 dark:text-slate-200 text-sm">
                   Aktiivisuus 9 viikon ajalta
                 </p>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                   Esimerkki
                 </span>
               </div>
               <div className="flex gap-1 justify-center flex-wrap">
                 {Array.from({ length: 63 }).map((_, i) => {
                   const intensity = Math.random();
-                  const color =
-                    intensity > 0.85
-                      ? "#3D3699"
-                      : intensity > 0.65
-                        ? "#6D67F2"
-                        : intensity > 0.45
-                          ? "#B3ADF7"
-                          : intensity > 0.25
-                            ? "#D9D6FB"
-                            : "#F1F0FE";
+                  // Lasketaan värit dynaamisesti (käytetään luokkia sijaan elementtitasolla kytkintä varten)
                   return (
-                    <div
-                      key={i}
-                      className="w-3.5 h-3.5 rounded-[4px]"
-                      style={{ backgroundColor: color }}
-                    />
+                    <ActivitySquare key={i} intensity={intensity} />
                   );
                 })}
               </div>
 
-              <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
-                <p className="text-sm text-slate-500">
-                  <span className="font-bold text-slate-800">48</span>{" "}
+              <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">48</span>{" "}
                   aktiviteettia yhteensä
                 </p>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500">
                   <span>Vähemmän</span>
                   <div className="flex gap-[3px]">
-                    {[
-                      "#F1F0FE",
-                      "#D9D6FB",
-                      "#B3ADF7",
-                      "#6D67F2",
-                      "#3D3699",
-                    ].map((c) => (
-                      <div
-                        key={c}
-                        className="w-2.5 h-2.5 rounded-[3px]"
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
+                    <div className="w-2.5 h-2.5 rounded-[3px] bg-slate-100 dark:bg-slate-800" />
+                    <div className="w-2.5 h-2.5 rounded-[3px] bg-indigo-100 dark:bg-indigo-950" />
+                    <div className="w-2.5 h-2.5 rounded-[3px] bg-indigo-300 dark:bg-indigo-700" />
+                    <div className="w-2.5 h-2.5 rounded-[3px] bg-indigo-550 dark:bg-indigo-500" />
+                    <div className="w-2.5 h-2.5 rounded-[3px] bg-indigo-850 dark:bg-indigo-400" />
                   </div>
                   <span>Enemmän</span>
                 </div>
@@ -228,7 +207,7 @@ export default function LandingPage() {
           <div className="text-center mt-10">
             <Link
               href="/demo"
-              className="inline-flex items-center gap-2 font-semibold text-[#6D67F2] hover:text-[#5750E0] transition"
+              className="inline-flex items-center gap-2 font-semibold text-[#6D67F2] dark:text-[#8681F8] hover:text-[#5750E0] dark:hover:text-[#6D67F2] transition animate-none"
             >
               Kokeile koko dashboardia demossa
               <ArrowRight size={16} />
@@ -241,10 +220,10 @@ export default function LandingPage() {
       <section id="ominaisuudet" className="duunify-modal py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
               Kaikki mitä tarvitset hakuprosessiin
             </h2>
-            <p className="mt-4 text-slate-500">
+            <p className="mt-4 text-slate-500 dark:text-slate-400">
               Suunniteltu suomalaista työnhakua varten.
             </p>
           </div>
@@ -284,19 +263,19 @@ export default function LandingPage() {
         </div>
       </section>
 
-     {/* WHY NOT EXCEL */}
-      <section className="duunify-modal py-20 md:py-28 bg-slate-50">
+      {/* WHY NOT EXCEL */}
+      <section className="duunify-modal py-20 md:py-28 bg-slate-50 dark:bg-slate-900/40 border-y border-slate-100 dark:border-slate-900 transition-colors">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-14">
-            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
-              Miksi ei vain Excel?
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
+              Meksi ei vain Excel?
             </h2>
-            <p className="mt-4 text-slate-500">
+            <p className="mt-4 text-slate-500 dark:text-slate-400">
               Taulukko tallentaa rivejä. Duunify ymmärtää hakuprosessisi.
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
             <ComparisonRow
               label="Automaattinen tietojen täyttö ilmoituksesta"
               excel={false}
@@ -331,7 +310,7 @@ export default function LandingPage() {
       <section id="miten-toimii" className="duunify-modal py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
+            <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
               Kolme askelta
             </h2>
           </div>
@@ -356,34 +335,33 @@ export default function LandingPage() {
         </div>
       </section>
 
-
       {/* FINAL CTA */}
       <section className="duunify-modal py-20 md:py-28">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900">
-            Valmis järjestämään työnhakusi?
+          <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
+            Valmis Järjestämään työnhakusi?
           </h2>
-          <p className="mt-4 text-slate-500">
+          <p className="mt-4 text-slate-500 dark:text-slate-400">
             Liity käyttäjien joukkoon jotka ovat jo ottaneet hakuprosessinsa
             haltuun.
           </p>
           
           <button
             onClick={() => setShowLoginModal(true)}
-            className="mt-8 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-transform active:scale-[0.98]"
+            className="mt-8 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-indigo-950/50 transition-transform active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
           >
             Aloita ilmaiseksi
             <ArrowRight size={18} />
           </button>
 
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-slate-400">
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-slate-400 dark:text-slate-500">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={16} className="text-emerald-500" />
+              <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
               Ilmainen käyttää
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={16} className="text-emerald-500" />
+              <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
               Ei mainoksia
             </span>
           </div>       
@@ -412,12 +390,12 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="p-6 rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition">
-      <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
+    <div className="p-6 rounded-2xl border border-slate-100 dark:border-slate-900 bg-transparent dark:bg-slate-900/40 hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-sm dark:hover:bg-slate-900/80 transition duration-200">
+      <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] dark:text-[#8681F8] flex items-center justify-center mb-4 border border-transparent dark:border-[#6D67F2]/20">
         {icon}
       </div>
-      <h3 className="font-bold text-slate-900 mb-1.5">{title}</h3>
-      <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+      <h3 className="font-bold text-slate-900 dark:text-slate-200 mb-1.5">{title}</h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -432,12 +410,12 @@ function StepCard({
   description: string;
 }) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-100">
-      <span className="duunify-mono text-2xl font-bold text-[#6D67F2]/30">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/60 transition-colors">
+      <span className="duunify-mono text-2xl font-bold text-[#6D67F2]/30 dark:text-[#8681F8]/20">
         {number}
       </span>
-      <h3 className="font-bold text-slate-900 mt-3 mb-1.5">{title}</h3>
-      <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+      <h3 className="font-bold text-slate-900 dark:text-slate-200 mt-3 mb-1.5">{title}</h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -458,9 +436,9 @@ function LegendRow({
           className="w-2 h-2 rounded-full shrink-0"
           style={{ backgroundColor: color }}
         />
-        <span className="text-slate-600 font-medium">{label}</span>
+        <span className="text-slate-600 dark:text-slate-400 font-medium">{label}</span>
       </div>
-      <span className="font-bold text-slate-900">{value}</span>
+      <span className="font-bold text-slate-900 dark:text-slate-200">{value}</span>
     </div>
   );
 }
@@ -478,25 +456,35 @@ function ComparisonRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between px-6 py-4 ${!isLast ? "border-b border-slate-100" : ""}`}
+      className={`flex items-center justify-between px-6 py-4 ${!isLast ? "border-b border-slate-100 dark:border-slate-800" : ""}`}
     >
-      <p className="text-sm font-medium text-slate-700 flex-1 pr-4">{label}</p>
+      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex-1 pr-4">{label}</p>
       <div className="flex items-center gap-8 shrink-0">
         <div className="w-16 flex justify-center">
           {excel ? (
-            <CheckCircle size={18} className="text-emerald-500" />
+            <CheckCircle size={18} className="text-emerald-500 dark:text-emerald-400" />
           ) : (
-            <XCircle size={18} className="text-slate-300" />
+            <XCircle size={18} className="text-slate-300 dark:text-slate-700" />
           )}
         </div>
         <div className="w-16 flex justify-center">
           {duunify ? (
-            <CheckCircle size={18} className="text-[#6D67F2]" />
+            <CheckCircle size={18} className="text-[#6D67F2] dark:text-[#8681F8]" />
           ) : (
-            <XCircle size={18} className="text-slate-300" />
+            <XCircle size={18} className="text-slate-300 dark:text-slate-700" />
           )}
         </div>
       </div>
     </div>
   );
+}
+
+function ActivitySquare({ intensity }: { intensity: number }) {
+  let baseColor = "bg-slate-150 dark:bg-slate-800";
+  if (intensity > 0.85) baseColor = "bg-indigo-900 dark:bg-indigo-400";
+  else if (intensity > 0.65) baseColor = "bg-indigo-600 dark:bg-indigo-500";
+  else if (intensity > 0.45) baseColor = "bg-indigo-400 dark:bg-indigo-600";
+  else if (intensity > 0.25) baseColor = "bg-indigo-200 dark:bg-indigo-850";
+
+  return <div className={`w-3.5 h-3.5 rounded-[4px] ${baseColor} transition-colors duration-200`} />;
 }
