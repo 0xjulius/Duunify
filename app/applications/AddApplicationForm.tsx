@@ -280,18 +280,18 @@ export default function AddApplicationForm({
   }
 
   const inputStyle =
-    "w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
-  const labelStyle = "block text-sm font-medium text-slate-700 mb-2";
+    "w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
+  const labelStyle = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2";
 
   return (
     <form
       onSubmit={addApplication}
-      className=" bg-white rounded-2xl p-8 shadow-sm w-full xl:w-4/5 xl:mx-auto"
+      className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 w-full xl:w-4/5 xl:mx-auto"
     >
       <div className="flex">
-        <h2 className="text-2xl font-bold text-slate-900">Uusi mahdollisuus</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Uusi mahdollisuus</h2>
           {/* Info-ikoni vihjetekstillä */}
-        <div className="ml-2 group relative inline-block cursor-help text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="ml-2 group relative inline-block cursor-help text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
           <svg
             className="h-4 w-4"
             fill="none"
@@ -307,7 +307,7 @@ export default function AddApplicationForm({
           </svg>
 
           {/* Pieni kupla joka ilmestyy päälle vietäessä */}
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-slate-900 text-white text-xs rounded-lg p-2.5 shadow-xl z-10 font-normal leading-relaxed pointer-events-none">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg p-2.5 shadow-xl z-10 font-normal leading-relaxed pointer-events-none">
             <p className="font-semibold mb-1 text-slate-200">
               Automaattitäytön tuetut sivustot tällä hetkellä:
             </p>
@@ -316,12 +316,12 @@ export default function AddApplicationForm({
               <li>jobly.fi</li>
             </ul>
             {/* Pieni nuoli kuplan alla */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900" />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900 dark:border-t-slate-800" />
           </div>
         </div>
       </div>
       <div>
-                <p className="text-slate-500 mt-1 mb-6">Aloita liittämällä linkki automaattista täyttöä varten tai kirjaa tiedot itse.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 mb-6">Aloita liittämällä linkki automaattista täyttöä varten tai kirjaa tiedot itse.</p>
       </div>
 
       {/* URL AUTOFILL */}
@@ -340,7 +340,7 @@ export default function AddApplicationForm({
             type="button"
             onClick={autofillFromUrl}
             disabled={loadingJob || !jobUrl}
-            className="w-full sm:w-auto h-11 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-100 disabled:cursor-not-allowed text-white font-medium text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2 shrink-0"
+            className="w-full sm:w-auto h-11 px-5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed text-white font-medium text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2 shrink-0"
           >
             {loadingJob ? (
               <>
@@ -413,9 +413,9 @@ export default function AddApplicationForm({
               onChange={(e) => setEmploymentType(e.target.value)}
               className={`${inputStyle} appearance-none cursor-pointer`}
             >
-              <option value="">— Valitse —</option>
+              <option value="" className="dark:bg-slate-850">— Valitse —</option>
               {Object.entries(EMPLOYMENT_TYPE_FI).map(([val, label]) => (
-                <option key={val} value={val}>
+                <option key={val} value={val} className="dark:bg-slate-850">
                   {label}
                 </option>
               ))}
@@ -440,13 +440,13 @@ export default function AddApplicationForm({
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className={`${inputStyle} appearance-none cursor-pointer bg-pink-50/50`}
+              className={`${inputStyle} appearance-none cursor-pointer bg-pink-50/50 dark:bg-pink-950/20`}
             >
-              <option>Tallennettu</option>
-              <option>Haettu</option>
-              <option>Haastattelu</option>
-              <option>Hylätty</option>
-              <option>Tarjous</option>
+              <option className="dark:bg-slate-850">Tallennettu</option>
+              <option className="dark:bg-slate-850">Haettu</option>
+              <option className="dark:bg-slate-850">Haastattelu</option>
+              <option className="dark:bg-slate-850">Hylätty</option>
+              <option className="dark:bg-slate-850">Tarjous</option>
             </select>
           </div>
 
@@ -471,7 +471,7 @@ export default function AddApplicationForm({
                 min={0}
                 className={inputStyle}
               />
-              <span className="text-gray-400 shrink-0">–</span>
+              <span className="text-slate-400 dark:text-slate-500 shrink-0">–</span>
               <input
                 type="number"
                 placeholder="Max"
@@ -529,7 +529,7 @@ export default function AddApplicationForm({
       <button
         type="submit"
         disabled={loading}
-        className="mt-8 w-full md:w-auto px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer gap-2"
+        className="mt-8 w-full md:w-auto px-8 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 dark:shadow-none transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer gap-2"
       >
         {loading ? (
           <>

@@ -26,19 +26,19 @@ type Application = {
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   Haettu: {
     label: "Haettu",
-    className: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+    className: "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
   },
   Haastattelu: {
     label: "Haastattelu",
-    className: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+    className: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20",
   },
   Hylätty: {
     label: "Hylätty",
-    className: "bg-red-50 text-red-600 ring-1 ring-red-200",
+    className: "bg-red-50 text-red-600 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
   },
   Tarjous: {
     label: "🎉 Työtarjous saatu",
-    className: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    className: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
   },
 };
 
@@ -57,7 +57,7 @@ function formatDescription(text: string) {
   return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={i} className="font-bold text-slate-900">
+        <strong key={i} className="font-bold text-slate-900 dark:text-slate-100">
           {part.slice(2, -2)}
         </strong>
       );
@@ -98,12 +98,12 @@ function CompanyAvatar({ company }: { company: string }) {
 
   const hue = (company.charCodeAt(0) * 37) % 360;
   const palettes = [
-    { bg: "bg-violet-100", text: "text-violet-700" },
-    { bg: "bg-teal-100", text: "text-teal-700" },
-    { bg: "bg-rose-100", text: "text-rose-700" },
-    { bg: "bg-sky-100", text: "text-sky-700" },
-    { bg: "bg-amber-100", text: "text-amber-700" },
-    { bg: "bg-emerald-100", text: "text-emerald-700" },
+    { bg: "bg-violet-100 dark:bg-violet-500/10", text: "text-violet-700 dark:text-violet-400" },
+    { bg: "bg-teal-100 dark:bg-teal-500/10", text: "text-teal-700 dark:text-teal-400" },
+    { bg: "bg-rose-100 dark:bg-rose-500/10", text: "text-rose-700 dark:text-rose-400" },
+    { bg: "bg-sky-100 dark:bg-sky-500/10", text: "text-sky-700 dark:text-sky-400" },
+    { bg: "bg-amber-100 dark:bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" },
+    { bg: "bg-emerald-100 dark:bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400" },
   ];
   const palette = palettes[hue % palettes.length];
 
@@ -119,7 +119,7 @@ function CompanyAvatar({ company }: { company: string }) {
 function StatusBadge({ status }: { status: string }) {
   const config = STATUS_CONFIG[status] ?? {
     label: status,
-    className: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+    className: "bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700",
   };
   return (
     <span
@@ -138,7 +138,7 @@ function MetaChip({
   children: React.ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-0.5 text-[12px] font-medium text-slate-600">
+    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-[12px] font-medium text-slate-600 dark:text-slate-400">
       {icon}
       {children}
     </span>
@@ -242,27 +242,6 @@ const IconRefresh = () => (
   </svg>
 );
 
-const IconTrash = () => (
-  <svg
-    className="h-3 w-3 shrink-0"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M19 7L18.13 19.14A2 2 0 0116.14 21H7.86A2 2 0 015.87 19.14L5 7"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M10 11v6M14 11v6M9 7V4h6v3M4 7h16"
-    />
-  </svg>
-);
-
 export default function ApplicationCard({
   app,
   onChange,
@@ -303,8 +282,6 @@ export default function ApplicationCard({
 
     setLoading(true);
 
-    // Poistetaan suoraan hakemus. Viite-eheyden takia ei yritetä tehdä inserttiä
-    // tauluun, jonka päärivin olemme juuri pyyhkimässä pois.
     const { error } = await supabase
       .from("applications")
       .delete()
@@ -321,25 +298,25 @@ export default function ApplicationCard({
   }
 
   async function handleDelete() {
-  const { error } = await deleteApplicationWithLog({
-    id: app.id,
-    company: app.company,
-    job_title: app.job_title,
-    status: app.status,
-  });
+    const { error } = await deleteApplicationWithLog({
+      id: app.id,
+      company: app.company,
+      job_title: app.job_title,
+      status: app.status,
+    });
 
-  if (error) {
-    toast.error("Poisto epäonnistui.");
-    return;
+    if (error) {
+      toast.error("Poisto epäonnistui.");
+      return;
+    }
+
+    toast.success("Hakemus poistettu.");
   }
 
-  toast.success("Hakemus poistettu.");
-}
   async function saveStatus(e?: React.FormEvent) {
     if (e) e.preventDefault();
     setLoading(true);
 
-    // 1. Päivitetään hakemuksen tila (tämä pitää jättää!)
     const { error } = await supabase
       .from("applications")
       .update({
@@ -354,7 +331,6 @@ export default function ApplicationCard({
       return;
     }
 
-    // Tehtävät kun päivitys onnistui
     setEditingStatus(false);
     onChange();
   }
@@ -363,7 +339,6 @@ export default function ApplicationCard({
     if (e) e.preventDefault();
     setLoading(true);
 
-    // 1. Päivitetään hakemuksen tiedot
     const { error } = await supabase
       .from("applications")
       .update({
@@ -381,17 +356,15 @@ export default function ApplicationCard({
       return;
     }
 
-    // 2. 💡 LISÄTTY: Haetaan kirjautunut käyttäjä lennosta, jotta saadaan user.id
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (user) {
-      // 3. Tallennetaan muokkaushistoria tietokannan sarakkeiden mukaisesti
       await supabase.from("application_history").insert({
         application_id: app.id,
         event_type: "application_edit",
-        user_id: user.id, // 👈 Nyt muuttuja löytyy ja Vercel-virhe poistuu!
+        user_id: user.id,
         description: "Hakemuksen tietoja muokattu",
       });
     }
@@ -425,10 +398,10 @@ export default function ApplicationCard({
   return (
     <div
       onClick={() => setOpen(true)}
-      className={`cursor-pointer relative flex flex-col h-full rounded-2xl border pb-[52px] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+      className={`cursor-pointer relative flex flex-col h-full rounded-2xl border pb-[52px] bg-white dark:bg-slate-900 p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isOffer
-          ? "border-emerald-300 ring-1 ring-emerald-200"
-          : "border-slate-200"
+          ? "border-emerald-300 ring-1 ring-emerald-200 dark:border-emerald-500/50 dark:ring-emerald-500/20"
+          : "border-slate-200 dark:border-slate-800"
       }`}
     >
       {/* Header */}
@@ -436,21 +409,21 @@ export default function ApplicationCard({
         <div className="flex items-center gap-3">
           <CompanyAvatar company={app.company} />
           <div>
-            <h2 className="text-[17px] font-semibold leading-snug text-slate-900">
+            <h2 className="text-[17px] font-semibold leading-snug text-slate-900 dark:text-slate-50">
               {app.company}
             </h2>
-            <p className="text-[14px] text-slate-500">{app.job_title}</p>
+            <p className="text-[14px] text-slate-500 dark:text-slate-400">{app.job_title}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={(e) => {
-            e.stopPropagation(); // 🛑 Estää klikkausta nousemasta ulompaan diviin!
+            e.stopPropagation();
             setEditingApplication(true);
             setOpen(false);
           }}
           title="Muokkaa ilmoitusta"
-          className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-blue-700 transition-colors"
+          className="p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
         >
           <SquarePen size={16} strokeWidth={2} />
         </button>
@@ -469,11 +442,11 @@ export default function ApplicationCard({
         {deadline && (
           <MetaChip icon={<IconClock />}>
             {isExpired ? (
-              <span className="font-semibold text-red-600">
+              <span className="font-semibold text-red-600 dark:text-red-400">
                 Haku päättynyt {deadline}
               </span>
             ) : (
-              <span className={isUrgent ? "font-semibold text-orange-600" : ""}>
+              <span className={isUrgent ? "font-semibold text-orange-600 dark:text-orange-400" : ""}>
                 Haku päättyy {deadline}
                 {isUrgent && " ⚠️"}
               </span>
@@ -483,7 +456,8 @@ export default function ApplicationCard({
       </div>
 
       {/* Divider */}
-      <div className="my-4 border-t border-slate-100" />
+      <div className="my-4 border-t border-slate-100 dark:border-slate-800" />
+      
       {/* Status row */}
       <div
         onClick={(e) => {
@@ -497,7 +471,7 @@ export default function ApplicationCard({
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+              className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-800 dark:text-slate-200 outline-none focus:border-violet-400 dark:focus:border-violet-500 focus:ring-2 focus:ring-violet-100 dark:focus:ring-violet-500/20"
             >
               <option>Tallennettu</option>
               <option>Haettu</option>
@@ -507,13 +481,13 @@ export default function ApplicationCard({
             </select>
             <button
               onClick={saveStatus}
-              className="rounded-xl bg-violet-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-700 cursor-pointer"
+              className="rounded-xl bg-violet-600 dark:bg-violet-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-700 dark:hover:bg-violet-700 cursor-pointer"
             >
               OK
             </button>
             <button
               onClick={() => setEditingStatus(false)}
-              className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 cursor-pointer"
+              className="rounded-xl p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               aria-label="Peruuta"
             >
               <svg
@@ -537,7 +511,7 @@ export default function ApplicationCard({
             <StatusBadge status={app.status} />
             <button
               onClick={() => setEditingStatus(true)}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-violet-600"
+              className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400"
             >
               <IconRefresh />
               Tila
@@ -547,8 +521,8 @@ export default function ApplicationCard({
                 href={app.job_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()} // 🛑 Estää klikkausta nousemasta ulompaan diviin
-                className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 hover:underline shrink-0"
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 dark:text-violet-400 hover:underline shrink-0"
               >
                 Avaa linkki
                 <svg
@@ -573,17 +547,17 @@ export default function ApplicationCard({
       {/* EDIT FORM */}
       {editingApplication && (
         <div
-          onClick={(e) => e.stopPropagation()} // 🛑 Estää kaikki lomakkeen sisäiset klikkaukset kuplimasta ulompaan diviin
-          className="mt-4 space-y-3 rounded-2xl border border-violet-200 bg-violet-50 p-4"
+          onClick={(e) => e.stopPropagation()}
+          className="mt-4 space-y-3 rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-4"
         >
           <input
             value={editForm.company}
             onChange={(e) =>
               setEditForm({ ...editForm, company: e.target.value })
             }
-            onClick={(e) => e.stopPropagation()} // Varmistetaan vielä tekstikentän oma klikkaus
+            onClick={(e) => e.stopPropagation()}
             placeholder="Yritys"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
           />
 
           <input
@@ -592,7 +566,7 @@ export default function ApplicationCard({
               setEditForm({ ...editForm, job_title: e.target.value })
             }
             placeholder="Työtehtävä"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
           />
 
           <input
@@ -601,7 +575,7 @@ export default function ApplicationCard({
               setEditForm({ ...editForm, location: e.target.value })
             }
             placeholder="Paikkakunta"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
           />
 
           <input
@@ -610,7 +584,7 @@ export default function ApplicationCard({
               setEditForm({ ...editForm, job_url: e.target.value })
             }
             placeholder="Työpaikkailmoituksen URL"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
           />
 
           <textarea
@@ -619,7 +593,7 @@ export default function ApplicationCard({
               setEditForm({ ...editForm, notes: e.target.value })
             }
             placeholder="Muistiinpanot"
-            className="w-full rounded-xl border border-slate-200 px-3 py-2"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100"
             rows={4}
           />
 
@@ -633,7 +607,7 @@ export default function ApplicationCard({
 
             <button
               onClick={() => setEditingApplication(false)}
-              className="rounded-xl border border-slate-300 px-4 py-2 font-medium"
+              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 font-medium hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Peruuta
             </button>
@@ -641,10 +615,10 @@ export default function ApplicationCard({
               onClick={deleteApplication}
               disabled={loading}
               aria-label="Poista hakemus"
-              className={`rounded-xl border border-slate-300 px-4 py-2 font-medium text-white ${
+              className={`rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-medium text-white ${
                 confirmDelete
-                  ? "animate-pulse bg-red-500 text-black"
-                  : " bg-red-400 hover:text-white hover:bg-red-500"
+                  ? "animate-pulse bg-red-500 text-black dark:text-white"
+                  : "bg-red-400 hover:text-white hover:bg-red-500 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/40"
               }`}
             >
               {loading
@@ -657,16 +631,16 @@ export default function ApplicationCard({
         </div>
       )}
 
-      {/* Notes - Renderöidään vain, jos sisältöä on */}
+      {/* Notes */}
       {app.notes && (
         <div
           onClick={() => setOpen(true)}
-          className="cursor-pointer mt-4 rounded-xl border-l-2 border-violet-300 bg-slate-50 py-2.5 pl-3.5 pr-3"
+          className="cursor-pointer mt-4 rounded-xl border-l-2 border-violet-300 dark:border-violet-500 bg-slate-50 dark:bg-slate-800/40 py-2.5 pl-3.5 pr-3"
         >
-          <p className="mb-0.5 text-[13px] font-semibold uppercase tracking-widest text-slate-400">
+          <p className="mb-0.5 text-[13px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
             Muistiinpanot
           </p>
-          <p className="text-[13px] leading-relaxed text-slate-600 line-clamp-2 overflow-hidden">
+          <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 line-clamp-2 overflow-hidden">
             {app.notes}
           </p>
         </div>
@@ -678,12 +652,11 @@ export default function ApplicationCard({
           onClick={() => setOpen(true)}
           className="mt-4 cursor-pointer flex-1"
         >
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
             Työpaikkakuvaus
           </p>
-          {/* Dynaaminen line-clamp: 6 riviä jos ei muistiinpanoja, 3 riviä jos on */}
           <div
-            className={`text-[14px] leading-relaxed text-slate-600 whitespace-pre-wrap overflow-hidden ${app.notes ? "line-clamp-3" : "line-clamp-6"}`}
+            className={`text-[14px] leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-wrap overflow-hidden ${app.notes ? "line-clamp-3" : "line-clamp-6"}`}
           >
             {expanded
               ? formatDescription(description)
@@ -696,7 +669,7 @@ export default function ApplicationCard({
                 e.stopPropagation();
                 setOpen(true);
               }}
-              className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 hover:underline cursor-pointer"
+              className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
             >
               {expanded ? "Näytä vähemmän" : "Lue lisää"}
               <svg
@@ -716,7 +689,7 @@ export default function ApplicationCard({
           )}
 
           <div className="absolute bottom-5 left-5">
-            <p className="text-[12px] text-slate-400 pointer-none">
+            <p className="text-[12px] text-slate-400 dark:text-slate-500 pointer-none">
               {app.job_url ? getSourceFromUrl(app.job_url) : "Ei saatavilla"}
             </p>
           </div>
@@ -727,8 +700,8 @@ export default function ApplicationCard({
                 e.stopPropagation();
                 setOpen(true);
               }}
-              className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-green-600 transition-colors"
-              title="Avaa ilmoitus" // Aputeksti ruudunlukuohjelmia ja hover-tilaa varten
+              className="p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+              title="Avaa ilmoitus"
             >
               <Maximize2 size={18} strokeWidth={2} />
             </button>

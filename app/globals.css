@@ -263,3 +263,23 @@ h6 {
 .duunify-toast[data-type="loading"] [data-icon] svg {
   color: #6d67f2;
 }
+
+@layer base {
+  :root {
+    --dnf-bg: #f8fafc;           /* slate-50 */
+    --dnf-surface: #ffffff;       /* kortit, sivupalkki */
+    --dnf-border: #e2e8f0;        /* slate-200 */
+    --dnf-text-primary: #0f172a;  /* slate-900 */
+    --dnf-text-secondary: #64748b;/* slate-500 */
+    --dnf-hover: #f1f5f9;         /* slate-100 */
+  }
+
+  .dark {
+    --dnf-bg: #0f1117;
+    --dnf-surface: #171923;
+    --dnf-border: #2a2d3a;
+    --dnf-text-primary: #f1f5f9;
+    --dnf-text-secondary: #94a3b8;
+    --dnf-hover: #1f222e;
+  }
+}

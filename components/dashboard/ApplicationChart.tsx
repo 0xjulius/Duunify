@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation"; // Lisätty uudelleenohjausta varten
+import { useRouter } from "next/navigation";
 
 type ChartRow = {
   name: string;
@@ -72,7 +72,6 @@ export default function ApplicationsChart({
   async function fetchApplicationsStatus() {
     setLoading(true);
 
-    // 1. Haetaan ensin kirjautuneen käyttäjän istunto
     const {
       data: { session },
       error: sessionError,
@@ -85,11 +84,10 @@ export default function ApplicationsChart({
       return;
     }
 
-    // 2. KORJAUS: Haetaan vain tämän kyseisen käyttäjän hakemukset (ei NULLeja, ei muiden)
     const { data: applications, error } = await supabase
       .from("applications")
       .select("status")
-      .eq("user_id", session.user.id); // 🔥 TÄMÄ RIVI PELASTAA TIETOTURVAN
+      .eq("user_id", session.user.id);
 
     if (error) {
       console.error("Virhe haettaessa kaaviodataa:", error);
@@ -105,10 +103,10 @@ export default function ApplicationsChart({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-[340px] flex items-center justify-center">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm h-[340px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-slate-400 font-medium">
+          <div className="w-6 h-6 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">
             Ladataan tilastoja...
           </p>
         </div>
@@ -117,12 +115,12 @@ export default function ApplicationsChart({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm w-full h-[340px] flex flex-col justify-between">
       <div>
-        <h3 className="text-lg font-bold text-slate-800">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
           Työnhaku tilan mukaan
         </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Tallennetut ja aktiiviset prosessit.
         </p>
       </div>
@@ -150,10 +148,10 @@ export default function ApplicationsChart({
           </ResponsiveContainer>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-3xl font-bold text-slate-900">
+            <span className="text-3xl font-bold text-slate-900 dark:text-slate-50">
               {totalApplications}
             </span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               kpl
             </span>
           </div>
@@ -170,13 +168,13 @@ export default function ApplicationsChart({
                   className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-slate-600 font-medium truncate">
+                <span className="text-slate-600 dark:text-slate-300 font-medium truncate">
                   {item.name}
                 </span>
               </div>
-              <div className="text-slate-900 font-semibold flex items-center gap-1 flex-shrink-0">
+              <div className="text-slate-900 dark:text-slate-100 font-semibold flex items-center gap-1 flex-shrink-0">
                 <span>{item.value}</span>
-                <span className="text-slate-400 font-normal">
+                <span className="text-slate-400 dark:text-slate-500 font-normal">
                   ({item.percentage}%)
                 </span>
               </div>

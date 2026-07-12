@@ -30,33 +30,41 @@ export default function DownloadButton({ data, fileName }: DownloadButtonProps) 
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors">
+      <button 
+        onClick={() => setIsOpen(true)} 
+        className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors"
+      >
         <Download size={18} />
       </button>
 
       {isOpen && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="font-bold text-lg">Raportin esikatselu</h3>
-        <button onClick={() => setIsOpen(false)}><X size={20} /></button>
-      </div>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-6 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-lg dark:text-slate-50">Raportin esikatselu</h3>
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-      <div className="space-y-4 max-h-150 overflow-y-auto mb-6">
-        {data.map((app, i) => (
-          <div key={i} className="p-3 bg-slate-50 rounded-lg text-sm space-y-1 border border-slate-100">
-            <p><span className="font-bold text-slate-500">Työtehtävä:</span> {app.job_title}</p>
-            <p><span className="font-bold text-slate-500">Työnantaja:</span> {app.company}</p>
-            <p><span className="font-bold text-slate-500">Hakupäivä:</span> {app.created_at ? new Date(app.created_at).toLocaleDateString('fi-FI') : "Ei päivämäärää"}</p>
-            {/* Tässä status näkyy modalissa */}
-            <p><span className="font-bold text-slate-500">Status:</span> 
-              <span className="ml-1 capitalize px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold">
-                {app.status || "Haettu"}
-              </span>
-            </p>
-          </div>
-        ))}
-      </div>
+            <div className="space-y-4 max-h-150 overflow-y-auto mb-6">
+              {data.map((app, i) => (
+                <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-sm space-y-1 border border-slate-100 dark:border-slate-800">
+                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Työtehtävä:</span> {app.job_title}</p>
+                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Työnantaja:</span> {app.company}</p>
+                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Hakupäivä:</span> {app.created_at ? new Date(app.created_at).toLocaleDateString('fi-FI') : "Ei päivämäärää"}</p>
+                  {/* Tässä status näkyy modalissa */}
+                  <p className="flex items-center"><span className="font-bold text-slate-500 dark:text-slate-400">Status:</span> 
+                    <span className="ml-2 capitalize px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded text-[10px] font-bold">
+                      {app.status || "Haettu"}
+                    </span>
+                  </p>
+                </div>
+              ))}
+            </div>
 
             <button 
               onClick={handleDownload}

@@ -84,7 +84,7 @@ export default function AddAttachment({
       
       {/* LIITTEIDEN LATAUSKENTTÄ */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Hakemus tai muu liite
         </label>
         
@@ -105,35 +105,35 @@ export default function AddAttachment({
             onClick={triggerFileInput}
             className={`w-full rounded-2xl border-2 border-dashed p-6 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
               isDragActive
-                ? "border-indigo-500 bg-indigo-50/50"
+                ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20"
                 : error 
-                  ? "border-red-300 bg-red-50/30 hover:bg-red-50/50"
-                  : "border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300"
+                  ? "border-red-300 dark:border-red-900/50 bg-red-50/30 hover:bg-red-50/50 dark:bg-red-950/10 dark:hover:bg-red-950/20"
+                  : "border-slate-200 dark:border-slate-700 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 dark:bg-slate-800/30 dark:hover:bg-slate-800/50 dark:hover:border-slate-600"
             }`}
           >
-            <div className={`p-3 rounded-xl bg-white shadow-sm border ${error ? "border-red-100 text-red-500" : "border-slate-100 text-slate-400"}`}>
+            <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border ${error ? "border-red-100 dark:border-red-900/50 text-red-500" : "border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500"}`}>
               <FileUp size={22} className={isDragActive ? "text-indigo-500" : ""} />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-slate-700">
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Klikkaa ladataksesi tai raahaa tiedosto tähän
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                 PDF, DOCX, PNG tai JPG (Max 250KB)
               </p>
             </div>
           </div>
         ) : (
-          <div className="w-full rounded-2xl border border-slate-100 bg-white p-4 flex items-center justify-between shadow-sm">
+          <div className="w-full rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 shrink-0">
                 <FileText size={20} />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                   {file.name}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 dark:text-slate-500">
                   {formatFileSize(file.size)}
                 </p>
               </div>
@@ -142,7 +142,7 @@ export default function AddAttachment({
             <button
               type="button"
               onClick={removeFile}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+              className="p-1.5 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               title="Poista liite"
             >
               <X size={18} />
@@ -152,7 +152,7 @@ export default function AddAttachment({
 
         {/* VIRHEILMOITUS */}
         {error && (
-          <div className="flex items-center gap-2 text-xs font-medium text-red-600 mt-1">
+          <div className="flex items-center gap-2 text-xs font-medium text-red-600 dark:text-red-400 mt-1">
             <AlertCircle size={14} />
             <span>{error}</span>
           </div>

@@ -61,12 +61,12 @@ export default function UpcomingDeadlines({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] animate-pulse">
-        <div className="h-5 bg-slate-200 rounded w-1/3 mb-6" />
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col h-[340px] animate-pulse">
+        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-6" />
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex justify-between items-center py-3 border-b border-slate-100">
-            <div className="h-4 bg-slate-200 rounded w-1/2" />
-            <div className="h-4 bg-slate-200 rounded w-12" />
+          <div key={i} className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-12" />
           </div>
         ))}
       </div>
@@ -75,11 +75,11 @@ export default function UpcomingDeadlines({
 
   if (errorMsg) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50/50 p-6 shadow-sm flex flex-col h-[340px] justify-between text-red-800">
+      <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-500/5 p-6 shadow-sm flex flex-col h-[340px] justify-between text-red-800 dark:text-red-300">
         <div className="flex flex-col items-center justify-center flex-1 text-center gap-2">
-          <AlertCircle className="text-red-500" size={32} />
-          <h3 className="font-bold text-sm text-red-950">Datan lataus epäonnistui</h3>
-          <p className="text-xs text-red-700 max-w-[240px] break-words font-mono bg-white p-2 rounded border border-red-200">
+          <AlertCircle className="text-red-500 dark:text-red-400" size={32} />
+          <h3 className="font-bold text-sm text-red-950 dark:text-red-200">Datan lataus epäonnistui</h3>
+          <p className="text-xs text-red-700 dark:text-red-300 max-w-[240px] break-words font-mono bg-white dark:bg-slate-900 p-2 rounded border border-red-200 dark:border-red-500/30">
             {errorMsg}
           </p>
         </div>
@@ -88,38 +88,38 @@ export default function UpcomingDeadlines({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col h-[340px] justify-between">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col h-[340px] justify-between">
       <div className="flex flex-col">
-        <h2 className="text-lg font-bold text-slate-900">Tulevat määräajat</h2>
-        <p className="text-xs text-slate-400 mt-0.5">Pian sulkeutuvat haut.</p>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Tulevat määräajat</h2>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Pian sulkeutuvat haut.</p>
 
         <div className="mt-4 flex flex-col">
           {apps.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-12">
-              <p className="text-sm text-slate-400 font-medium">Ei lähestyviä määräaikoja.</p>
-              <p className="text-xs text-slate-300 mt-0.5">Kaikki hallinnassa! ☕</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Ei lähestyviä määräaikoja.</p>
+              <p className="text-xs text-slate-300 dark:text-slate-600 mt-0.5">Kaikki hallinnassa! ☕</p>
             </div>
           ) : (
             apps.map((app) => (
               <div
                 key={app.id}
-                className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0 group"
+                className="flex items-center justify-between py-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0 group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0 text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:bg-amber-50 dark:group-hover:bg-amber-500/10 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                     <Building2 size={16} />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-sm font-semibold text-slate-800 truncate leading-tight">
+                    <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate leading-tight">
                       {app.company || "Tuntematon yritys"}
                     </h4>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                       {app.job_title || "Ei tehtävänimikettä"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 flex-shrink-0 text-amber-600 bg-amber-50/50 border border-amber-100 px-2 py-1 rounded-lg">
+                <div className="flex items-center gap-1.5 flex-shrink-0 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 px-2 py-1 rounded-lg">
                   <Clock size={12} />
                   <span className="text-xs font-bold tracking-tight">
                     {formatDate(app.valid_through)}

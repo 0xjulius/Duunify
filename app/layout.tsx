@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ModalProvider } from "@/components/logout/ModalProvider";
 import AppToaster from "@/components/ui/AppToaster";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -75,7 +76,9 @@ export default function RootLayout({
         {/* Tänne voit lisätä esim. faviconit tai Google Analyticsin skriptin */}
       </head>
       <body className="min-h-full flex flex-col">
-        <ModalProvider>{children}</ModalProvider>
+        <ThemeProvider>
+          <ModalProvider>{children}</ModalProvider>
+          </ThemeProvider>
         <AppToaster />
       </body>
     </html>

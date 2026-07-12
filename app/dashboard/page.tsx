@@ -1,10 +1,11 @@
 "use client";
 
-export const dynamic = "force-dynamic"; // LISÄTTY: Pakottaa Next.js:n ajamaan middlewaren joka pyynnöllä
+export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // LISÄTTY: Reititystä varten
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
 import Sidebar from "@/components/Sidebar";
@@ -17,6 +18,8 @@ import {
   Calendar,
   ArrowRight,
   Star,
+  Moon,
+  Sun,
 } from "lucide-react";
 import ApplicationTrendChart from "@/components/dashboard/ApplicationTrendChart";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -35,8 +38,22 @@ import {
   ListSkeleton,
 } from "@/components/ui/skeletons";
 
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  
+  return (
+    <button 
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-white shadow-sm transition-all text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1e2230] dark:text-slate-300 dark:hover:bg-[#252a3d]"
+      aria-label="Vaihda teemaa"
+    >
+      {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-600" />}
+    </button>
+  );
+}
+
 export default function DashboardPage() {
-  const router = useRouter(); // LISÄTTY
+  const router = useRouter();
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -58,19 +75,19 @@ export default function DashboardPage() {
   async function fetchDashboardStats() {
     setLoading(true);
 
-    // 1. TARKISTUS: Haetaan istunto asiakaspuolella varmistukseksi
-    const { data: { session } } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     if (!session) {
       router.push("/login");
       return;
     }
 
-    // 2. TURVALLINEN HAKU: Suodatetaan vain kirjautuneen käyttäjän omat hakemukset
     const { data: applications, error } = await supabase
       .from("applications")
       .select("status, created_at")
-      .eq("user_id", session.user.id); // KORJAUS: Ei enää palauteta muiden dataa!
+      .eq("user_id", session.user.id);
 
     if (error) {
       console.error("Virhe tilastojen haussa:", error);
@@ -79,24 +96,19 @@ export default function DashboardPage() {
     }
 
     if (applications) {
-      const isFavorite = (status: string) =>
-        ["suosikki", "tallennettu"].includes(status?.toLowerCase().trim());
-
-      // 1. Lasketaan kategoriat reduce-metodilla
       const statsData = applications.reduce(
         (acc, app) => {
           const s = app.status?.toLowerCase().trim() || "";
-          if (["suosikki", "tallennettu"].includes(s)) acc.favorites++; 
+          if (["suosikki", "tallennettu"].includes(s)) acc.favorites++;
           else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
           else if (["tarjous", "offer"].includes(s)) acc.offers++;
           else if (["hylätty", "hylätyt", "rejected"].includes(s)) acc.rejected++;
           else acc.pending++;
           return acc;
         },
-        { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 },
+        { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 }
       );
 
-      // 2. Lasketaan consistency
       const today = new Date();
       const last7Days = Array.from({ length: 7 }).map((_, i) => {
         const d = new Date(today);
@@ -106,11 +118,10 @@ export default function DashboardPage() {
 
       const activeDaysCount = last7Days.filter((date) =>
         applications.some(
-          (app) => app.created_at && app.created_at.split("T")[0] === date,
-        ),
+          (app) => app.created_at && app.created_at.split("T")[0] === date
+        )
       ).length;
 
-      // 3. Päivitetään state oikeilla arvoilla
       const totalActive =
         statsData.pending +
         statsData.interviews +
@@ -134,7 +145,7 @@ export default function DashboardPage() {
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
 
   return (
-    <div className="flex flex-row min-h-screen bg-slate-100 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50">
+    <div className="flex flex-row min-h-screen bg-slate-100 dark:bg-[#0f1117] overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-[#141625] dark:via-[#151320] dark:to-[#101420]">
       <Sidebar />
       <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-10">
         <ApplicationDialog
@@ -142,21 +153,23 @@ export default function DashboardPage() {
           open={open}
           onOpenChange={setOpen}
         />
-        <DashboardHeader />
+        
+        {/* Yläpalkki, jossa otsikko ja teemakytkin rinnakkain */}
+        <div className="flex items-center justify-between w-full">
+          <DashboardHeader />
+          <ThemeToggle />
+        </div>
 
         <div className="flex flex-col gap-6">
           <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
             {loading ? (
               <>
-                {/* Skeletonit ylätasolle (2 x 6-saraketta) */}
                 <div className="md:col-span-6">
                   <StatsSkeleton />
                 </div>
                 <div className="md:col-span-6">
                   <StatsSkeleton />
                 </div>
-
-                {/* Skeletonit alatasolle (4 x 3-saraketta) */}
                 <div className="md:col-span-3">
                   <StatsSkeleton />
                 </div>
@@ -170,9 +183,8 @@ export default function DashboardPage() {
                   <StatsSkeleton />
                 </div>
               </>
-            ) : ( 
+            ) : (
               <>
-                {/* Ylätaso: 2 korttia */}
                 <div className="md:col-span-6">
                   <StatsCard
                     title="Hakemukset"
@@ -196,21 +208,17 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                {/* Alataso: 4 korttia */}
                 <div className="md:col-span-3">
                   <StatsCard
                     title="Tallennetut"
                     value={stats.favorites}
                     subtitle={
                       <span className="flex items-center gap-2">
-                        {stats.pending > 0
-                          ? ``
-                          : ""}
                         <Link
                           href="/favorites"
-                          className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:underline font-medium"
+                          className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline font-medium"
                         >
-                          Katso suosikit <ArrowRight className="h-3 w-3"/>
+                          Katso suosikit <ArrowRight className="h-3 w-3" />
                         </Link>
                       </span>
                     }
@@ -258,9 +266,7 @@ export default function DashboardPage() {
           </section>
 
           <section className="flex flex-col gap-6 mt-4">
-            {/* YLÄTASO: Grid-12 antaa täyden kontrollin */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              {/* Vasen pino: 3 saraketta leveä */}
               <div className="md:col-span-3 flex flex-col gap-6">
                 {loading ? (
                   <>
@@ -279,7 +285,6 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Oikeat graafit: kumpikin vie 4.5 saraketta (yht. 9) */}
               <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {loading ? (
                   <>
@@ -295,7 +300,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* KESKITASO */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-8">
                 {loading ? (
@@ -313,7 +317,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* ALATASO */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-16">
               <div className="lg:col-span-8">
                 {loading ? (
@@ -337,11 +340,11 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
-      <LoginModal 
-        isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
-        onSuccess={() => setShowLoginModal(false)}
-      />
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={() => setShowLoginModal(false)}
+        />
       </main>
     </div>
   );

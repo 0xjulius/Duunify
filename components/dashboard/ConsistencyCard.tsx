@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { Info } from "lucide-react";
 import {
   Tooltip,
@@ -28,7 +29,10 @@ export default function ConsistencyCard({
 }: {
   percentage: number;
 }) {
-  // Esimerkkidataa – voit korvata tämän dynaamisella datalla
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const axisColor = isDark ? "#64748b" : "#94a3b8";
+
   const data = [
     { day: "Ma", count: 1 },
     { day: "Ti", count: 0 },
@@ -39,28 +43,27 @@ export default function ConsistencyCard({
     { day: "Su", count: 1 },
   ];
 
-  // Väri-logiikka
-  let strokeColor = "stroke-slate-400";
-  let badgeColor = "bg-slate-100 text-slate-700";
+  let strokeColor = "stroke-slate-400 dark:stroke-slate-500";
+  let badgeColor = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
 
   if (percentage <= 20) {
-    strokeColor = "stroke-red-700";
-    badgeColor = "bg-red-100 text-red-700";
+    strokeColor = "stroke-red-700 dark:stroke-red-400";
+    badgeColor = "bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-300";
   } else if (percentage <= 39) {
-    strokeColor = "stroke-red-500";
-    badgeColor = "bg-red-100 text-red-700";
+    strokeColor = "stroke-red-500 dark:stroke-red-400";
+    badgeColor = "bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-300";
   } else if (percentage <= 54) {
-    strokeColor = "stroke-amber-500";
-    badgeColor = "bg-amber-100 text-amber-700";
+    strokeColor = "stroke-amber-500 dark:stroke-amber-400";
+    badgeColor = "bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300";
   } else if (percentage <= 69) {
-    strokeColor = "stroke-orange-500";
-    badgeColor = "bg-orange-100 text-orange-700";
+    strokeColor = "stroke-orange-500 dark:stroke-orange-400";
+    badgeColor = "bg-orange-100 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300";
   } else if (percentage <= 84) {
-    strokeColor = "stroke-emerald-500";
-    badgeColor = "bg-emerald-100 text-emerald-700";
+    strokeColor = "stroke-emerald-500 dark:stroke-emerald-400";
+    badgeColor = "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
   } else {
-    strokeColor = "stroke-emerald-600";
-    badgeColor = "bg-emerald-100 text-emerald-700";
+    strokeColor = "stroke-emerald-600 dark:stroke-emerald-400";
+    badgeColor = "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
   }
 
   const radius = 22;
@@ -70,13 +73,12 @@ export default function ConsistencyCard({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <div className="relative flex h-[150px] flex-row items-center justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300">
-          {/* Ikonin sijoitus oikeaan yläkulmaan */}
+        <div className="relative flex h-[150px] flex-row items-center justify-between overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600">
           <div className="absolute top-4 right-4">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Info className="h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                  <Info className="h-4 w-4 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs p-3">
                   <p className="text-xs leading-relaxed">
@@ -89,7 +91,7 @@ export default function ConsistencyCard({
                     lähettäminen tai työpaikan tallentaminen suosikkeihin.
                     <br />
                     <br />
-                    <span className="font-medium text-slate-500">
+                    <span className="font-medium text-slate-500 dark:text-slate-400">
                       Kaava: (Aktiiviset päivät / 7) × 100
                     </span>
                     <br />
@@ -103,7 +105,7 @@ export default function ConsistencyCard({
             </TooltipProvider>
           </div>
           <div className="flex flex-col">
-            <h3 className="text-sm font-semibold tracking-tight text-slate-500 flex items-center gap-2">
+            <h3 className="text-sm font-semibold tracking-tight text-slate-500 dark:text-slate-400 flex items-center gap-2">
               Työnhaun aktiivisuus
             </h3>
 
@@ -113,20 +115,19 @@ export default function ConsistencyCard({
               {percentage}%
             </span>
 
-            <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Viimeiset 7 päivää
             </p>
           </div>
 
-          {/* Progress-rengas */}
-          <div className="relative h-20 w-20  mr-8 md:hidden xl:block xl:mr-2 2xl:mr-8">
+          <div className="relative h-20 w-20 mr-8 md:hidden xl:block xl:mr-2 2xl:mr-8">
             <svg className="h-full w-full -rotate-90" viewBox="0 0 52 52">
               <circle
                 cx="26"
                 cy="26"
                 r={radius}
                 fill="none"
-                className="stroke-slate-100"
+                className="stroke-slate-100 dark:stroke-slate-800"
                 strokeWidth="6"
               />
               <circle
@@ -152,9 +153,15 @@ export default function ConsistencyCard({
         <div className="h-64 w-full mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
-              <ChartTooltip />
+              <XAxis dataKey="day" stroke={axisColor} fontSize={12} />
+              <YAxis stroke={axisColor} fontSize={12} />
+              <ChartTooltip
+                contentStyle={
+                  isDark
+                    ? { background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0" }
+                    : undefined
+                }
+              />
               <Line
                 type="monotone"
                 dataKey="count"
@@ -164,7 +171,7 @@ export default function ConsistencyCard({
               />
             </LineChart>
           </ResponsiveContainer>
-          <p className="text-sm text-slate-500 mt-6 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-6 text-center">
             Olet ollut aktiivinen <strong>{percentage}%</strong> ajasta
             viimeisen viikon aikana.
           </p>

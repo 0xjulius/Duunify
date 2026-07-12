@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation"; // Lisätty istunnon ohjausta varten
+import { useRouter } from "next/navigation";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -17,19 +18,27 @@ import { eachDayOfInterval, format, subDays, isAfter } from "date-fns";
 type ChartRow = { day: string; applications: number };
 type Application = { applied_date: string };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-800">
-        <p className="font-medium text-slate-400">{label}</p>
-        <p className="mt-0.5 font-bold text-sm text-indigo-400">
-          {payload[0].value} hakemusta kasassa
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+function makeCustomTooltip(isDark: boolean) {
+  return function CustomTooltip({ active, payload, label }: any) {
+    if (active && payload && payload.length) {
+      return (
+        <div
+          className={`p-3 rounded-xl shadow-xl text-xs border ${
+            isDark
+              ? "bg-slate-800 text-slate-100 border-slate-700"
+              : "bg-slate-900 text-white border-slate-800"
+          }`}
+        >
+          <p className={isDark ? "text-slate-400" : "text-slate-400"}>{label}</p>
+          <p className="mt-0.5 font-bold text-sm text-indigo-400">
+            {payload[0].value} hakemusta kasassa
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+}
 
 function calculate(rows: Application[]) {
   const baseDate = new Date();
@@ -71,6 +80,12 @@ export default function ApplicationTrendChart({
   demoApplications?: Application[];
 }) {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const axisColor = isDark ? "#64748b" : "#94a3b8";
+  const gridColor = isDark ? "#1e293b" : "#f1f5f9";
+  const CustomTooltip = makeCustomTooltip(isDark);
+
   const initial = demoApplications ? calculate(demoApplications) : null;
 
   const [data, setData] = useState<ChartRow[]>(initial?.chartData || []);
@@ -87,8 +102,10 @@ export default function ApplicationTrendChart({
   async function loadData() {
     setLoading(true);
 
-    // 1. Haetaan kirjautuneen käyttäjän istunto tietoturvaa varten
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
     if (sessionError || !session) {
       console.error("Ei voimassa olevaa istuntoa trendikomponentissa.");
@@ -97,17 +114,15 @@ export default function ApplicationTrendChart({
       return;
     }
 
-    // Luodaan aloituspäivämäärä edelliselle jaksolle (60 päivää taaksepäin, jotta trendivertailu toimii)
     const baseDate = new Date();
     const startOfPreviousPeriod = subDays(baseDate, 59);
     const formattedStartDate = format(startOfPreviousPeriod, "yyyy-MM-dd");
 
-    // 2. KORJAUKSET: Lisätty .eq("user_id") ja laajennettu haku 60 päivään (.gte muutos)
     const { data: applications, error } = await supabase
       .from("applications")
       .select("applied_date")
-      .eq("user_id", session.user.id) // 🔥 TIETOTURVAKORJAUS
-      .gte("applied_date", formattedStartDate) // 🛠️ BUGIKORJAUS: Haetaan 60 päivää 30 päivän sijaan
+      .eq("user_id", session.user.id)
+      .gte("applied_date", formattedStartDate)
       .order("applied_date");
 
     if (error) {
@@ -128,20 +143,20 @@ export default function ApplicationTrendChart({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-[340px] flex items-center justify-center">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm h-[340px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-slate-400 font-medium">Ladataan trendiä...</p>
+          <div className="w-6 h-6 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Ladataan trendiä...</p>
         </div>
       </div>
     );
   }
-  
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between h-[340px]">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between h-[340px]">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-900">Hakemuksia ajassa</h2>
-        <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Hakemuksia ajassa</h2>
+        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-lg">
           {totalCount} yhteensä
         </span>
       </div>
@@ -156,11 +171,11 @@ export default function ApplicationTrendChart({
               </linearGradient>
             </defs>
 
-            <CartesianGrid strokeDasharray="0" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="0" stroke={gridColor} />
 
             <XAxis
               dataKey="day"
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: axisColor }}
               tickLine={false}
               axisLine={false}
               dy={10}
@@ -169,7 +184,7 @@ export default function ApplicationTrendChart({
 
             <YAxis
               allowDecimals={false}
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: axisColor }}
               tickLine={false}
               axisLine={false}
               dx={-5}
@@ -191,12 +206,12 @@ export default function ApplicationTrendChart({
 
       <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold mt-2">
         {percentageChange >= 0 ? (
-          <span className="text-emerald-600 flex items-center gap-1">
-            ↑ {percentageChange} % <span className="text-slate-500 font-medium">enemmän kuin edelliset 30 päivää</span>
+          <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            ↑ {percentageChange} % <span className="text-slate-500 dark:text-slate-400 font-medium">enemmän kuin edelliset 30 päivää</span>
           </span>
         ) : (
-          <span className="text-amber-600 flex items-center gap-1">
-            ↓ {Math.abs(percentageChange)} % <span className="text-slate-500 font-medium">vähemmän kuin edelliset 30 päivää</span>
+          <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            ↓ {Math.abs(percentageChange)} % <span className="text-slate-500 dark:text-slate-400 font-medium">vähemmän kuin edelliset 30 päivää</span>
           </span>
         )}
       </div>
