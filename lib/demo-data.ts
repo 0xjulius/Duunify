@@ -252,3 +252,92 @@ export function computeDemoLocationStats() {
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
 }
+
+// Muuta nämä kaksi rivin alkua "export function"-muotoon:
+export function daysFromNow(offset: number, hour = 9): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  d.setHours(hour, 0, 0, 0);
+  return d.toISOString();
+}
+
+export function dateOnlyFromNow(offset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split("T")[0];
+}
+
+// --- SUOSIKIT: demo-työpaikat suhteellisin päivämäärin ---
+export interface DemoFavoriteJob {
+  id: string;
+  company: string;
+  job_title: string;
+  location: string;
+  salary: string;
+  status: "Tallennettu" | "Arkistoitu";
+  valid_through: string | null;
+  created_at: string;
+  notes?: string;
+  job_description?: string;
+  job_url?: string;
+}
+
+export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
+  return [
+    {
+      id: "fav-1",
+      company: "Reaktor",
+      job_title: "Software Engineer",
+      location: "Etä",
+      salary: "4200–5200 €/kk",
+      status: "Tallennettu",
+      valid_through: dateOnlyFromNow(5),
+      created_at: daysFromNow(-2),
+      job_description: "Rakennat asiakkaidemme digitaalisia palveluita moderneilla teknologioilla.",
+    },
+    {
+      id: "fav-2",
+      company: "Gofore",
+      job_title: "Cloud Consultant",
+      location: "Tampere",
+      salary: "3800–4600 €/kk",
+      status: "Tallennettu",
+      valid_through: dateOnlyFromNow(14),
+      created_at: daysFromNow(-4),
+      job_description: "Autat asiakkaita pilvipalveluiden käyttöönotossa ja optimoinnissa.",
+    },
+    {
+      id: "fav-3",
+      company: "Nixu",
+      job_title: "Security Specialist",
+      location: "Helsinki",
+      salary: "4000–5000 €/kk",
+      status: "Tallennettu",
+      valid_through: dateOnlyFromNow(2),
+      created_at: daysFromNow(-9),
+      job_description: "Tietoturva-arviointeja ja -konsultointia yrityksille.",
+    },
+    {
+      id: "fav-4",
+      company: "Solita",
+      job_title: "Data Engineer",
+      location: "Oulu",
+      salary: "3900–4700 €/kk",
+      status: "Arkistoitu",
+      valid_through: null,
+      created_at: daysFromNow(-15),
+      job_description: "Data-alustojen rakentamista ja ylläpitoa.",
+    },
+    {
+      id: "fav-5",
+      company: "Vaadin",
+      job_title: "Frontend Engineer",
+      location: "Turku",
+      salary: "3700–4500 €/kk",
+      status: "Arkistoitu",
+      valid_through: null,
+      created_at: daysFromNow(-21),
+      job_description: "Avoimen lähdekoodin UI-komponenttien kehitystä.",
+    },
+  ];
+}

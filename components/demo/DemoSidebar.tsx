@@ -26,10 +26,10 @@ import { DEMO_USER } from "@/lib/demo-data";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
-  { icon: Briefcase, label: "#", href: "#" },
-  { icon: Calendar, label: "Kalenteri", href: "#" },
-  { icon: StarPlus, label: "Suosikit", href: "#" },
-  { icon: SquareActivity, label: "Toimintaloki", href: "#" },
+  { icon: Briefcase, label: "Hakemukset", href: "/demo/applications" },
+  { icon: Calendar, label: "Kalenteri", href: "/demo/calendar" },
+  { icon: StarPlus, label: "Suosikit", href: "/demo/favorites" },
+  { icon: SquareActivity, label: "Toimintaloki", href: "/demo/history" },
 ];
 
 export default function DemoSidebar() {

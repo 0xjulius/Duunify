@@ -1,11 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import Sidebar from "@/components/Sidebar";
+import { useState } from "react";
+import { toast } from "sonner";
+import DemoSidebar from "@/components/demo/DemoSidebar";
 import {
   Bookmark,
   Filter,
@@ -15,126 +12,56 @@ import {
   Trash2,
   ArchiveRestore,
   Eye,
-  Calendar,
-  Plus,
 } from "lucide-react";
+import { buildDemoFavoriteJobs, DemoFavoriteJob } from "@/lib/demo-data";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
-import AddApplicationForm from "@/app/applications/AddApplicationForm";
-
-type FavoriteJob = {
-  id: string;
-  company: string;
-  job_title: string;
-  location: string;
-  salary: string;
-  days_left?: number;
-  status: string;
-  valid_through?: string;
-  notes?: string;
-  job_description?: string;
-  job_url?: string;
-  applied_date?: string;
-  cv_url?: string;
-  created_at?: string;
-};
 
 type StatType = "tallennetut" | "uudet" | "paattyvat" | "arkistoidut" | null;
 
-export default function SavedJobsPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Kaikki");
-  const [jobs, setJobs] = useState<FavoriteJob[]>([]);
-  const [loading, setLoading] = useState(true);
+function computeDaysLeft(job: DemoFavoriteJob) {
+  if (!job.valid_through) return 0;
+  const today = new Date().getTime();
+  const deadline = new Date(job.valid_through).getTime();
+  return Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+}
 
+export default function DemoFavoritesPage() {
+  const [activeTab, setActiveTab] = useState("Kaikki");
+  // Tarkoituksella ilman setJobs-mutaatiota käytössä muualla — data pysyy
+  // aina samana, koska demossa ei saa arkistoida/palauttaa mitään.
+  const [jobs] = useState<DemoFavoriteJob[]>(() => buildDemoFavoriteJobs());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<FavoriteJob | null>(null);
-
-  // Tila stat-modalille
+  const [selectedJob, setSelectedJob] = useState<DemoFavoriteJob | null>(null);
   const [activeStatFilter, setActiveStatFilter] = useState<StatType>(null);
 
-  const handleOpenJob = (job: FavoriteJob) => {
+  function handleOpenJob(job: DemoFavoriteJob) {
     setSelectedJob(job);
     setIsModalOpen(true);
-  };
-
-  const fetchFavorites = useCallback(async () => {
-    setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      router.push("/login");
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("applications")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .in("status", ["Tallennettu", "Arkistoitu"])
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Virhe suosikkien haussa:", error);
-    }
-
-    if (!error && data) {
-      const today = new Date().getTime();
-      const formattedData = data.map((job: any) => {
-        let days = 0;
-        if (job.valid_through) {
-          const deadlineDate = new Date(job.valid_through).getTime();
-          days = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
-        }
-        return { ...job, days_left: days };
-      });
-      setJobs(formattedData as FavoriteJob[]);
-    }
-    setLoading(false);
-  }, [router]);
-
-  const toggleArchive = async (e: React.MouseEvent, job: FavoriteJob) => {
-    e.stopPropagation();
-    const newStatus =
-      job.status === "Tallennettu" ? "Arkistoitu" : "Tallennettu";
-
-    setJobs((prev) =>
-      prev.map((j) => (j.id === job.id ? { ...j, status: newStatus } : j)),
-    );
-
-    const { error } = await supabase
-      .from("applications")
-      .update({ status: newStatus })
-      .eq("id", job.id);
-
-    if (error) {
-      console.error("Virhe statuksen päivittämisessä:", error);
-      fetchFavorites();
-    }
-  };
-
-  useEffect(() => {
-    fetchFavorites();
-  }, [fetchFavorites]);
-
-  function handleAddSuccess() {
-    setShowForm(false);
-    fetchFavorites();
   }
 
-  // --- STATS-LASKURIT JA SUODATUKSET ---
+  // Arkistointi/palautus on tarkoituksella pois käytöstä demoversiossa.
+  // Ei muuteta tilaa millään tavalla — vain ilmoitetaan käyttäjälle.
+  function handleDisabledAction(e: React.MouseEvent) {
+    e.stopPropagation();
+    toast.info("Tämä toiminto ei ole käytössä demoversiossa.");
+  }
+
+  function handleDemoFormSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    toast.info("Uuden työpaikan tallentaminen ei ole käytössä demoversiossa.");
+    setShowForm(false);
+  }
+
   const activeJobs = jobs.filter((j) => j.status === "Tallennettu");
   const archivedJobs = jobs.filter((j) => j.status === "Arkistoitu");
 
-  const expiringSoonJobs = activeJobs.filter(
-    (j) =>
-      typeof j.days_left === "number" && j.days_left <= 7 && j.days_left > 0,
-  );
+  const expiringSoonJobs = activeJobs.filter((j) => {
+    const days = computeDaysLeft(j);
+    return j.valid_through && days <= 7 && days > 0;
+  });
 
   const addedLastWeekJobs = activeJobs.filter((j) => {
-    if (!j.created_at) return false;
     const createdAt = new Date(j.created_at).getTime();
     const sevenDaysAgo = new Date().getTime() - 7 * 24 * 60 * 60 * 1000;
     return createdAt >= sevenDaysAgo;
@@ -142,17 +69,13 @@ export default function SavedJobsPage() {
 
   const filteredActiveJobs = activeJobs.filter((job) => {
     if (activeTab === "Päättyy pian") {
-      return (
-        typeof job.days_left === "number" &&
-        job.days_left <= 7 &&
-        job.days_left > 0
-      );
+      const days = computeDaysLeft(job);
+      return job.valid_through && days <= 7 && days > 0;
     }
     return true;
   });
 
-  // Haetaan lista stat-modalille valinnan mukaan
-  const getStatModalJobs = () => {
+  function getStatModalJobs() {
     switch (activeStatFilter) {
       case "tallennetut":
         return activeJobs;
@@ -165,9 +88,9 @@ export default function SavedJobsPage() {
       default:
         return [];
     }
-  };
+  }
 
-  const getStatModalTitle = () => {
+  function getStatModalTitle() {
     switch (activeStatFilter) {
       case "tallennetut":
         return "Aktiiviset suosikit";
@@ -180,11 +103,11 @@ export default function SavedJobsPage() {
       default:
         return "";
     }
-  };
+  }
 
   return (
-    <main className="min-h-screen flex flex-col lg:flex-row bg-slate-50 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300 text-slate-900 dark:text-slate-50">
-      <Sidebar />
+    <main className="min-h-screen flex flex-col lg:flex-row bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200">
+      <DemoSidebar />
 
       <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
         <div className="max-w-[1500px] mx-auto">
@@ -195,7 +118,10 @@ export default function SavedJobsPage() {
                 <span className="bg-gradient-to-br from-indigo-200 to-violet-600 p-2.5 sm:p-3 rounded-xl shrink-0">
                   <Bookmark className="h-6 w-6 text-white" />
                 </span>
-                Tallennetut työpaikat
+                Tallennetut työpaikat{" "}
+                <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md font-normal">
+                  Demo
+                </span>
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm sm:text-base">
                 Työpaikat, jotka haluat laittaa talteen.
@@ -215,9 +141,9 @@ export default function SavedJobsPage() {
             </div>
           </div>
 
-          {/* INLINE LOMAKE */}
+          {/* KEVYT DEMO-LOMAKE */}
           {showForm && (
-            <div className="mb-8 relative border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900">
+            <div className="mb-8 relative border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 p-6">
               <button
                 onClick={() => setShowForm(false)}
                 className="absolute top-4 right-4 z-10 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition"
@@ -225,11 +151,28 @@ export default function SavedJobsPage() {
               >
                 <X size={18} />
               </button>
-              <AddApplicationForm onSuccess={handleAddSuccess} />
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-4">
+                Tallenna uusi työpaikka
+              </h3>
+              <form
+                onSubmit={handleDemoFormSubmit}
+                className="space-y-3 max-w-md"
+              >
+                <input
+                  placeholder="Työpaikan linkki (esim. duunitori.fi/...)"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
+                />
+                <button
+                  type="submit"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm"
+                >
+                  Hae tiedot ja tallenna
+                </button>
+              </form>
             </div>
           )}
 
-          {/* STATS - NYT KLIKATTAVAT JA INTERAKTIIVISET */}
+          {/* STATS */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 lg:mb-8">
             <button
               onClick={() => setActiveStatFilter("tallennetut")}
@@ -242,7 +185,7 @@ export default function SavedJobsPage() {
                 {activeJobs.length}
               </p>
               <p className="text-[11px] sm:text-xs text-indigo-600 dark:text-indigo-400 mt-2 font-medium flex items-center gap-1">
-                Aktiiviset suosikit{" "}
+                Aktiiviset suosikit
                 <Eye
                   size={12}
                   className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
@@ -261,7 +204,7 @@ export default function SavedJobsPage() {
                 {addedLastWeekJobs.length}
               </p>
               <p className="text-[11px] sm:text-xs text-emerald-600 dark:text-emerald-400 mt-2 font-medium flex items-center gap-1">
-                +{addedLastWeekJobs.length} viimeisen 7pv aikana{" "}
+                +{addedLastWeekJobs.length} viimeisen 7pv aikana
                 <Eye
                   size={12}
                   className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
@@ -280,7 +223,7 @@ export default function SavedJobsPage() {
                 {expiringSoonJobs.length}
               </p>
               <p className="text-[11px] sm:text-xs text-amber-600 dark:text-amber-400 mt-2 font-medium flex items-center gap-1">
-                Haku umpeutumassa{" "}
+                Haku umpeutumassa
                 <Eye
                   size={12}
                   className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
@@ -299,7 +242,7 @@ export default function SavedJobsPage() {
                 {archivedJobs.length}
               </p>
               <p className="text-[11px] sm:text-xs text-rose-600 dark:text-rose-400 mt-2 font-medium flex items-center gap-1">
-                <Trash2 size={12} /> Siirretty roskakoriin{" "}
+                <Trash2 size={12} /> Siirretty roskakoriin
                 <Eye
                   size={12}
                   className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
@@ -308,9 +251,8 @@ export default function SavedJobsPage() {
             </button>
           </div>
 
-          {/* MAIN CONTENT AREA - JAETTU NÄKYMÄ */}
+          {/* PÄÄSISÄLTÖ */}
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 lg:gap-8 items-start">
-            {/* VASEN REUNA: AKTIIVISET TYÖPAIKAT */}
             <div className="xl:col-span-3 min-w-0">
               <div className="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar h-[38px] items-center">
                 {["Kaikki", "Päättyy pian"].map((tab) => (
@@ -329,11 +271,7 @@ export default function SavedJobsPage() {
               </div>
 
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm transition-colors">
-                {loading ? (
-                  <div className="p-12 text-center text-slate-500 dark:text-slate-400">
-                    Ladataan työpaikkoja...
-                  </div>
-                ) : filteredActiveJobs.length === 0 ? (
+                {filteredActiveJobs.length === 0 ? (
                   <div className="p-12 text-center text-slate-400 dark:text-slate-500 text-sm">
                     Ei aktiivisia työpaikkoja tässä näkymässä.
                   </div>
@@ -364,13 +302,13 @@ export default function SavedJobsPage() {
                             {job.salary}
                           </p>
                           <p className="text-xs sm:text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1 justify-end whitespace-nowrap">
-                            <Clock size={13} /> {job.days_left ?? 0} pv
+                            <Clock size={13} /> {computeDaysLeft(job)} pv
                           </p>
                         </div>
                         <button
-                          onClick={(e) => toggleArchive(e, job)}
-                          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 text-slate-400 transition-colors"
-                          title="Siirrä roskakoriin"
+                          onClick={handleDisabledAction}
+                          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-60"
+                          title="Ei käytössä demossa"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -381,7 +319,6 @@ export default function SavedJobsPage() {
               </div>
             </div>
 
-            {/* OIKEA REUNA: ROSKAKORI & HAKU */}
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center h-[38px]">
                 <h3 className="font-bold text-sm sm:text-base text-slate-500 dark:text-slate-400 flex items-center gap-2">
@@ -390,11 +327,7 @@ export default function SavedJobsPage() {
               </div>
 
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm transition-colors min-h-[140px] max-h-[400px] overflow-y-auto">
-                {loading ? (
-                  <div className="p-6 text-center text-slate-500 dark:text-slate-400 text-sm">
-                    Ladataan...
-                  </div>
-                ) : archivedJobs.length === 0 ? (
+                {archivedJobs.length === 0 ? (
                   <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs my-auto">
                     Roskakori on tyhjä.
                   </div>
@@ -414,9 +347,9 @@ export default function SavedJobsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={(e) => toggleArchive(e, job)}
-                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400 text-slate-400 transition-colors shrink-0"
-                        title="Palauta tallennettuihin"
+                        onClick={handleDisabledAction}
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-60 shrink-0"
+                        title="Ei käytössä demossa"
                       >
                         <ArchiveRestore size={16} />
                       </button>
@@ -439,7 +372,7 @@ export default function SavedJobsPage() {
         </div>
       </div>
 
-      {/* STATS MODAL - SMOOTH FADE-IN & FADE-OUT */}
+      {/* STATS MODAL */}
       <div
         onClick={() => setActiveStatFilter(null)}
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm transition-all duration-300 cursor-pointer ${
@@ -456,7 +389,6 @@ export default function SavedJobsPage() {
               : "opacity-0 scale-95 translate-y-4"
           }`}
         >
-          {/* Modal Header */}
           <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/20">
             <div>
               <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">
@@ -474,7 +406,6 @@ export default function SavedJobsPage() {
             </button>
           </div>
 
-          {/* Modal Content */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 divide-y divide-slate-100 dark:divide-slate-800/60">
             {getStatModalJobs().length === 0 ? (
               <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-sm">
@@ -511,7 +442,7 @@ export default function SavedJobsPage() {
                       </span>
                     )}
                     <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                      <Clock size={12} /> {job.days_left ?? 0} pv
+                      <Clock size={12} /> {computeDaysLeft(job)} pv
                     </span>
                   </div>
                 </div>
@@ -521,10 +452,12 @@ export default function SavedJobsPage() {
         </div>
       </div>
 
+      {/* Oikea ApplicationDialog avautuu myös demossa */}
       <ApplicationDialog
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        app={selectedJob}
+        app={selectedJob as any}
+        isDemo={true}
       />
     </main>
   );
