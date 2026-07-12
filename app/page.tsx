@@ -144,7 +144,6 @@ export default function LandingPage() {
                     background:
                       "conic-gradient(#6D67F2 0% 35%, #F59E0B 35% 55%, #22C55E 55% 70%, #EF4444 70% 85%, var(--tw-pie-empty, #E2E8F0) 85% 100%)",
                   }}
-                  className="w-24 h-24 rounded-full shrink-0 [calc(var(--tw-pie-empty):#E2E8F0)] dark:[--tw-pie-empty:#334155]"
                 />
                 <div className="flex-1 space-y-2">
                   <LegendRow color="#6D67F2" label="Haettu" value="35%" />
