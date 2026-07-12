@@ -15,8 +15,8 @@ type StatsCardProps = {
 const COLORS = {
   blue: {
     bg: "bg-blue-50 dark:bg-blue-500/10",
-    title: "text-blue-700 dark:text-blue-500",
-    value: "text-blue-900 dark:text-blue-400",
+    title: "text-blue-700 dark:text-blue-400",
+    value: "text-blue-900 dark:text-blue-300",
     text: "text-blue-600 dark:text-blue-400",
     hoverBorder: "hover:border-blue-500 dark:hover:border-blue-400",
   },
@@ -39,8 +39,8 @@ const COLORS = {
 
   red: {
     bg: "bg-red-50 dark:bg-red-500/10",
-    title: "text-red-700 dark:text-red-300",
-    value: "text-red-900 dark:text-red-200",
+    title: "text-red-700 dark:text-red-400",
+    value: "text-red-900 dark:text-red-300",
     text: "text-red-600 dark:text-red-400",
     hoverBorder: "hover:border-red-500 dark:hover:border-red-400",
   },
