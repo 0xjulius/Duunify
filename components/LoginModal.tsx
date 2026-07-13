@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
-import { createLog } from "@/lib/logger";
 import { X } from "lucide-react";
 import { loginAction } from "@/app/login/actions";
+import { loginWithGoogleAction } from "@/app/login/actions";
 
 export default function LoginModal({
   isOpen,
@@ -54,27 +54,13 @@ export default function LoginModal({
       if (result?.error) {
         setLoading(false);
         toast.error(translateAuthError(result.error));
-        await createLog({
-          action: "login_failed",
-          details: `Failed login attempt for email: ${email}`,
-          category: "auth",
-          status: "failure",
-        });
         return;
       }
-
-      // Onnistunut kirjautuminen
-      await createLog({
-        action: "login_success",
-        details: `Käyttäjä kirjautui sisään sähköpostilla: ${email}`,
-        category: "auth",
-        status: "success",
-      });
 
       toast.success("Tervetuloa takaisin 👋");
       if (onSuccess) onSuccess();
       onClose();
-      
+
       // Päivitetään reitittimen tila evästeiden synkronointia varten ja siirrytään dashboardille SPA-navigaatiolla
       router.refresh();
       router.push("/dashboard");
@@ -122,11 +108,14 @@ export default function LoginModal({
       email,
       password,
       options: {
-        data: { 
+        data: {
           full_name: fullName,
           user_agent: typeof window !== "undefined" ? navigator.userAgent : "",
-          referrer: typeof document !== "undefined" ? document.referrer || "Suoraan sivustolle" : "Suoraan sivustolle",
-          ip_address: ipAddress
+          referrer:
+            typeof document !== "undefined"
+              ? document.referrer || "Suoraan sivustolle"
+              : "Suoraan sivustolle",
+          ip_address: ipAddress,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
@@ -143,7 +132,7 @@ export default function LoginModal({
       toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
       if (onSuccess) onSuccess();
       onClose();
-      
+
       router.refresh();
       router.push("/dashboard");
     } else {
@@ -153,22 +142,13 @@ export default function LoginModal({
 
   async function loginWithGoogle() {
     setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    });
+    const result = await loginWithGoogleAction();
 
-    if (error) {
+    // Onnistuessa redirect() tapahtuu jo actions.ts:ssä, joten tänne
+    // päädytään ainoastaan jos aloitus epäonnistui.
+    if (result?.error) {
       setGoogleLoading(false);
-      toast.error(translateAuthError(error.message));
-      await createLog({
-        action: "login_failed",
-        details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
-        category: "auth",
-        status: "failure",
-      });
+      toast.error(translateAuthError(result.error));
     }
   }
 

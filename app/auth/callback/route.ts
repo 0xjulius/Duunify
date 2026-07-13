@@ -18,6 +18,7 @@ export async function GET(request: Request) {
           details: `Käyttäjä ${data.user.email} kirjautui sisään (Google OAuth)`,
           category: "auth",
           status: "success",
+          userId: data.user.id, // ← puuttui, korjattu
         });
       } catch (logError) {
         console.error("Lokituksen tallennus epäonnistui:", logError);

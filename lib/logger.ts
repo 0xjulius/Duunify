@@ -13,8 +13,8 @@ export async function createLog({
   const headerList = await headers();
   const ipAddress = headerList.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
   const userAgent = headerList.get("user-agent") || "Tuntematon selain";
+  const referrer = headerList.get("referer") || "Suoraan sivustolle";
 
-  // POISTA KAIKKI TURHA DATA: Varmistetaan että lähetämme vain puhtaita arvoja
   const { error } = await supabase.from("admin_logs").insert({
     user_id: userId,
     action: action,
@@ -23,7 +23,8 @@ export async function createLog({
     status: status,
     target_id: targetId,
     ip_address: ipAddress,
-    user_agent: userAgent
+    user_agent: userAgent,
+    referrer: referrer,
   });
 
   if (error) {

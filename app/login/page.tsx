@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
-import { createLog } from "@/lib/logger";
 import { loginAction } from "./actions";
+import { loginWithGoogleAction } from "@/app/login/actions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,22 +43,8 @@ export default function LoginPage() {
     if (result?.error) {
       setLoading(false);
       toast.error(translateAuthError(result.error));
-      await createLog({
-        action: "login_failed",
-        details: `Failed login attempt for email: ${email}`,
-        category: "auth",
-        status: "failure",
-      });
       return;
     }
-
-    // Lokitetaan onnistuminen (Huom: jos reititys katkeaa nopeasti, tämä voidaan siirtää actions.ts-tiedostoon)
-    await createLog({
-      action: "login_success",
-      details: `Käyttäjä kirjautui sisään sähköpostilla: ${email}`,
-      category: "auth",
-      status: "success",
-    });
   }
 
   async function register() {
@@ -127,26 +113,17 @@ export default function LoginPage() {
     }
   }
 
-  async function loginWithGoogle() {
-    setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    });
+async function loginWithGoogle() {
+  setGoogleLoading(true);
+  const result = await loginWithGoogleAction();
 
-    if (error) {
-      setGoogleLoading(false);
-      toast.error(translateAuthError(error.message));
-      await createLog({
-        action: "login_failed",
-        details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
-        category: "auth",
-        status: "failure",
-      });
-    }
+  // Onnistuessa redirect() tapahtuu jo actions.ts:ssä, joten tänne
+  // päädytään ainoastaan jos aloitus epäonnistui.
+  if (result?.error) {
+    setGoogleLoading(false);
+    toast.error(translateAuthError(result.error));
   }
+}
 
   return (
     <div

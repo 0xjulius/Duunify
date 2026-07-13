@@ -8,6 +8,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Globe,
 } from "lucide-react";
 
 type AdminLog = {
@@ -15,7 +16,9 @@ type AdminLog = {
   created_at: string;
   action: string;
   details: string;
-  ip_address: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  referrer: string | null;
   status: "success" | "failure" | "warning" | "critical" | "info";
   category: string;
   profiles: {
@@ -33,6 +36,35 @@ interface PageProps {
     search?: string;
     status?: string;
   }>;
+}
+
+// Kevyt UA-jäsennys — ei täydellinen, mutta riittää siistiin näyttöön.
+function parseUserAgent(ua: string | null): { label: string; full: string } {
+  if (!ua) return { label: "—", full: "" };
+
+  let browser = "Selain";
+  if (ua.includes("Edg/")) browser = "Edge";
+  else if (ua.includes("Chrome/") && !ua.includes("Chromium")) browser = "Chrome";
+  else if (ua.includes("Firefox/")) browser = "Firefox";
+  else if (ua.includes("Safari/") && !ua.includes("Chrome")) browser = "Safari";
+
+  let os = "";
+  if (ua.includes("Windows")) os = "Windows";
+  else if (ua.includes("Mac OS")) os = "macOS";
+  else if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+  else if (ua.includes("Linux")) os = "Linux";
+
+  return { label: os ? `${browser} · ${os}` : browser, full: ua };
+}
+
+function formatReferrer(referrer: string | null): string {
+  if (!referrer || referrer === "Suoraan sivustolle") return "Suoraan";
+  try {
+    return new URL(referrer).hostname.replace("www.", "");
+  } catch {
+    return referrer.slice(0, 24);
+  }
 }
 
 export default async function AdminLogsPage({ searchParams }: PageProps) {
@@ -76,6 +108,8 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
       action,
       details,
       ip_address,
+      user_agent,
+      referrer,
       status,
       category,
       user_id,
@@ -153,7 +187,7 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* Työkalurivi — Päivitetty yönsininen tausta */}
+      {/* Työkalurivi */}
       <div className="bg-white/60 dark:bg-[#111827] backdrop-blur-md p-4 rounded-2xl border border-slate-200 dark:border-[#1F2937]/50 shadow-sm space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between gap-4">
         <form method="GET" className="relative flex-1 max-w-md flex gap-2">
           <div className="relative flex-1">
@@ -213,17 +247,19 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* Lokitaulukko — Päivitetty yönsininen tausta */}
+      {/* Lokitaulukko */}
       <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-[#1F2937]/50 shadow-sm overflow-hidden">
         <div className="w-full overflow-x-auto">
-          <div className="min-w-[1000px] divide-y divide-slate-100 dark:divide-[#1F2937]/40">
+          <div className="min-w-[1280px] divide-y divide-slate-100 dark:divide-[#1F2937]/40">
             {/* Otsikkorivi */}
-            <div className="grid grid-cols-12 gap-4 border-b border-slate-200 dark:border-[#1F2937]/50 bg-slate-50 dark:bg-[#0B0F19] px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              <div className="col-span-2">Aikaleima</div>
-              <div className="col-span-3">Käyttäjä</div>
-              <div className="col-span-2">Tila / Toiminto</div>
-              <div className="col-span-3">Kuvaus</div>
-              <div className="col-span-2">IP-Osoite</div>
+            <div className="grid grid-cols-[130px_200px_150px_1fr_110px_150px_110px] gap-4 border-b border-slate-200 dark:border-[#1F2937]/50 bg-slate-50 dark:bg-[#0B0F19] px-6 py-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              <div>Aikaleima</div>
+              <div>Käyttäjä</div>
+              <div>Tila / Toiminto</div>
+              <div>Kuvaus</div>
+              <div>IP-osoite</div>
+              <div>Selain</div>
+              <div>Lähde</div>
             </div>
 
             {/* Sisältörivit */}
@@ -238,73 +274,92 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
                 </p>
               </div>
             ) : (
-              logs.map((log: AdminLog) => (
-                <div
-                  key={log.id}
-                  className="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50/60 dark:hover:bg-[#0B0F19]/30 transition text-sm text-slate-700 dark:text-slate-300"
-                >
-                  {/* AIKALEIMA */}
-                  <div className="col-span-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {new Date(log.created_at).toLocaleString("fi-FI")}
-                  </div>
+              logs.map((log: AdminLog) => {
+                const ua = parseUserAgent(log.user_agent);
+                const referrerLabel = formatReferrer(log.referrer);
 
-                  {/* KÄYTTÄJÄ */}
-                  <div className="col-span-3 font-medium min-w-0">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {log.profiles ? (
-                        <img
-                          src={
-                            log.profiles.avatar_url ||
-                            `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(log.profiles.email)}&backgroundColor=4f46e5&textColor=ffffff`
-                          }
-                          alt="Avatar"
-                          className="w-8 h-8 rounded-full border border-slate-300 dark:border-zinc-700 object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <img
-                          src="https://api.dicebear.com/7.x/bottts/svg?seed=system&backgroundColor=4f46e5"
-                          alt="System Avatar"
-                          className="w-8 h-8 rounded-full border border-slate-300 dark:border-zinc-700 object-cover flex-shrink-0"
-                        />
-                      )}
+                return (
+                  <div
+                    key={log.id}
+                    className="grid grid-cols-[130px_200px_150px_1fr_110px_150px_110px] gap-4 items-center px-6 py-4 hover:bg-slate-50/60 dark:hover:bg-[#0B0F19]/30 transition text-sm text-slate-700 dark:text-slate-300"
+                  >
+                    {/* AIKALEIMA */}
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      {new Date(log.created_at).toLocaleString("fi-FI")}
+                    </div>
 
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                          {log.profiles?.email || (
-                            <span className="text-indigo-600 dark:text-[#3B82F6] font-extrabold uppercase text-xs tracking-wider">
-                              Järjestelmä
+                    {/* KÄYTTÄJÄ */}
+                    <div className="font-medium min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {log.profiles ? (
+                          <img
+                            src={
+                              log.profiles.avatar_url ||
+                              `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(log.profiles.email)}&backgroundColor=4f46e5&textColor=ffffff`
+                            }
+                            alt="Avatar"
+                            className="w-8 h-8 rounded-full border border-slate-300 dark:border-zinc-700 object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <img
+                            src="https://api.dicebear.com/7.x/bottts/svg?seed=system&backgroundColor=4f46e5"
+                            alt="System Avatar"
+                            className="w-8 h-8 rounded-full border border-slate-300 dark:border-zinc-700 object-cover flex-shrink-0"
+                          />
+                        )}
+
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                            {log.profiles?.email || (
+                              <span className="text-indigo-600 dark:text-[#3B82F6] font-extrabold uppercase text-xs tracking-wider">
+                                Järjestelmä
+                              </span>
+                            )}
+                          </span>
+                          {log.profiles?.role === "admin" && (
+                            <span className="w-fit mt-0.5 text-[9px] bg-slate-900 dark:bg-[#0B0F19] text-white px-1.5 py-0.5 rounded font-black uppercase tracking-wider border dark:border-[#1F2937]/50">
+                              Admin
                             </span>
                           )}
-                        </span>
-                        {log.profiles?.role === "admin" && (
-                          <span className="w-fit mt-0.5 text-[9px] bg-slate-900 dark:bg-[#0B0F19] text-white px-1.5 py-0.5 rounded font-black uppercase tracking-wider border dark:border-[#1F2937]/50">
-                            Admin
-                          </span>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* TILA / TOIMINTO */}
-                  <div className="col-span-2">
-                    <span
-                      className={`inline-flex items-center justify-center px-3 py-1.5 rounded text-xs tracking-wide min-w-[130px] text-center ${getStatusStyles(log.status || "info")}`}
+                    {/* TILA / TOIMINTO */}
+                    <div>
+                      <span
+                        className={`inline-flex items-center justify-center px-3 py-1.5 rounded text-xs tracking-wide min-w-[130px] text-center ${getStatusStyles(log.status || "info")}`}
+                      >
+                        {log.action}
+                      </span>
+                    </div>
+
+                    {/* KUVAUS */}
+                    <div className="font-normal text-slate-600 dark:text-zinc-300 break-words pr-2">
+                      {log.details}
+                    </div>
+
+                    {/* IP-OSOITE */}
+                    <div className="text-xs font-mono text-slate-500 dark:text-slate-400 font-bold truncate">
+                      {log.ip_address || "—"}
+                    </div>
+
+                    {/* SELAIN (User-Agent) */}
+                    <div
+                      className="text-xs text-slate-500 dark:text-slate-400 truncate"
+                      title={ua.full}
                     >
-                      {log.action}
-                    </span>
-                  </div>
+                      {ua.label}
+                    </div>
 
-                  {/* KUVAUS */}
-                  <div className="col-span-3 font-normal text-slate-600 dark:text-zinc-300 break-words pr-2">
-                    {log.details}
+                    {/* LÄHDE (Referrer) */}
+                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+                      <Globe size={11} className="shrink-0 opacity-60" />
+                      {referrerLabel}
+                    </div>
                   </div>
-
-                  {/* IP-OSOITE */}
-                  <div className="col-span-2 text-xs font-mono text-slate-500 dark:text-slate-400 font-bold truncate">
-                    {log.ip_address || "—"}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
