@@ -59,7 +59,7 @@ export default function LoginModal({
     router.refresh();
   }
 
-  async function register() {
+async function register() {
     if (!meetsRequirements) {
       toast.error(
         "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta.",
@@ -74,7 +74,6 @@ export default function LoginModal({
 
     setLoading(true);
 
-    // Haetaan käyttäjän julkinen IP-osoite taustalla ennen rekisteröintiä
     let ipAddress = "Ei saatavilla";
     try {
       const res = await fetch("https://api.ipify.org?format=json");
@@ -84,11 +83,10 @@ export default function LoginModal({
       console.error("IP-osoitteen haku epäonnistui:", e);
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        // IP, Selain (user_agent) ja Tulolähde (referrer) tallennetaan metadataan
         data: { 
           full_name: fullName,
           user_agent: navigator.userAgent,
@@ -105,7 +103,18 @@ export default function LoginModal({
       toast.error(translateAuthError(error.message));
       return;
     }
-    toast.success("Tarkista sähköpostisi.");
+
+    // PÄIVITETTY LOGIIKKA: Jos sähköpostivahvistus on pois päältä, Supabase luo heti istunnon (session)
+    if (data?.session) {
+      toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
+      if (onSuccess) onSuccess();
+      onClose();
+      router.push("/dashboard");
+      router.refresh();
+    } else {
+      // Jos vahvistus olisi jostain syystä päällä, näytetään tämä
+      toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
+    }
   }
 
   async function loginWithGoogle() {
