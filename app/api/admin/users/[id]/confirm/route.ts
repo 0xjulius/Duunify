@@ -1,20 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
-// Luodaan palvelin-asiakas palvelun hallinta-avaimella (service_role)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+type RouteParams = {
+  params: Promise<{ id: string }>;
+};
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  props: RouteParams
 ) {
-  const { id } = params;
+  const { id } = await props.params;
 
-  // Päivitetään käyttäjän tili vahvistetuksi
-  const { error } = await supabaseAdmin.auth.admin.updateUserById(id, {
+  const admin = createAdminClient();
+
+  const { error } = await admin.auth.admin.updateUserById(id, {
     email_confirm: true,
   });
 
