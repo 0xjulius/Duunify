@@ -25,11 +25,6 @@ export async function GET(request: Request) {
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  console.log("===== GOOGLE OAUTH CALLBACK =====");
-  console.log("Error:", error);
-  console.log("User:", data?.user?.email);
-  console.log("Has session:", !!data?.session);
-  console.log("===============================");
 
   if (error) {
     console.error("Google OAuth exchange failed:", error);
