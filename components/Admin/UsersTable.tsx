@@ -1,10 +1,9 @@
-// components/admin/UsersTable.tsx
 "use client";
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Search, Trash2, ShieldCheck, Shield, Bell, BellOff } from "lucide-react";
+import { Search, Trash2, ShieldCheck, Shield, Bell, BellOff, Mail, MailCheck } from "lucide-react"; // Tuotu uudet ikonit
 
 interface UserRow {
   id: string;
@@ -14,9 +13,9 @@ interface UserRow {
   role: string;
   created_at: string;
   applicationCount: number;
+  is_confirmed?: boolean; // Lisätty tieto vahvistuksesta
 }
 
-// Päivitetty vastaamaan page.tsx:n välittämää initialNotifySettings-propia
 export default function UsersTable({ 
   users: initial,
   currentAdminId,
@@ -30,14 +29,36 @@ export default function UsersTable({
   const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null); // Tila lataukselle
   
-  // Alustetaan tila suoraan korjatusta propsista
   const [notifyNewUsers, setNotifyNewUsers] = useState(initialNotifySettings);
   const [updatingNotify, setUpdatingNotify] = useState(false);
 
   const filtered = users.filter((u) =>
     (u.email + (u.full_name || "")).toLowerCase().includes(query.toLowerCase())
   );
+
+  // Uusi funktio manuaaliseen vahvistukseen
+  async function handleManuallyConfirm(user: UserRow) {
+    if (user.is_confirmed) return;
+    setConfirmingId(user.id);
+
+    const res = await fetch(`/api/admin/users/${user.id}/confirm`, {
+      method: "POST",
+    });
+
+    setConfirmingId(null);
+
+    if (!res.ok) {
+      toast.error("Vahvistus epäonnistui.");
+      return;
+    }
+
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, is_confirmed: true } : u))
+    );
+    toast.success(`Käyttäjä ${user.email} vahvistettu onnistuneesti!`);
+  }
 
   async function handleNotificationToggle(checked: boolean) {
     if (!currentAdminId) return;
@@ -150,7 +171,14 @@ export default function UsersTable({
                   )}
                   <div>
                     <p className="font-medium text-slate-900">{u.full_name || "—"}</p>
-                    <p className="text-xs text-slate-400">{u.email}</p>
+                    <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                      {u.email}
+                      {u.is_confirmed ? (
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-semibold">Vahvistettu</span>
+                      ) : (
+                        <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">Odottaa</span>
+                      )}
+                    </p>
                   </div>
                 </div>
               </td>
@@ -171,6 +199,20 @@ export default function UsersTable({
               </td>
               <td className="px-4 py-3">
                 <div className="flex justify-end gap-1.5">
+                  {/* UUSI TOIMINTOPAINIKE VAHVISTUKSELLE */}
+                  <button
+                    onClick={() => handleManuallyConfirm(u)}
+                    disabled={u.is_confirmed || confirmingId === u.id}
+                    title={u.is_confirmed ? "Sähköposti on jo vahvistettu" : "Vahvista sähköposti manuaalisesti"}
+                    className={`p-2 rounded-lg transition ${
+                      u.is_confirmed 
+                        ? "text-emerald-500 cursor-not-allowed" 
+                        : "hover:bg-slate-100 text-slate-400 hover:text-indigo-600"
+                    }`}
+                  >
+                    {u.is_confirmed ? <MailCheck size={16} /> : <Mail size={16} />}
+                  </button>
+
                   <button
                     onClick={() => toggleRole(u)}
                     title={u.role === "admin" ? "Poista admin-oikeus" : "Tee adminiksi"}
