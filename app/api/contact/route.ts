@@ -16,17 +16,23 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { name, email, subject, message, website } = body;
-
-    if (website) {
-      console.warn("Botti havaittu (honeypot):", website);
-      return NextResponse.json({ success: true });
-    }
-    
     const ip =
       req.headers.get("cf-connecting-ip") ??
       req.headers.get("x-real-ip") ??
       req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
       "Tuntematon";
+
+    if (website) {
+      // Tallenna lokiin tiedot, jotta näet kuka yritti ja milloin
+      console.warn("Botti havaittu (honeypot):", {
+        ip: ip, // Voit napata IP:n tässä
+        userAgent: req.headers.get("user-agent"),
+        websiteValue: website,
+      });
+
+      // Palautamme onnistumisen, jotta botti luulee onnistuneensa
+      return NextResponse.json({ success: true });
+    }
 
     const { success } = await ratelimit.limit(`contact_${ip}`);
 
@@ -39,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const admin = createAdminClient();
-    
+
     const userAgent = req.headers.get("user-agent") ?? "Tuntematon";
     const referer = req.headers.get("referer") ?? "Ei refereriä";
     const language = req.headers.get("accept-language") ?? "Tuntematon";
@@ -137,11 +143,11 @@ export async function POST(req: NextRequest) {
 
     try {
       const { data, error } = await resend.emails.send({
-  from: "Duunify <yhteydenotot@duunify.com>",
-  to: recipientEmail,
-  replyTo: trimmedEmail,
-  subject: `Uusi yhteydenotto: ${trimmedSubject}`,
-  html: `
+        from: "Duunify <yhteydenotot@duunify.com>",
+        to: recipientEmail,
+        replyTo: trimmedEmail,
+        subject: `Uusi yhteydenotto: ${trimmedSubject}`,
+        html: `
     <div style="font-family:sans-serif;max-width:600px;line-height:1.5;">
       <h2 style="color:#1e293b;">Uusi yhteydenotto</h2>
 
@@ -170,7 +176,7 @@ export async function POST(req: NextRequest) {
       </small>
     </div>
   `,
-});
+      });
 
       console.log("Resend response:", data);
 
