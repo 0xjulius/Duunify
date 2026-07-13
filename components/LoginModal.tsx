@@ -27,6 +27,9 @@ export default function LoginModal({
   const [googleLoading, setGoogleLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
+  // Honeypot-kentän tila boteille
+  const [honeypot, setHoneypot] = useState("");
+
   if (!isOpen) return null;
 
   const { checks, passedCount } = getPasswordStrength(password);
@@ -52,6 +55,14 @@ export default function LoginModal({
       return;
     }
 
+    // Onnistuneen manuaalisen kirjautumisen lokitus
+    await createLog({
+      action: "login_success",
+      details: `Käyttäjä kirjautui sisään sähköpostilla: ${email}`,
+      category: "auth",
+      status: "success",
+    });
+
     toast.success("Tervetuloa takaisin 👋");
     if (onSuccess) onSuccess();
     onClose();
@@ -59,7 +70,16 @@ export default function LoginModal({
     router.refresh();
   }
 
-async function register() {
+  async function register() {
+    // Jos honeypot-kenttään on kirjoitettu jotain, kyseessä on botti
+    if (honeypot) {
+      console.warn("Botti estetty honeypot-ansalla.");
+      toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
+      if (onSuccess) onSuccess();
+      onClose();
+      return;
+    }
+
     if (!meetsRequirements) {
       toast.error(
         "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta.",
@@ -104,7 +124,6 @@ async function register() {
       return;
     }
 
-    // PÄIVITETTY LOGIIKKA: Jos sähköpostivahvistus on pois päältä, Supabase luo heti istunnon (session)
     if (data?.session) {
       toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
       if (onSuccess) onSuccess();
@@ -112,7 +131,6 @@ async function register() {
       router.push("/dashboard");
       router.refresh();
     } else {
-      // Jos vahvistus olisi jostain syystä päällä, näytetään tämä
       toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
     }
   }
@@ -185,7 +203,7 @@ async function register() {
         </button>
 
         <div className={`duunify-card-inner ${flipped ? "is-flipped" : ""}`}>
-          {/* ---------- FRONT FACE ---------- */}
+          {/* ---------- FRONT FACE (LOGIN) ---------- */}
           <div
             className="duunify-face duunify-face-stack w-full rounded-[28px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 grid md:grid-cols-[44%_56%]"
             aria-hidden={flipped}
@@ -250,7 +268,7 @@ async function register() {
             </div>
           </div>
 
-          {/* ---------- BACK FACE ---------- */}
+          {/* ---------- BACK FACE (REGISTER) ---------- */}
           <div
             className="duunify-face duunify-face-stack duunify-face-back w-full rounded-[28px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 grid md:grid-cols-[56%_44%]"
             aria-hidden={!flipped}
@@ -271,6 +289,18 @@ async function register() {
                   className="space-y-3"
                   onSubmit={(e) => e.preventDefault()}
                 >
+                  {/* Honeypot-kenttä boteille piilotettuna CSS:llä */}
+                  <div style={{ display: "none" }} aria-hidden="true">
+                    <input
+                      type="text"
+                      name="company_website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                    />
+                  </div>
+
                   <TextField
                     label="Koko nimi"
                     type="text"
