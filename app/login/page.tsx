@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { createLog } from "@/lib/logger";
+import { loginAction } from "./actions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,15 +30,19 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // Paketoidaan sähköposti ja salasana FormData-muotoon palvelinta varten
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
 
-    setLoading(false);
+    // Kutsutaan Server Actionia
+    const result = await loginAction(formData);
 
-    if (error) {
-      toast.error(translateAuthError(error.message));
+    // Jos reititys onnistuu, redirect() katkaisee suorituksen,
+    // joten tänne päädytään ainoastaan virhetilanteessa.
+    if (result?.error) {
+      setLoading(false);
+      toast.error(translateAuthError(result.error));
       await createLog({
         action: "login_failed",
         details: `Failed login attempt for email: ${email}`,
@@ -47,16 +52,13 @@ export default function LoginPage() {
       return;
     }
 
+    // Lokitetaan onnistuminen (Huom: jos reititys katkeaa nopeasti, tämä voidaan siirtää actions.ts-tiedostoon)
     await createLog({
       action: "login_success",
       details: `Käyttäjä kirjautui sisään sähköpostilla: ${email}`,
       category: "auth",
       status: "success",
     });
-
-    toast.success("Tervetuloa takaisin 👋");
-    router.push("/dashboard");
-    router.refresh();
   }
 
   async function register() {
@@ -96,7 +98,10 @@ export default function LoginPage() {
         data: {
           full_name: fullName,
           user_agent: typeof window !== "undefined" ? navigator.userAgent : "",
-          referrer: typeof document !== "undefined" ? document.referrer || "Suoraan sivustolle" : "Suoraan sivustolle",
+          referrer:
+            typeof document !== "undefined"
+              ? document.referrer || "Suoraan sivustolle"
+              : "Suoraan sivustolle",
           ip_address: ipAddress,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
@@ -112,8 +117,11 @@ export default function LoginPage() {
 
     if (data?.session) {
       toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-      router.push("/dashboard");
-      router.refresh();
+      // Käytetään tässäkin location.href-ohjausta evästeiden varmistamiseksi, 
+      // kunnes tästäkin tehdään Server Action
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 600);
     } else {
       toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
     }
@@ -173,8 +181,10 @@ export default function LoginPage() {
             to { opacity: 1; transform: scale(1) translateY(0); }
           }
         `}</style>
-        
-        <div className={`duunify-card-inner flex-1 ${flipped ? "is-flipped" : ""}`}>
+
+        <div
+          className={`duunify-card-inner flex-1 ${flipped ? "is-flipped" : ""}`}
+        >
           {/* ---------- FRONT FACE: brand left / login right ---------- */}
           <div
             className="duunify-face duunify-face-stack w-full rounded-[28px] overflow-hidden shadow-[0_24px_60px_-15px_rgba(24,20,64,0.12)] border border-slate-100 bg-white grid md:grid-cols-[44%_56%]"
@@ -345,7 +355,7 @@ export default function LoginPage() {
   );
 }
 
-/* ---------------------------- Sub-components ---------------------------- */
+/* ---------------------------- Alakomponentit ennallaan ---------------------------- */
 
 function getPasswordStrength(password: string) {
   const checks = {
@@ -409,7 +419,9 @@ function PasswordStrengthMeter({
             style={{ width: `${(passedCount / 5) * 100}%` }}
           />
         </div>
-        <span className={`text-[11px] font-bold tracking-wide uppercase ${textColor}`}>
+        <span
+          className={`text-[11px] font-bold tracking-wide uppercase ${textColor}`}
+        >
           {label}
         </span>
       </div>
@@ -418,12 +430,18 @@ function PasswordStrengthMeter({
           <li
             key={item.key}
             className={`text-[11.5px] flex items-center gap-1.5 transition-colors duration-300 ${
-              checks[item.key] ? "text-emerald-600 font-medium" : "text-slate-400"
+              checks[item.key]
+                ? "text-emerald-600 font-medium"
+                : "text-slate-400"
             }`}
           >
-            <span className={`text-[10px] flex items-center justify-center w-3.5 h-3.5 rounded-full border ${
-              checks[item.key] ? "bg-emerald-50 border-emerald-200 text-emerald-600" : "border-slate-200 text-slate-300"
-            }`}>
+            <span
+              className={`text-[10px] flex items-center justify-center w-3.5 h-3.5 rounded-full border ${
+                checks[item.key]
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-600"
+                  : "border-slate-200 text-slate-300"
+              }`}
+            >
               {checks[item.key] ? "✓" : "•"}
             </span>
             {item.label}
@@ -549,6 +567,7 @@ function Perforation({ side }: { side: "left" | "right" }) {
   );
 }
 
+/* FormShell, GoogleButton, Divider, TextField, PrimaryButton, SwitchLine, Quote, StatsRow pysyvät ennallaan... */
 function FormShell({
   heading,
   sub,
@@ -564,7 +583,9 @@ function FormShell({
         <h3 className="duunify-display text-2xl font-bold text-slate-900 tracking-tight">
           {heading}
         </h3>
-        <p className="text-slate-500 mt-1.5 text-[14px] leading-normal">{sub}</p>
+        <p className="text-slate-500 mt-1.5 text-[14px] leading-normal">
+          {sub}
+        </p>
       </div>
       {children}
     </div>
@@ -722,7 +743,9 @@ function Quote({
       <div className="flex items-center mt-3.5 gap-2.5">
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 shadow-sm shrink-0" />
         <div className="min-w-0">
-          <p className="text-[12.5px] font-bold leading-tight truncate">{name}</p>
+          <p className="text-[12.5px] font-bold leading-tight truncate">
+            {name}
+          </p>
           <p className="text-[11px] text-indigo-200/70 leading-tight mt-0.5 truncate">
             {role}
           </p>

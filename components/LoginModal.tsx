@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { createLog } from "@/lib/logger";
 import { X } from "lucide-react";
+import { loginAction } from "@/app/login/actions";
 
 export default function LoginModal({
   isOpen,
@@ -37,41 +38,55 @@ export default function LoginModal({
     checks.length && checks.lowercase && checks.uppercase && checks.number;
 
   async function login() {
+    if (loading) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
 
-    if (error) {
-      toast.error(translateAuthError(error.message));
+    try {
+      // Paketoidaan syötteet FormData-muotoon Server Actionia varten
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+
+      // Kutsutaan palvelimen toimintoa (Server Action)
+      const result = await loginAction(formData);
+
+      // Jos Server Action palauttaa virheen, käsitellään se täällä
+      if (result?.error) {
+        setLoading(false);
+        toast.error(translateAuthError(result.error));
+        await createLog({
+          action: "login_failed",
+          details: `Failed login attempt for email: ${email}`,
+          category: "auth",
+          status: "failure",
+        });
+        return;
+      }
+
+      // Onnistunut kirjautuminen
       await createLog({
-        action: "login_failed",
-        details: `Failed login attempt for email: ${email}`,
+        action: "login_success",
+        details: `Käyttäjä kirjautui sisään sähköpostilla: ${email}`,
         category: "auth",
-        status: "failure",
+        status: "success",
       });
-      return;
+
+      toast.success("Tervetuloa takaisin 👋");
+      if (onSuccess) onSuccess();
+      onClose();
+      
+      // Päivitetään reitittimen tila evästeiden synkronointia varten ja siirrytään dashboardille SPA-navigaatiolla
+      router.refresh();
+      router.push("/dashboard");
+    } catch (err) {
+      setLoading(false);
+      console.error("Kirjautumisessa tapahtui odottamaton virhe:", err);
     }
-
-    // Onnistuneen manuaalisen kirjautumisen lokitus
-    await createLog({
-      action: "login_success",
-      details: `Käyttäjä kirjautui sisään sähköpostilla: ${email}`,
-      category: "auth",
-      status: "success",
-    });
-
-    toast.success("Tervetuloa takaisin 👋");
-    if (onSuccess) onSuccess();
-    onClose();
-    router.push("/dashboard");
-    router.refresh();
   }
 
   async function register() {
-    // Jos honeypot-kenttään on kirjoitettu jotain, kyseessä on botti
+    if (loading) return;
+
     if (honeypot) {
       console.warn("Botti estetty honeypot-ansalla.");
       toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
@@ -109,8 +124,8 @@ export default function LoginModal({
       options: {
         data: { 
           full_name: fullName,
-          user_agent: navigator.userAgent,
-          referrer: document.referrer || "Suoraan sivustolle",
+          user_agent: typeof window !== "undefined" ? navigator.userAgent : "",
+          referrer: typeof document !== "undefined" ? document.referrer || "Suoraan sivustolle" : "Suoraan sivustolle",
           ip_address: ipAddress
         },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
@@ -128,8 +143,9 @@ export default function LoginModal({
       toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
       if (onSuccess) onSuccess();
       onClose();
-      router.push("/dashboard");
+      
       router.refresh();
+      router.push("/dashboard");
     } else {
       toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
     }
@@ -237,7 +253,10 @@ export default function LoginModal({
                 <Divider label="tai" />
                 <form
                   className="space-y-3"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    login();
+                  }}
                 >
                   <TextField
                     label="Sähköpostiosoite"
@@ -287,9 +306,11 @@ export default function LoginModal({
                 <Divider label="tai" />
                 <form
                   className="space-y-3"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    register();
+                  }}
                 >
-                  {/* Honeypot-kenttä boteille piilotettuna CSS:llä */}
                   <div style={{ display: "none" }} aria-hidden="true">
                     <input
                       type="text"
