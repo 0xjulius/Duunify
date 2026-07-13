@@ -20,6 +20,11 @@ export default async function AdminUsersPage() {
     user ? supabase.from("profiles").select("notify_new_users").eq("id", user.id).single() : null,
   ]);
 
+  console.log(authUsersResult.data?.users.map(u => ({
+  email: u.email,
+  confirmed: u.email_confirmed_at,
+  })));
+  
   const profiles = profilesResult.data || [];
   const authUsers = authUsersResult.data.users || [];
   const currentAdminNotify = adminProfileResult?.data?.notify_new_users ?? false;
