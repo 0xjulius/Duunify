@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { loginAction } from "./actions";
-import { loginWithGoogleAction } from "@/app/login/actions";
+import { createLog } from "@/lib/logger";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -114,14 +114,28 @@ export default function LoginPage() {
   }
 
 async function loginWithGoogle() {
-  setGoogleLoading(true);
-  const result = await loginWithGoogleAction();
+  if (googleLoading) return;
 
-  // Onnistuessa redirect() tapahtuu jo actions.ts:ssä, joten tänne
-  // päädytään ainoastaan jos aloitus epäonnistui.
-  if (result?.error) {
+  setGoogleLoading(true);
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+    },
+  });
+
+  if (error) {
     setGoogleLoading(false);
-    toast.error(translateAuthError(result.error));
+
+    toast.error(translateAuthError(error.message));
+
+    await createLog({
+      action: "login_failed",
+      details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
+      category: "auth",
+      status: "failure",
+    });
   }
 }
 

@@ -37,27 +37,3 @@ export async function loginAction(formData: FormData) {
 
   redirect("/dashboard");
 }
-
-export async function loginWithGoogleAction() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/dashboard`,
-    },
-  });
-
-  if (error || !data?.url) {
-    await createLog({
-      action: "login_failed",
-      details: `Google OAuth -aloitus epäonnistui: ${error?.message || "URL puuttui"}`,
-      category: "auth",
-      status: "failure",
-    });
-
-    return { error: error?.message || "Google-kirjautumisen aloitus epäonnistui." };
-  }
-
-  redirect(data.url);
-}
