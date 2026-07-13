@@ -20,6 +20,7 @@ export default function SettingsClient({
   avatarUrl,
   phone: initialPhone,
   location: initialLocation,
+  isEmailConfirmed, // Vastaanotetaan tieto onko sähköposti vahvistettu
 }: {
   userId: string;
   fullName: string;
@@ -27,6 +28,7 @@ export default function SettingsClient({
   avatarUrl: string;
   phone: string;
   location: string;
+  isEmailConfirmed: boolean;
 }) {
   const router = useRouter();
   const [active, setActive] = useState("profiili");
@@ -37,7 +39,9 @@ export default function SettingsClient({
   const [location, setLocation] = useState(initialLocation || "");
   
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [verifyStatus, setVerifyStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -48,6 +52,26 @@ export default function SettingsClient({
       block: "start",
     });
   }
+
+  // Funktio vahvistussähköpostin uudelleenlähetykseen
+  const handleResendVerification = async () => {
+    setVerifying(true);
+    setVerifyStatus(null);
+
+    const { error } = await supabase.auth.updateUser(
+      { email: email },
+      { emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard` }
+    );
+
+    setVerifying(false);
+
+    if (error) {
+      setVerifyStatus({ type: "error", message: `Lähetys epäonnistui: ${error.message}` });
+      return;
+    }
+
+    setVerifyStatus({ type: "success", message: "Vahvistuslinkki lähetetty sähköpostiisi!" });
+  };
 
   // Yhteinen tallennusfunktio kaikille profiilitiedoille
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -150,15 +174,56 @@ export default function SettingsClient({
                           />
                         </div>
                         <div>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
-                            Sähköposti
-                          </p>
+                          <div className="flex justify-between items-center mb-1">
+                            <p className="text-xs text-slate-400 dark:text-slate-500">
+                              Sähköposti
+                            </p>
+                            {isEmailConfirmed ? (
+                              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Vahvistettu
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                                Ei vahvistettu
+                              </span>
+                            )}
+                          </div>
                           <input
                             type="email"
                             value={email}
                             disabled
                             className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 cursor-not-allowed text-sm font-medium"
                           />
+
+                          {/* Näytetään linkin uudelleenlähetys vain jos sähköpostia ei ole vahvistettu */}
+                          {!isEmailConfirmed && (
+                            <div className="mt-2">
+                              <button
+                                type="button"
+                                disabled={verifying}
+                                onClick={handleResendVerification}
+                                className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold underline disabled:opacity-50 disabled:no-underline flex items-center gap-1 cursor-pointer"
+                              >
+                                {verifying ? (
+                                  <>
+                                    <Loader2 size={12} className="animate-spin" />
+                                    Lähetetään linkkiä...
+                                  </>
+                                ) : (
+                                  "Lähetä vahvistuslinkki uudelleen"
+                                )}
+                              </button>
+
+                              {verifyStatus && (
+                                <p className={`text-[11px] mt-1 font-medium ${
+                                  verifyStatus.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                }`}>
+                                  {verifyStatus.message}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <label htmlFor="settings-phone" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">

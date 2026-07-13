@@ -13,6 +13,9 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
+  // Tarkistetaan, onko sähköposti vahvistettu (muutetaan arvo true/falseiksi)
+  const isEmailConfirmed = !!user.email_confirmed_at;
+
   const fullName =
     user.user_metadata?.full_name || user.user_metadata?.name || "";
   const email = user.email || "";
@@ -33,6 +36,7 @@ export default async function SettingsPage() {
         avatarUrl={avatarUrl}
         phone={phone}
         location={location}
+        isEmailConfirmed={isEmailConfirmed} // Välitetään tieto asiakaskomponentille
       />
     </div>
   );
