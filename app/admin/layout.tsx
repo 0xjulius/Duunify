@@ -10,10 +10,11 @@ export default async function AdminLayout({
   const { profile } = await requireAdmin();
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    // Päivitetty dark:bg-[#0B0F19] (Syvä yönsininen OLED-tausta)
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0B0F19] transition-colors duration-300">
       <Analytics/>
       <AdminSidebar adminName={profile?.full_name || profile?.email || "Admin"} />
-      <div className="flex-1 min-w-0">{children}</div>
+      <div className="flex-1 min-w-0 overflow-x-hidden">{children}</div>
     </div>
   );
 }

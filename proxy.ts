@@ -8,6 +8,7 @@ const PROTECTED_PREFIXES = [
   "/favorites",
   "/settings",
   "/history",
+  "/logout"
 ];
 
 const ADMIN_PREFIX = "/admin";
@@ -18,6 +19,19 @@ export async function proxy(request: NextRequest) {
   }
 
   const { response: sessionResponse, user, supabase } = await updateSession(request);
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_banned, role") // Haetaan myös rooli, jos tarvitset sitä myöhemmin
+      .eq("id", user.id)
+      .single();
+
+    // Jos käyttäjä on bännätty eikä ole jo valmiiksi banned-sivulla, ohjaa hänet sinne
+    if (profile?.is_banned && request.nextUrl.pathname !== "/banned") {
+      return NextResponse.redirect(new URL("/banned", request.url));
+    }
+  }
 
   const isProtected = PROTECTED_PREFIXES.some((p) =>
     request.nextUrl.pathname.startsWith(p)

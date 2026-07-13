@@ -24,48 +24,76 @@ export default async function AdminDashboardPage() {
     statusCounts[r.status] = (statusCounts[r.status] || 0) + 1;
   });
 
+  // Määritellään värit erikseen jokaiselle kortille kuvan tyylin mukaan
   const stats = [
-    { label: "Käyttäjät", value: userCount ?? 0, icon: Users },
-    { label: "Hakemukset yhteensä", value: appCount ?? 0, icon: Briefcase },
-    { label: "Uusia 7 päivässä", value: weekCount ?? 0, icon: TrendingUp },
+    { 
+      label: "Käyttäjät", 
+      value: userCount ?? 0, 
+      icon: Users,
+      textStyle: "text-blue-500 dark:text-[#3B82F6]",
+      bgStyle: "dark:bg-[#111827] dark:border-[#1F2937]/50",
+      iconBg: "bg-blue-500/10 text-blue-500 dark:text-[#3B82F6] dark:bg-[#3B82F6]/10"
+    },
+    { 
+      label: "Hakemukset yhteensä", 
+      value: appCount ?? 0, 
+      icon: Briefcase,
+      textStyle: "text-amber-500 dark:text-[#FBBF24]",
+      bgStyle: "dark:bg-[#111827] dark:border-[#1F2937]/50",
+      iconBg: "bg-amber-500/10 text-amber-500 dark:text-[#FBBF24] dark:bg-[#FBBF24]/10"
+    },
+    { 
+      label: "Uusia 7 päivässä", 
+      value: weekCount ?? 0, 
+      icon: TrendingUp,
+      textStyle: "text-purple-500 dark:text-[#A855F7]",
+      bgStyle: "dark:bg-[#111827] dark:border-[#1F2937]/50",
+      iconBg: "bg-purple-500/10 text-purple-500 dark:text-[#A855F7] dark:bg-[#A855F7]/10"
+    },
   ];
 
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold text-slate-900 mb-8">Yleiskatsaus</h1>
+    <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-8">
+        Yleiskatsaus
+      </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+      {/* Kortit yksilöllisillä väreillä */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
         {stats.map((s) => (
           <div
             key={s.label}
-            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+            className={`bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden ${s.bgStyle}`}
           >
-            <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
-              <s.icon size={20} />
+            <div>
+              <p className={`text-xs sm:text-sm font-bold uppercase tracking-wider mb-1 ${s.textStyle}`}>{s.label}</p>
+              <p className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{s.value}</p>
             </div>
-            <p className="text-3xl font-bold text-slate-900">{s.value}</p>
-            <p className="text-sm text-slate-500 mt-1">{s.label}</p>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center absolute top-6 right-6 ${s.iconBg}`}>
+              <s.icon size={18} />
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-2">
-          <Clock size={18} className="text-slate-400" />
+      {/* Tilastolaatikko yönsinisellä taustalla */}
+      <div className="bg-white dark:bg-[#111827] p-6 rounded-2xl border border-slate-200 dark:border-[#1F2937]/50 shadow-sm">
+        <h2 className="font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2 text-base">
+          <Clock size={18} className="text-slate-400 dark:text-slate-500" />
           Hakemukset tilan mukaan
         </h2>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {Object.entries(statusCounts).map(([status, count]) => {
             const pct = appCount ? Math.round((count / appCount) * 100) : 0;
             return (
-              <div key={status}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700 font-medium">{status}</span>
-                  <span className="text-slate-400">{count} ({pct}%)</span>
+              <div key={status} className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold capitalize">{status}</span>
+                  <span className="text-slate-400 dark:text-slate-500 font-medium">{count} ({pct}%)</span>
                 </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-slate-100 dark:bg-[#0B0F19] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#6D67F2] rounded-full"
+                    className="h-full bg-blue-500 dark:bg-[#3B82F6] rounded-full transition-all duration-500"
                     style={{ width: `${pct}%` }}
                   />
                 </div>

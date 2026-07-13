@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
-import { createClient as createAdminClient } from "@supabase/supabase-js"; // Lisää tämä
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import UsersTable from "@/components/Admin/UsersTable";
+import { Users } from "lucide-react";
 
 export default async function AdminUsersPage() {
   const supabase = await createClient();
@@ -42,13 +43,32 @@ export default async function AdminUsersPage() {
   }));
 
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Käyttäjät</h1>
-      <UsersTable 
-        users={users} 
-        currentAdminId={user?.id || ""} 
-        initialNotifySettings={currentAdminNotify} 
-      />
+    <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0 overflow-x-hidden text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      {/* Otsikkoalue */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/10">
+            <Users size={24} />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Käyttäjät hallinta
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              Hallitse järjestelmän käyttäjätilejä, oikeuksia ja ilmoitusasetuksia.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Käyttäjätaulukko-komponentti */}
+      <div className="w-full">
+        <UsersTable 
+          users={users} 
+          currentAdminId={user?.id || ""} 
+          initialNotifySettings={currentAdminNotify} 
+        />
+      </div>
     </main>
   );
 }
