@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import LocalDate from "@/components/local-date";
 import Link from "next/link";
 import {
   SquareActivity,
@@ -279,13 +280,6 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
                 const ua = parseUserAgent(log.user_agent);
                 const referrerLabel = formatReferrer(log.referrer);
 
-                function formatDate(date: string) {
-                  return new Intl.DateTimeFormat("fi-FI", {
-                    dateStyle: "short",
-                    timeStyle: "medium",
-                    timeZone: "Europe/Helsinki",
-                  }).format(new Date(date));
-                }
 
                 return (
                   <div
@@ -294,7 +288,7 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
                   >
                     {/* AIKALEIMA */}
                     <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      {formatDate(log.created_at)}
+                      <LocalDate date={log.created_at} />
                     </div>
 
                     {/* KÄYTTÄJÄ */}
