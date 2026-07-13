@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useModal } from "@/components/logout/ModalProvider";
 import { motion } from "framer-motion";
+import AdminCard from "@/components/AdminCard";
 
 import {
   LayoutDashboard,
@@ -338,30 +339,8 @@ export default function Sidebar() {
           {!sidebarCollapsed && <span>Asetukset</span>}
         </Link>
 
-        {/* DUUNIFY PRO */}
-        {sidebarCollapsed ? (
-          <Link
-            href="/settings#pro"
-            title="Hanki Duunify Pro"
-            className="w-full flex justify-center p-3.5 rounded-2xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
-          >
-            <Sparkles size={20} />
-          </Link>
-        ) : (
-          <Link
-            href="/settings#pro"
-            className="w-full block p-5 rounded-3xl bg-[#EEF2FF] dark:bg-indigo-500/10 hover:shadow-md dark:hover:bg-indigo-500/20 transition"
-          >
-            <div className="flex items-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-400">
-              <Sparkles size={14} /> Duunify Pro
-            </div>
-            <p className="text-sm text-slate-700 dark:text-slate-300 mt-3">
-              Rajattomat hakemukset ja automaattinen täyttö.
-            </p>
-          </Link>
-        )}
-      </div>
-
+       <AdminCard collapsed={collapsed} />
+</div>
       {/* USER & LOGOUT */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-700">
         <div
