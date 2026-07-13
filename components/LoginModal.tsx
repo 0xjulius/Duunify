@@ -25,7 +25,6 @@ export default function LoginModal({
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  // UUSI: ehtojen hyväksyntä — pakollinen ennen tilin luomista.
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   if (!isOpen) return null;
@@ -61,8 +60,6 @@ export default function LoginModal({
   }
 
   async function register() {
-    // UUSI: salasanan turvallisuustarkistus ennen kuin mitään lähetetään
-    // Supabaselle. Estää heikkojen salasanojen luomisen jo käyttöliittymässä.
     if (!meetsRequirements) {
       toast.error(
         "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta.",
@@ -70,7 +67,6 @@ export default function LoginModal({
       return;
     }
 
-    // UUSI: ehtojen hyväksyntä pakollinen.
     if (!acceptTerms) {
       toast.error("Sinun täytyy hyväksyä käyttöehdot ja tietosuojaseloste.");
       return;
@@ -78,11 +74,27 @@ export default function LoginModal({
 
     setLoading(true);
 
+    // Haetaan käyttäjän julkinen IP-osoite taustalla ennen rekisteröintiä
+    let ipAddress = "Ei saatavilla";
+    try {
+      const res = await fetch("https://api.ipify.org?format=json");
+      const data = await res.json();
+      ipAddress = data.ip;
+    } catch (e) {
+      console.error("IP-osoitteen haku epäonnistui:", e);
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        // IP, Selain (user_agent) ja Tulolähde (referrer) tallennetaan metadataan
+        data: { 
+          full_name: fullName,
+          user_agent: navigator.userAgent,
+          referrer: document.referrer || "Suoraan sivustolle",
+          ip_address: ipAddress
+        },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
@@ -110,7 +122,7 @@ export default function LoginModal({
       toast.error(translateAuthError(error.message));
       await createLog({
         action: "login_failed",
-        details: "Google OAuth -kirjautuminen epäonnistui",
+        details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
         category: "auth",
         status: "failure",
       });
@@ -272,7 +284,6 @@ export default function LoginModal({
                       value={password}
                       onChange={setPassword}
                     />
-                    {/* UUSI: vahvuusmittari näkyy heti kun käyttäjä alkaa kirjoittaa */}
                     {password.length > 0 && (
                       <PasswordStrengthMeter
                         checks={checks}
@@ -281,7 +292,6 @@ export default function LoginModal({
                     )}
                   </div>
 
-                  {/* UUSI: ehtojen hyväksyntä */}
                   <TermsCheckbox
                     checked={acceptTerms}
                     onChange={setAcceptTerms}
@@ -318,8 +328,6 @@ export default function LoginModal({
   );
 }
 
-/* ---------------------------- Password strength ---------------------------- */
-
 function getPasswordStrength(password: string) {
   const checks = {
     length: password.length >= 8,
@@ -345,8 +353,6 @@ function PasswordStrengthMeter({
   };
   passedCount: number;
 }) {
-  // Erikoismerkki on bonus, ei pakollinen — siksi label lasketaan
-  // neljästä pakollisesta + tästä yhdestä bonuksesta.
   const requiredMet =
     checks.length && checks.lowercase && checks.uppercase && checks.number;
 
@@ -406,8 +412,6 @@ function PasswordStrengthMeter({
   );
 }
 
-/* ---------------------------- Terms checkbox ---------------------------- */
-
 function TermsCheckbox({
   checked,
   onChange,
@@ -448,7 +452,6 @@ function TermsCheckbox({
     </label>
   );
 }
-/* ---------------------------- Sub-components ---------------------------- */
 
 function BrandPanel({
   side,

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Search, Trash2, ShieldCheck, Shield } from "lucide-react";
+import { Search, Trash2, ShieldCheck, Shield, Bell, BellOff } from "lucide-react";
 
 interface UserRow {
   id: string;
@@ -16,15 +16,48 @@ interface UserRow {
   applicationCount: number;
 }
 
-export default function UsersTable({ users: initial }: { users: UserRow[] }) {
+// Päivitetty vastaamaan page.tsx:n välittämää initialNotifySettings-propia
+export default function UsersTable({ 
+  users: initial,
+  currentAdminId,
+  initialNotifySettings
+}: { 
+  users: UserRow[];
+  currentAdminId: string;
+  initialNotifySettings: boolean;
+}) {
   const [users, setUsers] = useState(initial);
   const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // Alustetaan tila suoraan korjatusta propsista
+  const [notifyNewUsers, setNotifyNewUsers] = useState(initialNotifySettings);
+  const [updatingNotify, setUpdatingNotify] = useState(false);
 
   const filtered = users.filter((u) =>
     (u.email + (u.full_name || "")).toLowerCase().includes(query.toLowerCase())
   );
+
+  async function handleNotificationToggle(checked: boolean) {
+    if (!currentAdminId) return;
+    setUpdatingNotify(true);
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ notify_new_users: checked })
+      .eq("id", currentAdminId);
+
+    setUpdatingNotify(false);
+
+    if (error) {
+      toast.error("Asetuksen tallennus epäonnistui.");
+      return;
+    }
+
+    setNotifyNewUsers(checked);
+    toast.success(checked ? "Sähköposti-ilmoitukset päällä 🚀" : "Ilmoitukset poistettu käytöstä.");
+  }
 
   async function toggleRole(user: UserRow) {
     const newRole = user.role === "admin" ? "user" : "admin";
@@ -69,16 +102,30 @@ export default function UsersTable({ users: initial }: { users: UserRow[] }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-slate-100">
-        <div className="relative max-w-xs">
+      <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+        <div className="relative max-w-xs w-full">
           <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Etsi käyttäjää..."
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition"
           />
         </div>
+
+        <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 transition">
+          <input
+            type="checkbox"
+            checked={notifyNewUsers}
+            disabled={updatingNotify}
+            onChange={(e) => handleNotificationToggle(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-50"
+          />
+          <div className="flex items-center gap-1.5 text-slate-600">
+            {notifyNewUsers ? <Bell size={15} className="text-indigo-600" /> : <BellOff size={15} />}
+            <span>Ilmoita uusista käyttäjistä sähköpostilla</span>
+          </div>
+        </label>
       </div>
 
       <table className="w-full text-sm">
@@ -158,7 +205,7 @@ export default function UsersTable({ users: initial }: { users: UserRow[] }) {
             <h3 className="font-bold text-slate-900">Poista käyttäjä?</h3>
             <p className="text-sm text-slate-500 mt-2">
               Tämä poistaa pysyvästi käyttäjän <strong>{deleteTarget.email}</strong>{" "}
-              ja kaikki hänen hakemuksensa, tapahtumansa ja historiansa. Toimintoa
+              ja kaikki hänen hakemuksensa, tapahtumansa ja historiesa. Toimintoa
               ei voi perua.
             </p>
             <div className="flex gap-2 mt-6">

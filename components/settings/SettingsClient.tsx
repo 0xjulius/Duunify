@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { User, Lock, Bell } from "lucide-react";
+import { User, Lock, Bell, Loader2, Check } from "lucide-react";
 import AvatarUpload from "@/components/settings/AvatarUpload";
-import ProfileDetailsForm from "@/components/settings/ProfileDetailsForm";
 import PasswordChangeForm from "@/components/settings/PasswordChangeForm";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 const menuItems = [
   { id: "profiili", name: "Profiili", icon: User },
@@ -14,11 +15,11 @@ const menuItems = [
 
 export default function SettingsClient({
   userId,
-  fullName,
+  fullName: initialFullName,
   email,
   avatarUrl,
-  phone,
-  location,
+  phone: initialPhone,
+  location: initialLocation,
 }: {
   userId: string;
   fullName: string;
@@ -27,7 +28,17 @@ export default function SettingsClient({
   phone: string;
   location: string;
 }) {
+  const router = useRouter();
   const [active, setActive] = useState("profiili");
+  
+  // Kaikki profiilikentät samassa isäkomponentissa
+  const [fullName, setFullName] = useState(initialFullName);
+  const [phone, setPhone] = useState(initialPhone || "");
+  const [location, setLocation] = useState(initialLocation || "");
+  
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   function scrollTo(id: string) {
@@ -37,6 +48,40 @@ export default function SettingsClient({
       block: "start",
     });
   }
+
+  // Yhteinen tallennusfunktio kaikille profiilitiedoille
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
+
+    // 1. Päivitetään nimi ja muut tiedot Supabasen auth-metadataan
+    const { error } = await supabase.auth.updateUser({
+      data: { 
+        full_name: fullName.trim(),
+        phone: phone.trim(),
+        location: location.trim()
+      },
+    });
+
+    if (error) {
+      setStatus({ type: "error", message: `Virhe: ${error.message}` });
+      setLoading(false);
+      return;
+    }
+
+    setStatus({ type: "success", message: "Muutokset tallennettu onnistuneesti!" });
+    setLoading(false);
+    
+    // Päivitetään palvelimen datat (kuten Sidebarin nimitieto)
+    router.refresh();
+  };
+
+  // Tarkistetaan onko mikään kenttä muuttunut alkuperäisestä
+  const isChanged = 
+    fullName !== initialFullName || 
+    phone !== (initialPhone || "") || 
+    location !== (initialLocation || "");
 
   return (
     <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto text-slate-900 dark:text-slate-50 transition-colors duration-200">
@@ -86,27 +131,96 @@ export default function SettingsClient({
                     initialUrl={avatarUrl}
                     onUploaded={() => {}}
                   />
-                  <div className="flex-1 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Nimi</p>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 capitalize">
-                          {fullName || "—"}
-                        </p>
+                  <div className="flex-1">
+                    {/* YHTEINEN LOMAKE KAIKILLE KENTILLE */}
+                    <form onSubmit={handleSaveProfile} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="settings-name" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">
+                            Nimi
+                          </label>
+                          <input
+                            id="settings-name"
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            maxLength={50}
+                            disabled={loading}
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition disabled:opacity-50 text-sm font-medium"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
+                            Sähköposti
+                          </p>
+                          <input
+                            type="email"
+                            value={email}
+                            disabled
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 cursor-not-allowed text-sm font-medium"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="settings-phone" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">
+                            Puhelinnumero
+                          </label>
+                          <input
+                            id="settings-phone"
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            disabled={loading}
+                            placeholder="Ei puhelinnumeroa"
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition disabled:opacity-50 text-sm font-medium"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="settings-location" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">
+                            Sijainti
+                          </label>
+                          <input
+                            id="settings-location"
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            disabled={loading}
+                            placeholder="Ei sijaintia"
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition disabled:opacity-50 text-sm font-medium"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
-                          Sähköposti
-                        </p>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                          {email}
-                        </p>
+
+                      {status && (
+                        <div
+                          className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                            status.type === "success"
+                              ? "bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-900/30 text-green-600 dark:text-green-400"
+                              : "bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400"
+                          }`}
+                        >
+                          {status.type === "success" && <Check size={14} />}
+                          <span>{status.message}</span>
+                        </div>
+                      )}
+
+                      {/* Tallenna-painike on aktiivinen vain, jos jotain on oikeasti muutettu */}
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="submit"
+                          disabled={loading || !fullName.trim() || !isChanged}
+                          className="px-5 py-2.5 rounded-xl text-white text-sm font-medium bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          {loading ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" />
+                              Tallennetaan...
+                            </>
+                          ) : (
+                            "Tallenna muutokset"
+                          )}
+                        </button>
                       </div>
-                    </div>
-                    <ProfileDetailsForm
-                      initialPhone={phone}
-                      initialLocation={location}
-                    />
+                    </form>
                   </div>
                 </div>
               </section>
@@ -154,7 +268,6 @@ export default function SettingsClient({
                     >
                       <p className="text-sm text-slate-700 dark:text-slate-300">{item}</p>
                       
-                      {/* KYTKIN/TOGGLENAPPI KORJATTU */}
                       <div
                         className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 ${
                           i < 2 
