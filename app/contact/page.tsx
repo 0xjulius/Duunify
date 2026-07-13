@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  MessageSquare,
-  Send,
-  CheckCircle2,
-  Loader2,
-} from "lucide-react";
+import { MessageSquare, Send, CheckCircle2, Loader2 } from "lucide-react";
 import LoginModal from "@/components/LoginModal";
 import Footer from "@/components/Footer";
 import SimpleNavbar from "@/components/SimpleNav";
@@ -21,6 +16,7 @@ export default function ContactPage() {
     email: "",
     subject: "",
     message: "",
+    website: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -46,7 +42,7 @@ export default function ContactPage() {
       }
 
       setSubmitted(true);
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", subject: "", message: "", website: "" });
     } catch (error) {
       console.error(error);
       setErrorMsg("Verkkovirhe. Tarkista yhteytesi ja yritä uudelleen.");
@@ -115,6 +111,20 @@ export default function ContactPage() {
                   {errorMsg}
                 </div>
               )}
+
+              {/* Honeypot: Piilotettu kenttä boteille */}
+              <div style={{ display: "none" }} aria-hidden="true">
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={formData.website || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, website: e.target.value })
+                  }
+                />
+              </div>
 
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="w-full">
@@ -224,8 +234,8 @@ export default function ContactPage() {
               <div className="flex items-center gap-2 justify-center pt-2">
                 <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
                 <p className="text-xs text-slate-400">
-                  Viestisi kryptataan SSL-yhteydellä. Emme käytä
-                  sähköpostiasi markkinointiin ilman lupaasi.
+                  Viestisi kryptataan SSL-yhteydellä. Emme käytä sähköpostiasi
+                  markkinointiin ilman lupaasi.
                 </p>
               </div>
             </form>

@@ -14,8 +14,20 @@ function escapeHtml(input: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Rajoitetaan väärinkäyttöä IP-osoitteen perusteella
-    const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+    const body = await req.json();
+    const { name, email, subject, message, website } = body;
+
+    if (website) {
+      console.warn("Botti havaittu (honeypot):", website);
+      return NextResponse.json({ success: true });
+    }
+    
+    const ip =
+      req.headers.get("cf-connecting-ip") ??
+      req.headers.get("x-real-ip") ??
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+      "Tuntematon";
+
     const { success } = await ratelimit.limit(`contact_${ip}`);
 
     if (!success) {
@@ -24,10 +36,18 @@ export async function POST(req: NextRequest) {
         { status: 429 },
       );
     }
-      
+
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const body = await req.json();
-    const { name, email, subject, message } = body;
+    const admin = createAdminClient();
+    
+    const userAgent = req.headers.get("user-agent") ?? "Tuntematon";
+    const referer = req.headers.get("referer") ?? "Ei refereriä";
+    const language = req.headers.get("accept-language") ?? "Tuntematon";
+
+    const country = req.headers.get("x-vercel-ip-country") ?? "Tuntematon";
+    const region =
+      req.headers.get("x-vercel-ip-country-region") ?? "Tuntematon";
+    const city = req.headers.get("x-vercel-ip-city") ?? "Tuntematon";
 
     if (
       typeof name !== "string" ||
@@ -36,7 +56,7 @@ export async function POST(req: NextRequest) {
       typeof message !== "string"
     ) {
       return NextResponse.json(
-        { error: "Virheelliset tiedot" },
+        { error: "Virheelliset tiedot." },
         { status: 400 },
       );
     }
@@ -53,22 +73,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (trimmedName.length > 100) {
+      return NextResponse.json({ error: "Nimi liian pitkä." }, { status: 400 });
+    }
+
     if (trimmedSubject.length > 150) {
       return NextResponse.json(
         { error: "Aihe liian pitkä (max 150 merkkiä)." },
         { status: 400 },
       );
-    }
-
-    if (!trimmedName || !trimmedEmail || !trimmedMessage) {
-      return NextResponse.json(
-        { error: "Kaikki kentät ovat pakollisia." },
-        { status: 400 },
-      );
-    }
-
-    if (trimmedName.length > 100) {
-      return NextResponse.json({ error: "Nimi liian pitkä." }, { status: 400 });
     }
 
     if (trimmedMessage.length > 5000) {
@@ -79,6 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(trimmedEmail)) {
       return NextResponse.json(
         { error: "Virheellinen sähköpostiosoite." },
@@ -86,8 +100,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Tallennetaan viesti tietokantaan ensin — säilyy vaikka sähköposti epäonnistuisi
-    const admin = createAdminClient();
+    // Tallennetaan tietokantaan päivitetyillä tiedoilla
     const { data: savedMessage, error: dbError } = await admin
       .from("contact_messages")
       .insert({
@@ -95,63 +108,106 @@ export async function POST(req: NextRequest) {
         email: trimmedEmail,
         subject: trimmedSubject,
         message: trimmedMessage,
+        ip_address: ip,
+        user_agent: userAgent,
+        referer,
+        language,
+        country,
+        region,
+        city,
       })
       .select()
       .single();
 
     if (dbError) {
-      console.error("Yhteydenottolomakkeen tallennus epäonnistui:", dbError);
+      console.error("DB INSERT ERROR:", dbError);
+
       return NextResponse.json(
-        { error: "Viestin tallennus epäonnistui. Yritä uudelleen." },
+        { error: "Viestin tallennus epäonnistui." },
         { status: 500 },
       );
     }
 
-    // Varmistetaan, että vastaanottajan sähköposti on asetettu ympäristömuuttujiin
     const recipientEmail = process.env.CONTACT_RECEIVER_EMAIL;
+
     if (!recipientEmail) {
-      console.error("CONTACT_RECEIVER_EMAIL puuttuu ympäristömuuttujista.");
-      return NextResponse.json({ success: true }); // Palautetaan silti success, koska viesti on jo DB:ssä
+      console.error("CONTACT_RECEIVER_EMAIL puuttuu.");
+      return NextResponse.json({ success: true });
     }
 
-    // 2. Lähetetään sähköposti Resendillä
     try {
-      await resend.emails.send({
-        from: "Duunify <yhteydenotot@duunify.com>", // vaatii vahvistetun domainin
-        to: recipientEmail,
-        replyTo: trimmedEmail,
-        subject: `Uusi yhteydenotto: ${trimmedSubject}`,
-        html: `
-    <div style="font-family: sans-serif; max-width: 600px;">
-      <h2>Uusi yhteydenottolomake</h2>
+      const { data, error } = await resend.emails.send({
+  from: "Duunify <yhteydenotot@duunify.com>",
+  to: recipientEmail,
+  replyTo: trimmedEmail,
+  subject: `Uusi yhteydenotto: ${trimmedSubject}`,
+  html: `
+    <div style="font-family:sans-serif;max-width:600px;line-height:1.5;">
+      <h2 style="color:#1e293b;">Uusi yhteydenotto</h2>
+
       <p><strong>Nimi:</strong> ${escapeHtml(trimmedName)}</p>
       <p><strong>Sähköposti:</strong> ${escapeHtml(trimmedEmail)}</p>
       <p><strong>Aihe:</strong> ${escapeHtml(trimmedSubject)}</p>
+
       <p><strong>Viesti:</strong></p>
-      <p style="white-space: pre-wrap;">${escapeHtml(trimmedMessage)}</p>
-      <hr />
-      <p style="color: #94a3b8; font-size: 12px;">
-        Lähetetty Duunify-yhteydenottolomakkeen kautta.
+      <p style="white-space:pre-wrap;background:#f8fafc;padding:10px;border-left:4px solid #cbd5e1;">
+        ${escapeHtml(trimmedMessage)}
       </p>
+
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e2e8f0;color:#475569;font-size:0.85rem;">
+        <p><strong>Tekniset tiedot:</strong></p>
+        <ul style="list-style:none;padding:0;">
+          <li><strong>Sijainti:</strong> ${city}, ${region}, ${country}</li>
+          <li><strong>IP-osoite:</strong> ${ip}</li>
+          <li><strong>Kieli:</strong> ${language}</li>
+          <li><strong>Selain:</strong> ${userAgent}</li>
+          <li><strong>Referer:</strong> ${referer}</li>
+        </ul>
+      </div>
+
+      <small style="color:#64748b;display:block;margin-top:20px;">
+        Lähetetty Duunifyn yhteydenottolomakkeesta.
+      </small>
     </div>
   `,
-      });
+});
 
-      await admin
+      console.log("Resend response:", data);
+
+      if (error) {
+        console.error("Resend error:", error);
+        throw error;
+      }
+
+      const { error: updateError } = await admin
         .from("contact_messages")
-        .update({ email_sent: true })
+        .update({
+          email_sent: true,
+        })
         .eq("id", savedMessage.id);
-    } catch (emailError) {
-      // Viesti on jo tallessa tietokannassa, joten emme epäonnista koko pyyntöä
-      console.error("Sähköpostin lähetys epäonnistui:", emailError);
+
+      if (updateError) {
+        console.error("DB UPDATE ERROR:", updateError);
+      } else {
+        console.log("email_sent päivitetty onnistuneesti.");
+      }
+    } catch (err) {
+      console.error("EMAIL SEND ERROR:", err);
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Yhteydenottolomakkeen käsittely epäonnistui:", error);
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (err) {
+    console.error("CONTACT API ERROR:", err);
+
     return NextResponse.json(
-      { error: "Odottamaton virhe. Yritä myöhemmin uudelleen." },
-      { status: 500 },
+      {
+        error: "Odottamaton virhe.",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }
