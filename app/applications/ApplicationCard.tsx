@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import ApplicationSheet from "@/app/applications/ApplicationDialog";
 import { Maximize2, SquarePen } from "lucide-react";
 import { deleteApplicationWithLog } from "@/lib/applications";
+import { CompanyLogo } from "@/components/applications/CompanyLogo";
+import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 import { toast } from "sonner";
 
 type Application = {
@@ -17,6 +19,7 @@ type Application = {
   applied_date: string;
   job_description: string;
   job_url?: string;
+  company_logo?: string | null;
   salary_min?: number | null;
   salary_max?: number | null;
   employment_type?: string | null;
@@ -26,23 +29,28 @@ type Application = {
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   Tallennettu: {
     label: "Tallennettu",
-    className: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:ring-amber-500/40",
+    className:
+      "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:ring-amber-500/40",
   },
   Haettu: {
     label: "Haettu",
-    className: "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:ring-blue-500/30",
+    className:
+      "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:ring-blue-500/30",
   },
   Haastattelu: {
     label: "Haastattelu",
-    className: "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:ring-purple-500/30",
+    className:
+      "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:ring-purple-500/30",
   },
   Hylätty: {
     label: "Hylätty",
-    className: "bg-slate-100 text-slate-700 ring-1 ring-slate-300 dark:bg-red-500/15 dark:text-red-400 dark:ring-red-500/30",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-300 dark:bg-red-500/15 dark:text-red-400 dark:ring-red-500/30",
   },
   Tarjous: {
     label: "🎉 Työtarjous saatu",
-    className: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-500/40",
+    className:
+      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-500/40",
   },
 };
 
@@ -61,7 +69,10 @@ function formatDescription(text: string) {
   return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={i} className="font-bold text-slate-900 dark:text-slate-100">
+        <strong
+          key={i}
+          className="font-bold text-slate-900 dark:text-slate-100"
+        >
           {part.slice(2, -2)}
         </strong>
       );
@@ -102,12 +113,30 @@ function CompanyAvatar({ company }: { company: string }) {
 
   const hue = (company.charCodeAt(0) * 37) % 360;
   const palettes = [
-    { bg: "bg-violet-100 dark:bg-violet-500/10", text: "text-violet-700 dark:text-violet-400" },
-    { bg: "bg-teal-100 dark:bg-teal-500/10", text: "text-teal-700 dark:text-teal-400" },
-    { bg: "bg-rose-100 dark:bg-rose-500/10", text: "text-rose-700 dark:text-rose-400" },
-    { bg: "bg-sky-100 dark:bg-sky-500/10", text: "text-sky-700 dark:text-sky-400" },
-    { bg: "bg-amber-100 dark:bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" },
-    { bg: "bg-emerald-100 dark:bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400" },
+    {
+      bg: "bg-violet-100 dark:bg-violet-500/10",
+      text: "text-violet-700 dark:text-violet-400",
+    },
+    {
+      bg: "bg-teal-100 dark:bg-teal-500/10",
+      text: "text-teal-700 dark:text-teal-400",
+    },
+    {
+      bg: "bg-rose-100 dark:bg-rose-500/10",
+      text: "text-rose-700 dark:text-rose-400",
+    },
+    {
+      bg: "bg-sky-100 dark:bg-sky-500/10",
+      text: "text-sky-700 dark:text-sky-400",
+    },
+    {
+      bg: "bg-amber-100 dark:bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-400",
+    },
+    {
+      bg: "bg-emerald-100 dark:bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-400",
+    },
   ];
   const palette = palettes[hue % palettes.length];
 
@@ -123,7 +152,8 @@ function CompanyAvatar({ company }: { company: string }) {
 function StatusBadge({ status }: { status: string }) {
   const config = STATUS_CONFIG[status] ?? {
     label: status,
-    className: "bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700",
+    className:
+      "bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700",
   };
   return (
     <span
@@ -249,9 +279,13 @@ const IconRefresh = () => (
 export default function ApplicationCard({
   app,
   onChange,
+  isDemo = false,
+  onDelete,
 }: {
   app: Application;
   onChange: () => void;
+  isDemo?: boolean;
+  onDelete?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editingStatus, setEditingStatus] = useState(false);
@@ -286,22 +320,6 @@ export default function ApplicationCard({
 
     setLoading(true);
 
-    const { error } = await supabase
-      .from("applications")
-      .delete()
-      .eq("id", app.id);
-
-    setLoading(false);
-
-    if (error) {
-      console.error("Virhe poistettaessa:", error);
-      return;
-    }
-
-    onChange();
-  }
-
-  async function handleDelete() {
     const { error } = await deleteApplicationWithLog({
       id: app.id,
       company: app.company,
@@ -309,12 +327,15 @@ export default function ApplicationCard({
       status: app.status,
     });
 
+    setLoading(false);
+
     if (error) {
       toast.error("Poisto epäonnistui.");
       return;
     }
 
     toast.success("Hakemus poistettu.");
+    onChange();
   }
 
   async function saveStatus(e?: React.FormEvent) {
@@ -411,12 +432,18 @@ export default function ApplicationCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <CompanyAvatar company={app.company} />
+          {isDemo ? (
+            <DemoCompanyLogo logo={app.company_logo} company={app.company} />
+          ) : (
+            <CompanyLogo logo={app.company_logo} company={app.company} />
+          )}
           <div>
             <h2 className="text-[17px] font-semibold leading-snug text-slate-900 dark:text-slate-50">
               {app.company}
             </h2>
-            <p className="text-[14px] text-slate-500 dark:text-slate-400">{app.job_title}</p>
+            <p className="text-[14px] text-slate-500 dark:text-slate-400">
+              {app.job_title}
+            </p>
           </div>
         </div>
         <button
@@ -450,7 +477,13 @@ export default function ApplicationCard({
                 Haku päättynyt {deadline}
               </span>
             ) : (
-              <span className={isUrgent ? "font-semibold text-orange-600 dark:text-orange-400" : ""}>
+              <span
+                className={
+                  isUrgent
+                    ? "font-semibold text-orange-600 dark:text-orange-400"
+                    : ""
+                }
+              >
                 Haku päättyy {deadline}
                 {isUrgent && " ⚠️"}
               </span>
@@ -461,7 +494,7 @@ export default function ApplicationCard({
 
       {/* Divider */}
       <div className="my-4 border-t border-slate-100 dark:border-slate-800" />
-      
+
       {/* Status row */}
       <div
         onClick={(e) => {

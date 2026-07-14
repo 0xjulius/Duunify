@@ -27,6 +27,7 @@ export default function AddApplicationForm({
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -149,6 +150,7 @@ export default function AddApplicationForm({
       if (data.salaryMax) setSalaryMax(String(data.salaryMax));
       if (data.employmentType) setEmploymentType(data.employmentType);
       if (data.validThrough) setValidThrough(data.validThrough.split("T")[0]);
+      if (data.companyLogo) setCompanyLogo(data.companyLogo);
     } catch (error) {
       console.log(error);
       toast.error("Tietojen haku epäonnistui");
@@ -228,6 +230,7 @@ export default function AddApplicationForm({
             notes,
             applied_date: appliedDate,
             job_description: jobDescription,
+            company_logo: companyLogo,
             job_url: jobUrl,
             salary_min: minSalary,
             salary_max: maxSalary,
@@ -267,6 +270,7 @@ export default function AddApplicationForm({
       setSalaryMin("");
       setSalaryMax("");
       setEmploymentType("");
+      setCompanyLogo(null);
       setValidThrough("");
       setFile(null);
 

@@ -20,6 +20,7 @@ type Application = {
   applied_date: string;
   job_description: string;
   job_url?: string;
+  company_logo?: string | null;
 };
 
 export default function DemoHome() {
@@ -36,7 +37,7 @@ export default function DemoHome() {
         (app) => !["suosikki", "tallennettu"].includes(app.status?.toLowerCase().trim() || "")
       );
       
-      setApplications(initialData as any);
+      setApplications(initialData as Application[]);
       setLoading(false);
     }, 800);
     return () => clearTimeout(timer);
@@ -148,7 +149,8 @@ export default function DemoHome() {
                   <ApplicationCard
                     app={app}
                     onChange={() => {}} 
-                    {...{ isDemo: true, onDelete: () => deleteApplication(app.id) } as any}
+                    isDemo={true}
+                    onDelete={() => deleteApplication(app.id)}
                   />
                 </div>
               ))

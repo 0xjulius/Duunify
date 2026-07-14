@@ -12,6 +12,7 @@ export const DEMO_APPLICATIONS = [
     status: "Haastattelu", 
     location: "Helsinki",
     job_url: "#",
+    company_logo: "/demo-logos/wolt.png",
     notes: "Ensimmäinen haastattelu etänä 8.7. klo 14:00 Rekrytoijan (Sanna) kanssa. Keskitytään React-osaamiseen ja tiimikulttuuriin. Valmistele kysymyksiä heidän design systemistään.",
     applied_date: "2026-06-20", 
     created_at: "2026-06-20T09:00:00Z", 
@@ -24,6 +25,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Game Designer", 
     status: "Haettu", 
     location: "Helsinki",
+    company_logo: "/demo-logos/supercell.png",
     notes: "Odotellaan vastausta kooditehtävästä. Laitoin viestiä LinkedInissä tutulle softakehittäjälle, joka on siellä töissä – sanoi että hakuprosessi voi kestää pari viikkoa.",
     job_url: "#",
     applied_date: "2026-06-24", 
@@ -37,6 +39,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Software Engineer", 
     status: "Tallennettu", 
     location: "Etä",
+    company_logo: "/demo-logos/reaktor.png",
     notes: "Haku sulkeutuu pian! Pitää vielä hioa motivaatiokirjettä ja korostaa omia harrasteprojekteja (erityisesti sitä Pixi.js-peliä).",
     job_url: "#",
     applied_date: "2026-06-18", 
@@ -50,6 +53,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Data Analyst", 
     status: "Hylätty", 
     location: "Espoo",
+    company_logo: "/demo-logos/nordea.png",
     notes: "Kiitos, ei kiitos -viesti tuli 2.7. Etsivät henkilöä, jolla on enemmän kokemusta. Pyysin palautetta, mutta en ole vielä saanut.",
     job_url: "#",
     applied_date: "2026-06-10", 
@@ -63,6 +67,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Backend Developer", 
     status: "Tarjous", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/relexsolutions.png",
     applied_date: "2026-06-05", 
     created_at: "2026-06-05T10:00:00Z", 
     valid_through: null,
@@ -74,6 +79,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Full Stack Developer", 
     status: "Haastattelu", 
     location: "Tampere", 
+    company_logo: "/demo-logos/vincit.png",
     applied_date: "2026-06-27", 
     created_at: "2026-06-27T13:00:00Z", 
     valid_through: "2026-07-05",
@@ -85,6 +91,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Product Manager", 
     status: "Haettu", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/elisa.png",
     applied_date: "2026-06-29", 
     created_at: "2026-06-29T09:15:00Z", 
     valid_through: "2026-07-20",
@@ -96,6 +103,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "UX Designer", 
     status: "Hylätty", 
     location: "Etä", 
+    company_logo: "/demo-logos/fiskars.png",
     applied_date: "2026-05-28", 
     created_at: "2026-05-28T09:00:00Z", 
     valid_through: null,
@@ -107,6 +115,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Software Engineer", 
     status: "Haettu", 
     location: "Espoo", 
+    company_logo: "/demo-logos/kone.png",
     applied_date: "2026-07-01", 
     created_at: "2026-07-01T10:15:00Z", 
     valid_through: null,
@@ -118,6 +127,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Full Stack Developer", 
     status: "Haettu", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/opryhma.png",
     applied_date: "2026-07-02", 
     created_at: "2026-07-02T09:30:00Z", 
     valid_through: null,
@@ -129,6 +139,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Data Scientist", 
     status: "Haettu", 
     location: "Espoo", 
+    company_logo: "/demo-logos/fortum.png",
     applied_date: "2026-06-30", 
     created_at: "2026-06-30T14:20:00Z", 
     valid_through: null,
@@ -140,6 +151,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Frontend Developer", 
     status: "Haettu", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/varma.png",
     applied_date: "2026-07-03", 
     created_at: "2026-07-03T08:45:00Z", 
     valid_through: null,
@@ -151,19 +163,19 @@ export const DEMO_APPLICATIONS = [
     job_title: "Software Developer", 
     status: "Haettu", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/telia.png",
     applied_date: "2026-07-01", 
     created_at: "2026-07-01T11:00:00Z", 
     valid_through: null,
     job_description: "Kehitämme Telian verkkopalveluita ja asiakaskokemusta. Tehtävässä käytetään moderneja teknologioita ja työskennellään ketterässä tiimissä."
   },
-
-  // Viisi uutta hakemusta
   { 
     id: "d14", 
     company: "Sanoma", 
     job_title: "Backend Developer", 
     status: "Haettu", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/sanoma.png",
     applied_date: "2026-07-02", 
     created_at: "2026-07-02T13:10:00Z", 
     valid_through: null,
@@ -175,6 +187,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Cloud Engineer", 
     status: "Haettu", 
     location: "Espoo", 
+    company_logo: "/demo-logos/neste.png",
     applied_date: "2026-07-03", 
     created_at: "2026-07-03T10:00:00Z", 
     valid_through: null,
@@ -186,6 +199,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Mobile Developer", 
     status: "Haettu", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/vr.jpg",
     applied_date: "2026-07-04", 
     created_at: "2026-07-04T09:20:00Z", 
     valid_through: null,
@@ -197,6 +211,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "Software Engineer", 
     status: "Hylätty", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/sok.png",
     applied_date: "2026-07-03", 
     created_at: "2026-07-03T14:30:00Z", 
     valid_through: null,
@@ -208,6 +223,7 @@ export const DEMO_APPLICATIONS = [
     job_title: "DevOps Engineer", 
     status: "Hylätty", 
     location: "Helsinki", 
+    company_logo: "/demo-logos/dna.png",
     applied_date: "2026-07-04", 
     created_at: "2026-07-04T11:45:00Z", 
     valid_through: null,
@@ -253,7 +269,6 @@ export function computeDemoLocationStats() {
     .sort((a, b) => b.count - a.count);
 }
 
-// Muuta nämä kaksi rivin alkua "export function"-muotoon:
 export function daysFromNow(offset: number, hour = 9): string {
   const d = new Date();
   d.setDate(d.getDate() + offset);
@@ -267,7 +282,6 @@ export function dateOnlyFromNow(offset: number): string {
   return d.toISOString().split("T")[0];
 }
 
-// --- SUOSIKIT: demo-työpaikat suhteellisin päivämäärin ---
 export interface DemoFavoriteJob {
   id: string;
   company: string;
