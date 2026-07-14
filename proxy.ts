@@ -14,20 +14,23 @@ const PROTECTED_PREFIXES = [
 const ADMIN_PREFIX = "/admin";
 
 export async function proxy(request: NextRequest) {
-  if (process.env.NODE_ENV === "development") {
-    return NextResponse.next();
-  }
+  // POISTETTU: Kehitysympäristön ohitus tietoturvan vuoksi
 
   const { response: sessionResponse, user, supabase } = await updateSession(request);
 
+  let profile = null;
+
+  // 1. Jos käyttäjä on kirjautunut, haetaan rooli ja bännitiedot YHDELLÄ kyselyllä
   if (user) {
-    const { data: profile } = await supabase
+    const { data } = await supabase
       .from("profiles")
-      .select("is_banned, role") // Haetaan myös rooli, jos tarvitset sitä myöhemmin
+      .select("is_banned, role")
       .eq("id", user.id)
       .single();
+    
+    profile = data;
 
-    // Jos käyttäjä on bännätty eikä ole jo valmiiksi banned-sivulla, ohjaa hänet sinne
+    // 2. Jos käyttäjä on bännätty, ohjataan suoraan porttikieltosivulle
     if (profile?.is_banned && request.nextUrl.pathname !== "/banned") {
       return NextResponse.redirect(new URL("/banned", request.url));
     }
@@ -38,6 +41,7 @@ export async function proxy(request: NextRequest) {
   );
   const isAdminRoute = request.nextUrl.pathname.startsWith(ADMIN_PREFIX);
 
+  // 3. Suojatut sivut vaativat kirjautumisen
   if ((isProtected || isAdminRoute) && !user) {
     const redirectUrl = new URL("/", request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
@@ -51,15 +55,8 @@ export async function proxy(request: NextRequest) {
     return redirectResponse;
   }
 
+  // 4. Admin-reittien suojaus (käytetään jo aiemmin haettua profiilia)
   if (isAdminRoute && user) {
-    // Käytetään samaa clientia kuin yllä — ei enää toista,
-    // omalla (rikkinäisellä) eväste-adapterillaan luotua clientia.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
     if (profile?.role !== "admin") {
       const dashboardRedirect = NextResponse.redirect(
         new URL("/dashboard", request.url)

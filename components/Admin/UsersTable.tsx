@@ -15,6 +15,7 @@ interface UserRow {
   applicationCount: number;
   is_confirmed?: boolean;
   is_banned?: boolean;
+  banned_until?: string | null; // Supabasen oma sarake auth.users-taulussa
 }
 
 export default function UsersTable({ 
@@ -48,6 +49,22 @@ export default function UsersTable({
     (u.email + (u.full_name || "")).toLowerCase().includes(query.toLowerCase())
   );
 
+  // Muotoillaan Supabasen banned_until-aikaleima selkeäksi tekstiksi
+  function formatBanDuration(bannedUntil: string | null | undefined) {
+    if (!bannedUntil) return "Ikuisesti";
+    
+    const date = new Date(bannedUntil);
+    const now = new Date();
+    
+    // Jos bänni ulottuu erittäin pitkälle tulevaisuuteen (esim. 10 vuotta / 87600h), näytetään "Ikuisesti"
+    const diffYears = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    if (diffYears > 5) {
+      return "Ikuisesti";
+    }
+
+    return `päättyy ${date.toLocaleDateString("fi-FI")} klo ${date.toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}`;
+  }
+
   async function handleBanSubmit() {
     if (!banTarget) return;
     if (banTarget.id === currentAdminId) {
@@ -74,8 +91,19 @@ export default function UsersTable({
       return;
     }
 
+    // Lasketaan uusi päättymisaika paikallisesti tilan päivitystä varten
+    let newBannedUntil: string | null = null;
+    if (shouldBan) {
+      const hours = parseInt(banDuration);
+      if (!isNaN(hours)) {
+        const d = new Date();
+        d.setHours(d.getHours() + hours);
+        newBannedUntil = d.toISOString();
+      }
+    }
+
     setUsers((prev) =>
-      prev.map((u) => (u.id === banTarget.id ? { ...u, is_banned: shouldBan } : u))
+      prev.map((u) => (u.id === banTarget.id ? { ...u, is_banned: shouldBan, banned_until: newBannedUntil } : u))
     );
     toast.success(shouldBan ? `Käyttäjä ${banTarget.email} estetty kestolla: ${getDurationLabel(banDuration)}.` : `Käyttäjän ${banTarget.email} esto poistettu.`);
     setBanTarget(null);
@@ -240,7 +268,9 @@ export default function UsersTable({
                   {u.role === "admin" ? "Admin" : "Käyttäjä"}
                 </span>
                 {u.is_banned ? (
-                  <span className="bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 px-2 py-0.5 rounded-full font-bold">Estetty</span>
+                  <span className="bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 px-2 py-0.5 rounded-full font-bold">
+                    Estetty ({formatBanDuration(u.banned_until)})
+                  </span>
                 ) : u.is_confirmed ? (
                   <span className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full font-semibold">Vahvistettu</span>
                 ) : (
@@ -319,16 +349,18 @@ export default function UsersTable({
                       )}
                       <div className="min-w-0">
                         <p className="font-semibold text-slate-900 dark:text-white truncate">{u.full_name || "—"}</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1.5 truncate">
-                          {u.email}
+                        <div className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1.5 truncate">
+                          <span>{u.email}</span>
                           {u.is_banned ? (
-                            <span className="text-[10px] bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 px-1.5 py-0.5 rounded-full font-bold">Estetty</span>
+                            <span className="text-[10px] bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 px-1.5 py-0.5 rounded-full font-bold">
+                              Estetty ({formatBanDuration(u.banned_until)})
+                            </span>
                           ) : u.is_confirmed ? (
                             <span className="text-[10px] bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">Vahvistettu</span>
                           ) : (
                             <span className="text-[10px] bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold">Odottaa</span>
                           )}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </td>

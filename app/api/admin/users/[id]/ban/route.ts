@@ -5,15 +5,14 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> } // Päivitetty tyyppi Promiseksi
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  // 1. Puretaan params asynkronisesti ennen käyttöä
   const resolvedParams = await params;
   const targetUserId = resolvedParams.id;
   
   const cookieStore = await cookies();
 
-  // 2. Alustetaan tavallinen Supabase-asiakas evästeillä tarkistaaksemme kuka pyynnön tekee
+  // 1. Alustetaan tavallinen Supabase-asiakas evästeillä tarkistaaksemme kuka pyynnön tekee
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -26,13 +25,13 @@ export async function POST(
     }
   );
 
-  // 3. Varmistetaan, että pyynnön tekijä on kirjautunut sisään
+  // 2. Varmistetaan, että pyynnön tekijä on kirjautunut sisään
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: "Luvaton" }, { status: 401 });
   }
 
-  // 4. Varmistetaan, että pyynnön tekijä on oikeasti admin-roolissa
+  // 3. Varmistetaan, että pyynnön tekijä on oikeasti admin-roolissa
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
@@ -43,26 +42,36 @@ export async function POST(
     return NextResponse.json({ error: "Evätty (Vaatii admin-oikeudet)" }, { status: 403 });
   }
 
-  // 5. Estetään itsensä bännääminen varmuuden vuoksi
+  // 4. Estetään itsensä bännääminen varmuuden vuoksi
   if (user.id === targetUserId) {
     return NextResponse.json({ error: "Et voi estää itseäsi" }, { status: 400 });
   }
 
-  // 6. Luetaan pyynnön runko (body)
+  // 5. Luetaan pyynnön runko (body)
   try {
     const body = await request.json();
     const shouldBan = body.ban === true;
+    const duration = body.duration || "24h";
 
-    // 7. Alustetaan palvelutason Admin-asiakas (Service Role Key)
+    // Lasketaan tarkka banned_until-aikaleima tallennusta varten
+    let bannedUntil: string | null = null;
+    if (shouldBan) {
+      const hours = parseInt(duration);
+      const date = new Date();
+      date.setHours(date.getHours() + hours);
+      bannedUntil = date.toISOString();
+    }
+
+    // 6. Alustetaan palvelutason Admin-asiakas (Service Role Key)
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Kutsutaan Supabasen sisäänrakennettua ylläpitotoimintoa oikealla UUID:lla
+    // Kutsutaan Supabasen sisäänrakennettua ylläpitotoimintoa (estää sisäänkirjautumisen)
     const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
       targetUserId,
-      { ban_duration: shouldBan ? "87600h" : "none" }
+      { ban_duration: shouldBan ? duration : "none" }
     );
 
     if (banError) {
@@ -70,7 +79,25 @@ export async function POST(
       return NextResponse.json({ error: banError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, banned: shouldBan });
+    // Päivitetään myös public.profiles-taulu, jotta saadaan tiedot näkyviin usertable-listauksessa
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        is_banned: shouldBan,
+        banned_until: bannedUntil
+      })
+      .eq("id", targetUserId);
+
+    if (profileUpdateError) {
+      console.error("Virhe profiilin bännitietojen päivityksessä:", profileUpdateError);
+      return NextResponse.json({ error: profileUpdateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      is_banned: shouldBan, 
+      banned_until: bannedUntil 
+    });
   } catch (error) {
     console.error("Reitin käsittelyvirhe:", error);
     return NextResponse.json({ error: "Sisäinen palvelinvirhe" }, { status: 500 });
