@@ -340,8 +340,13 @@ export default function ApplicationCard({
 
   async function saveStatus(e?: React.FormEvent) {
     if (e) e.preventDefault();
+    if (newStatus === app.status) {
+      setEditingStatus(false);
+      return;
+    }
     setLoading(true);
 
+    // Päivitetään hakemuksen tila applications-tauluun
     const { error } = await supabase
       .from("applications")
       .update({
@@ -349,13 +354,29 @@ export default function ApplicationCard({
       })
       .eq("id", app.id);
 
-    setLoading(false);
-
     if (error) {
       console.error("Virhe tilan päivityksessä:", error);
+      setLoading(false);
       return;
     }
 
+    // Luodaan merkintä historianhallintaan (application_history)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user && !isDemo) {
+      await supabase.from("application_history").insert({
+        application_id: app.id,
+        event_type: "status_change",
+        old_status: app.status,
+        new_status: newStatus,
+        user_id: user.id,
+        description: `Tila vaihdettu: ${app.status} ➔ ${newStatus}`,
+      });
+    }
+
+    setLoading(false);
     setEditingStatus(false);
     onChange();
   }
@@ -385,7 +406,7 @@ export default function ApplicationCard({
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (user) {
+    if (user && !isDemo) {
       await supabase.from("application_history").insert({
         application_id: app.id,
         event_type: "application_edit",
@@ -518,7 +539,8 @@ export default function ApplicationCard({
             </select>
             <button
               onClick={saveStatus}
-              className="rounded-xl bg-violet-600 dark:bg-violet-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-700 dark:hover:bg-violet-700 cursor-pointer"
+              disabled={loading}
+              className="rounded-xl bg-violet-600 dark:bg-violet-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-700 dark:hover:bg-violet-700 cursor-pointer disabled:opacity-55"
             >
               OK
             </button>

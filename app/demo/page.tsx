@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DemoSidebar from "@/components/demo/DemoSidebar";
 import DemoBanner from "@/components/demo/DemoBanner";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -54,7 +54,6 @@ const getStatusBadgeClass = (status: string) => {
   if (["suosikki", "tallennettu"].includes(s)) {
     return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400";
   }
-  // "Haettu" / muut vireillä olevat
   return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
 };
 
@@ -62,17 +61,20 @@ export default function DemoDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [isDemoClick, setIsDemoClick] = useState(false);
+  const [activeStatFilter, setActiveStatFilter] = useState<StatFilterType>(null);
+  
+  // Estetään hydraatiovirheet (aikaleimat ja kellonajat vain selaimessa)
+  const [mounted, setMounted] = useState(false);
 
-  // Tila StatsCard-modalin hallintaan kuten oikeassa versiossa
-  const [activeStatFilter, setActiveStatFilter] =
-    useState<StatFilterType>(null);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
 
-  // Suodatetaan demodata valitun suodattimen mukaan
   const getStatModalJobs = () => {
     return DEMO_APPLICATIONS.filter((app) => {
       const s = app.status?.toLowerCase().trim() || "";
@@ -125,6 +127,7 @@ export default function DemoDashboardPage() {
   };
 
   const getGreeting = () => {
+    if (!mounted) return "Hei,";
     const hour = new Date().getHours();
     if (hour < 9) return "Hyvää huomenta,";
     if (hour < 12) return "Hyvää aamupäivää,";
@@ -133,28 +136,26 @@ export default function DemoDashboardPage() {
     if (hour < 22) return "Hyvää iltaa,";
     return "Hyvää myöhäisiltaa,";
   };
-  const greeting = getGreeting();
-  const now = new Date();
-// Päivitetty muotoilufunktio sisältämään kellonajan
-const formatDate = (dateString?: string) => {
-  if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const pvm = date.toLocaleDateString("fi-FI", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    });
-    const klo = date.toLocaleTimeString("fi-FI", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    return `${pvm} klo ${klo}`;
-  } catch (e) {
-    return "";
-  }
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString || !mounted) return "";
+    try {
+      const date = new Date(dateString);
+      const pvm = date.toLocaleDateString("fi-FI", {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+      });
+      const klo = date.toLocaleTimeString("fi-FI", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `${pvm} klo ${klo}`;
+    } catch (e) {
+      return "";
+    }
   };
-  
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 dark:bg-slate-950 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <DemoSidebar />
@@ -171,19 +172,21 @@ const formatDate = (dateString?: string) => {
 
         <header className="mb-8">
           <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
-            {greeting}
+            {getGreeting()}
             <span>Demokäyttäjä 👋</span>
           </h1>
 
-          <p className="text-slate-500 dark:text-slate-400 text-sm md:text-xl mb-6">
-            {now.toLocaleDateString("fi-FI", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}{" "}
-            • Klo {now.getHours()}:
-            {now.getMinutes().toString().padStart(2, "0")}
-          </p>
+          {mounted && (
+            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-xl mb-6">
+              {new Date().toLocaleDateString("fi-FI", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              })}{" "}
+              • Klo {new Date().getHours()}:
+              {new Date().getMinutes().toString().padStart(2, "0")}
+            </p>
+          )}
 
           <div className="flex items-center gap-4">
             <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3.5 rounded-2xl shadow-md">
@@ -331,7 +334,7 @@ const formatDate = (dateString?: string) => {
         </div>
       </main>
 
-      {/* INTERAKTIIVINEN STATS MODAL METRIIKOILLE - SAMANLAINEN KUIN OIKEASSA VERSIOSSA */}
+      {/* INTERAKTIIVINEN STATS MODAL METRIIKOILLE */}
       <div
         onClick={() => setActiveStatFilter(null)}
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm transition-all duration-300 cursor-pointer ${
@@ -377,16 +380,14 @@ const formatDate = (dateString?: string) => {
                 <div
                   key={job.id}
                   onClick={() => {
-                    setActiveStatFilter(null); // Suljetaan stats-modal heti
-                    setSelectedApplication(job); // Asetetaan valittu työpaikka
+                    setActiveStatFilter(null);
+                    setSelectedApplication(job);
                     setIsDemoClick(true);
-                    setOpen(true); // Avataan tarkempi dialogi
+                    setOpen(true);
                   }}
                   className="py-3 sm:py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 -mx-2 rounded-xl transition-colors text-left"
                 >
-                  {/* Vasen puoli: Logo ja tekstit rinnakkain */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    {/* TÄMÄ TUO YRITYKSEN LOGON NÄKYVIIN MODALISSA */}
                     <DemoCompanyLogo company={job.company} />
 
                     <div className="min-w-0 flex-1">
@@ -411,7 +412,6 @@ const formatDate = (dateString?: string) => {
                     </div>
                   </div>
 
-                  {/* Oikea puoli: Status-tagi */}
                   <div className="shrink-0">
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-lg capitalize ${getStatusBadgeClass(job.status)}`}
