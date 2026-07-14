@@ -9,6 +9,8 @@ import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
 import Sidebar from "@/components/Sidebar";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
+// KORJATTU: Tuontipolku osoittamaan komponentin oikeaan sijaintiin[cite: 7]
+import { CompanyLogo } from "@/components/applications/CompanyLogo"; 
 import {
   Briefcase,
   Clock,
@@ -35,12 +37,14 @@ import {
   ChartSkeleton,
 } from "@/components/ui/skeletons";
 
+// KORJATTU: Vaihdettu logo-kenttä vastaamaan tietokannan company_logo-sarakenimeä
 type DashboardApplication = {
   id: string;
   company: string;
   job_title: string;
   location: string;
   status: string;
+  company_logo?: string | null; 
   created_at?: string;
 };
 
@@ -52,6 +56,25 @@ type StatFilterType =
   | "offers"
   | "rejected"
   | null;
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    const pvm = date.toLocaleDateString("fi-FI", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    });
+    const klo = date.toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${pvm} klo ${klo}`;
+  } catch (e) {
+    return "";
+  }
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -73,6 +96,7 @@ export default function DashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDemoClick, setIsDemoClick] = useState(false);
 
   const [activeStatFilter, setActiveStatFilter] =
     useState<StatFilterType>(null);
@@ -80,26 +104,6 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchDashboardStats();
   }, []);
-
-  // Päivitetty muotoilufunktio sisältämään kellonajan
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      const pvm = date.toLocaleDateString("fi-FI", {
-        day: "numeric",
-        month: "numeric",
-        year: "numeric",
-      });
-      const klo = date.toLocaleTimeString("fi-FI", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      return `${pvm} klo ${klo}`;
-    } catch (e) {
-      return "";
-    }
-  };
 
   async function fetchDashboardStats() {
     setLoading(true);
@@ -113,6 +117,7 @@ export default function DashboardPage() {
       return;
     }
 
+    // Supabase hakee kaikki kentät (mukaan lukien company_logo)
     const { data: applications, error } = await supabase
       .from("applications")
       .select("*")
@@ -498,28 +503,36 @@ export default function DashboardPage() {
                   onClick={() => {
                     setActiveStatFilter(null);
                     setSelectedApplication(job);
+                    setIsDemoClick(true);
                     setOpen(true);
                   }}
                   className="py-3 sm:py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 -mx-2 rounded-xl transition-colors text-left"
                 >
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
-                      {job.job_title}
-                    </h4>
-                    <div className="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                      <span className="truncate">
-                        {job.company} • {job.location}
-                      </span>
-                      {job.created_at && (
-                        <>
-                          <span className="text-slate-300 dark:text-slate-700">
-                            •
-                          </span>
-                          <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                            {formatDate(job.created_at)}
-                          </span>
-                        </>
-                      )}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="h-10 w-10 shrink-0 flex items-center justify-center">
+                      {/* KORJATTU: Käytetään tietokannan mukaista company_logo-kenttää */}
+                      <CompanyLogo logo={job.company_logo} company={job.company} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
+                        {job.job_title}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                        <span className="truncate">
+                          {job.company} • {job.location}
+                        </span>
+                        {job.created_at && (
+                          <>
+                            <span className="text-slate-300 dark:text-slate-700">
+                              •
+                            </span>
+                            <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                              {formatDate(job.created_at)}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 

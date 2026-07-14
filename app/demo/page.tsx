@@ -13,6 +13,7 @@ import ApplicationTrendChart from "@/components/dashboard/ApplicationTrendChart"
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import RecentApplications from "@/components/dashboard/RecentApplications";
 import UpcomingDeadlines from "@/components/dashboard/UpcomingDeadlines";
+import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
 import {
   Briefcase,
@@ -30,7 +31,14 @@ import {
   computeDemoLocationStats,
 } from "@/lib/demo-data";
 
-type StatFilterType = "total" | "pending" | "favorites" | "interviews" | "offers" | "rejected" | null;
+type StatFilterType =
+  | "total"
+  | "pending"
+  | "favorites"
+  | "interviews"
+  | "offers"
+  | "rejected"
+  | null;
 
 const getStatusBadgeClass = (status: string) => {
   const s = status?.toLowerCase().trim() || "";
@@ -54,9 +62,10 @@ export default function DemoDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [isDemoClick, setIsDemoClick] = useState(false);
-  
+
   // Tila StatsCard-modalin hallintaan kuten oikeassa versiossa
-  const [activeStatFilter, setActiveStatFilter] = useState<StatFilterType>(null);
+  const [activeStatFilter, setActiveStatFilter] =
+    useState<StatFilterType>(null);
 
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
@@ -71,7 +80,17 @@ export default function DemoDashboardPage() {
         case "total":
           return !["suosikki", "tallennettu"].includes(s);
         case "pending":
-          return !["suosikki", "tallennettu", "haastattelu", "interview", "tarjous", "offer", "hylätty", "hylätyt", "rejected"].includes(s);
+          return ![
+            "suosikki",
+            "tallennettu",
+            "haastattelu",
+            "interview",
+            "tarjous",
+            "offer",
+            "hylätty",
+            "hylätyt",
+            "rejected",
+          ].includes(s);
         case "favorites":
           return ["suosikki", "tallennettu"].includes(s);
         case "interviews":
@@ -88,13 +107,20 @@ export default function DemoDashboardPage() {
 
   const getStatModalTitle = () => {
     switch (activeStatFilter) {
-      case "total": return "Kaikki lähetetyt hakemukset";
-      case "pending": return "Meneillään olevat haut";
-      case "favorites": return "Tallennetut suosikit";
-      case "interviews": return "Kutsutut haastattelut";
-      case "offers": return "Saadut työtarjoukset";
-      case "rejected": return "Päättyneet / Hylätyt hakemukset";
-      default: return "";
+      case "total":
+        return "Kaikki lähetetyt hakemukset";
+      case "pending":
+        return "Meneillään olevat haut";
+      case "favorites":
+        return "Tallennetut suosikit";
+      case "interviews":
+        return "Kutsutut haastattelut";
+      case "offers":
+        return "Saadut työtarjoukset";
+      case "rejected":
+        return "Päättyneet / Hylätyt hakemukset";
+      default:
+        return "";
     }
   };
 
@@ -109,7 +135,26 @@ export default function DemoDashboardPage() {
   };
   const greeting = getGreeting();
   const now = new Date();
-
+// Päivitetty muotoilufunktio sisältämään kellonajan
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    const pvm = date.toLocaleDateString("fi-FI", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    });
+    const klo = date.toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${pvm} klo ${klo}`;
+  } catch (e) {
+    return "";
+  }
+  };
+  
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 dark:bg-slate-950 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <DemoSidebar />
@@ -123,7 +168,7 @@ export default function DemoDashboardPage() {
         />
 
         <DemoBanner />
-        
+
         <header className="mb-8">
           <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
             {greeting}
@@ -287,19 +332,19 @@ export default function DemoDashboardPage() {
       </main>
 
       {/* INTERAKTIIVINEN STATS MODAL METRIIKOILLE - SAMANLAINEN KUIN OIKEASSA VERSIOSSA */}
-      <div 
+      <div
         onClick={() => setActiveStatFilter(null)}
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm transition-all duration-300 cursor-pointer ${
-          activeStatFilter 
-            ? "opacity-100 pointer-events-auto" 
+          activeStatFilter
+            ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
         }`}
       >
-        <div 
-          onClick={(e) => e.stopPropagation()} 
+        <div
+          onClick={(e) => e.stopPropagation()}
           className={`bg-white dark:bg-[#1e2230] border border-slate-200 dark:border-slate-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh] cursor-default transition-all duration-300 ${
-            activeStatFilter 
-              ? "opacity-100 scale-100 translate-y-0" 
+            activeStatFilter
+              ? "opacity-100 scale-100 translate-y-0"
               : "opacity-0 scale-95 translate-y-4"
           }`}
         >
@@ -313,7 +358,7 @@ export default function DemoDashboardPage() {
                 Yhteensä {getStatModalJobs().length} paikkaa
               </p>
             </div>
-            <button 
+            <button
               onClick={() => setActiveStatFilter(null)}
               className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
@@ -329,7 +374,7 @@ export default function DemoDashboardPage() {
               </div>
             ) : (
               getStatModalJobs().map((job) => (
-                <div 
+                <div
                   key={job.id}
                   onClick={() => {
                     setActiveStatFilter(null); // Suljetaan stats-modal heti
@@ -339,17 +384,38 @@ export default function DemoDashboardPage() {
                   }}
                   className="py-3 sm:py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 -mx-2 rounded-xl transition-colors text-left"
                 >
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
-                      {job.job_title}
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                      {job.company} • {job.location}
-                    </p>
+                  {/* Vasen puoli: Logo ja tekstit rinnakkain */}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {/* TÄMÄ TUO YRITYKSEN LOGON NÄKYVIIN MODALISSA */}
+                    <DemoCompanyLogo company={job.company} />
+
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
+                        {job.job_title}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                        <span className="truncate">
+                          {job.company} • {job.location}
+                        </span>
+                        {job.created_at && (
+                          <>
+                            <span className="text-slate-300 dark:text-slate-700">
+                              •
+                            </span>
+                            <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                              {formatDate(job.created_at)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  
+
+                  {/* Oikea puoli: Status-tagi */}
                   <div className="shrink-0">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg capitalize ${getStatusBadgeClass(job.status)}`}>
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg capitalize ${getStatusBadgeClass(job.status)}`}
+                    >
                       {job.status}
                     </span>
                   </div>
