@@ -16,23 +16,36 @@ export async function loginAction(formData: FormData) {
   });
 
   if (error) {
+    // Kirjataan epäonnistunut yritys lokiin
     await createLog({
       action: "login_failed",
-      details: `Epäonnistunut kirjautuminen: ${email}`,
+      details: `Epäonnistunut kirjautuminen: ${email} (Syy: ${error.message})`,
       category: "auth",
       status: "failure",
-      // Ei userId:tä — kirjautuminen epäonnistui, käyttäjää ei voida vahvistaa.
     });
 
+    // Tarkistetaan, onko kyseessä porttikielto (bännit)
+    const errorMsg = error.message.toLowerCase();
+    const isBanned = 
+      errorMsg.includes("banned") || 
+      errorMsg.includes("disabled") || 
+      error.status === 403;
+
+    if (isBanned) {
+      redirect("/banned");
+    }
+
+    // Palautetaan normaali virheviesti käyttöliittymään (esim. väärä salasana)
     return { error: error.message };
   }
 
+  // Kirjataan onnistunut kirjautuminen lokiin
   await createLog({
     action: "login_success",
     details: `Käyttäjä kirjautui: ${email}`,
     category: "auth",
     status: "success",
-    userId: data.user.id, // ← tämä oli ainoa oikeasti puuttunut asia
+    userId: data.user.id,
   });
 
   redirect("/dashboard");

@@ -12,7 +12,7 @@ export async function POST(
   
   const cookieStore = await cookies();
 
-  // 1. Alustetaan tavallinen Supabase-asiakas evästeillä tarkistaaksemme kuka pyynnön tekee
+  // 1. Alustetaan tavallinen Supabase-asiakas evästeillä
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,13 +25,13 @@ export async function POST(
     }
   );
 
-  // 2. Varmistetaan, että pyynnön tekijä on kirjautunut sisään
+  // 2. Varmistetaan, että tekijä on kirjautunut sisään
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: "Luvaton" }, { status: 401 });
   }
 
-  // 3. Varmistetaan, että pyynnön tekijä on oikeasti admin-roolissa
+  // 3. Varmistetaan, että tekijä on oikeasti admin-roolissa
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
@@ -42,36 +42,26 @@ export async function POST(
     return NextResponse.json({ error: "Evätty (Vaatii admin-oikeudet)" }, { status: 403 });
   }
 
-  // 4. Estetään itsensä bännääminen varmuuden vuoksi
+  // 4. Estetään itsensä bännääminen
   if (user.id === targetUserId) {
     return NextResponse.json({ error: "Et voi estää itseäsi" }, { status: 400 });
   }
 
-  // 5. Luetaan pyynnön runko (body)
   try {
     const body = await request.json();
     const shouldBan = body.ban === true;
-    const duration = body.duration || "24h";
+    const duration = shouldBan ? (body.duration || "24h") : "none";
 
-    // Lasketaan tarkka banned_until-aikaleima tallennusta varten
-    let bannedUntil: string | null = null;
-    if (shouldBan) {
-      const hours = parseInt(duration);
-      const date = new Date();
-      date.setHours(date.getHours() + hours);
-      bannedUntil = date.toISOString();
-    }
-
-    // 6. Alustetaan palvelutason Admin-asiakas (Service Role Key)
+    // 5. Alustetaan palvelutason Admin-asiakas (Service Role Key)
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Kutsutaan Supabasen sisäänrakennettua ylläpitotoimintoa (estää sisäänkirjautumisen)
-    const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
+    // Kutsutaan Supabasen sisäänrakennettua ylläpitotoimintoa auth.users-tauluun
+    const { data: authData, error: banError } = await supabaseAdmin.auth.admin.updateUserById(
       targetUserId,
-      { ban_duration: shouldBan ? duration : "none" }
+      { ban_duration: duration }
     );
 
     if (banError) {
@@ -79,7 +69,10 @@ export async function POST(
       return NextResponse.json({ error: banError.message }, { status: 500 });
     }
 
-    // Päivitetään myös public.profiles-taulu, jotta saadaan tiedot näkyviin usertable-listauksessa
+    // Saadaan Supabasen laskema tarkka päättymisaika suoraan vastauksesta
+    const bannedUntil = authData.user?.banned_until || null;
+
+    // Päivitetään myös public.profiles-taulu
     const { error: profileUpdateError } = await supabaseAdmin
       .from("profiles")
       .update({
