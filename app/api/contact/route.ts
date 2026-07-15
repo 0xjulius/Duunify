@@ -22,18 +22,8 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
       "Tuntematon";
 
-    if (website) {
-      // Tallenna lokiin tiedot, jotta näet kuka yritti ja milloin
-      console.warn("Botti havaittu (honeypot):", {
-        ip: ip, // Voit napata IP:n tässä
-        userAgent: req.headers.get("user-agent"),
-        websiteValue: website,
-      });
-
-      // Palautamme onnistumisen, jotta botti luulee onnistuneensa
-      return NextResponse.json({ success: true });
-    }
-
+    // 1. AJETAAN RATE LIMIT IHAN ENSIMMÄISEKSI
+    // Näin spämmerit estetään Upstashilla ennen kuin mitään muuta edes tarkistetaan.
     const { success } = await ratelimit.limit(`contact_${ip}`);
 
     if (!success) {
@@ -41,6 +31,19 @@ export async function POST(req: NextRequest) {
         { error: "Liikaa yrityksiä. Yritä myöhemmin uudelleen." },
         { status: 429 },
       );
+    }
+
+    // 2. TARKISTETAAN HONEYPOT VASTA RATE LIMITIN JÄLKEEN
+    if (website) {
+      // Tallenna lokiin tiedot, jotta näet kuka yritti ja milloin
+      console.warn("Botti havaittu (honeypot):", {
+        ip: ip,
+        userAgent: req.headers.get("user-agent"),
+        websiteValue: website,
+      });
+
+      // Palautamme onnistumisen, jotta botti luulee onnistuneensa
+      return NextResponse.json({ success: true });
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
