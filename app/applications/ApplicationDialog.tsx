@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getDemoHistoryForApp } from "@/lib/demo-data";
 import {
   Dialog,
   DialogContent,
@@ -536,25 +537,28 @@ export default function ApplicationDialog({
             </div>
           </div>
 
-{/* VÄLILEHDET: TYÖPAIKKAKUVAUS & REKRYTOINNIN ETENEMINEN */}
+          {/* VÄLILEHDET: TYÖPAIKKAKUVAUS & REKRYTOINNIN ETENEMINEN */}
           <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
             <Tabs defaultValue="description" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl mb-6 group-data-horizontal/tabs:h-auto py-1 items-center">
-                <TabsTrigger 
+                <TabsTrigger
                   value="description"
                   className="rounded-lg text-xs md:text-sm font-medium py-2 transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
                 >
                   Työpaikkakuvaus
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="history"
                   className="rounded-lg text-xs md:text-sm font-medium py-2 transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 data-[state=active]:shadow-sm"
                 >
-                  Rekrytoinnin eteneminen {!isDemo && history.length > 0 && `(${history.length})`}
+                  Rekrytoinnin eteneminen{" "}
+                  {isDemo
+                    ? `(${getDemoHistoryForApp(app.id).length})`
+                    : history.length > 0 && `(${history.length})`}
                 </TabsTrigger>
               </TabsList>
 
-              {/* Sisältö: Työpaikkakuvaus (Ei erillistä rullausta, antaa dialogin rullata) */}
+              {/* Sisältö: Työpaikkakuvaus */}
               <TabsContent
                 value="description"
                 className="focus-visible:outline-none focus-visible:ring-0"
@@ -571,8 +575,14 @@ export default function ApplicationDialog({
               >
                 <div className="pt-1">
                   {isDemo ? (
-                    <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400 italic">
-                      Demotilassa ei seurata tila-historiaa.
+                    <div>
+                      <div className="mb-4 text-center text-[11px] font-semibold text-amber-600 dark:text-amber-400/80 bg-amber-50 dark:bg-amber-500/10 py-1.5 px-3 rounded-lg border border-amber-100 dark:border-amber-500/20">
+                        Katsot demotilaa. Alla näkyvä historia on esimerkki
+                        yritykselle {app.company}.
+                      </div>
+                      <ApplicationHistory
+                        history={getDemoHistoryForApp(app.id) as any}
+                      />
                     </div>
                   ) : loadingHistory ? (
                     <div className="text-center py-8 text-sm text-slate-400 animate-pulse">
