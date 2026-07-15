@@ -116,7 +116,7 @@ export const DEMO_APPLICATIONS = [
     id: "d7",
     company: "Elisa",
     job_title: "Product Manager",
-    status: "Haettu",
+    status: "ghosted",
     location: "Helsinki",
     employment_type: "FULL_TIME",
     salary_min: 4500,
@@ -180,7 +180,7 @@ export const DEMO_APPLICATIONS = [
     id: "d11",
     company: "Fortum",
     job_title: "Data Scientist",
-    status: "Haettu",
+    status: "ghosted",
     location: "Espoo",
     employment_type: "FULL_TIME",
     salary_min: 4600,
@@ -310,21 +310,30 @@ export function computeDemoStats() {
   const statsData = DEMO_APPLICATIONS.reduce(
     (acc, app) => {
       const s = app.status?.toLowerCase().trim() || "";
-      if (["suosikki", "tallennettu"].includes(s)) acc.favorites++;
-      else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
-      else if (["tarjous", "offer"].includes(s)) acc.offers++;
-      else if (["hylätty", "hylätyt", "rejected"].includes(s)) acc.rejected++;
-      else acc.pending++;
+      if (["suosikki", "tallennettu"].includes(s)) {
+        acc.favorites++;
+      } else if (["haastattelu", "interview"].includes(s)) {
+        acc.interviews++;
+      } else if (["tarjous", "offer"].includes(s)) {
+        acc.offers++;
+      } else if (["hylätty", "hylätyt", "rejected"].includes(s)) {
+        acc.rejected++;
+      } else if (["ghosted", "ei vastausta"].includes(s)) {
+        acc.ghosted++;
+      } else {
+        acc.pending++;
+      }
       return acc;
     },
-    { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 },
+    { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0, ghosted: 0 },
   );
 
   const totalActive =
     statsData.pending +
     statsData.interviews +
     statsData.offers +
-    statsData.rejected;
+    statsData.rejected +
+    statsData.ghosted;
 
   return {
     total: totalActive,
@@ -333,6 +342,7 @@ export function computeDemoStats() {
     interviews: statsData.interviews,
     rejected: statsData.rejected,
     favorites: statsData.favorites,
+    ghosted: statsData.ghosted, // <-- LISÄTTY TÄMÄ RIVI
     consistency: 71,
   };
 }
@@ -582,6 +592,56 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
           new_status: "Tallennettu",
           description: "Luotu tilassa: Tallennettu",
           notes: "Tallennettu kiinnostavana paikkana.",
+        },
+];
+        case "d7": // Elisa (Luotu 15.5. klo 12:15, haettu 15.5. klo 17:15, ghosted-tila todettu 14.6. eli 30 päivän kuluttua)
+      return [
+        {
+          id: "demo-h7-3",
+          created_at: "2026-06-14T14:15:00Z", // Tasan 30 päivää hakuajankohdan jälkeen
+          new_status: "ghosted",
+          description: "Tila muuttunut: Haettu ➔ Ei vastausta (Ghosted)",
+          notes:
+            "Hakemuksen lähettämisestä on kulunut yli 30 päivää eikä yrityksestä ole kuulunut mitään. Hakemus siirretty automaattisesti taustalla hiljaisten hylkäysten (Ghosted) kategoriaan.",
+        },
+        {
+          id: "demo-h7-2",
+          created_at: "2026-05-15T14:15:00Z", // Alkuperäinen hakuajankohta (Suomen ajassa klo 17:15)
+          new_status: "Haettu",
+          description: "Tila muuttunut: Tallennettu ➔ Haettu",
+          notes: "Hakemus lähetetty Elisan rekrytointijärjestelmän kautta.",
+        },
+        {
+          id: "demo-h7-1",
+          created_at: "2026-05-15T09:15:00Z", // Luontiajankohta (Suomen ajassa klo 12:15)
+          new_status: "Tallennettu",
+          description: "Luotu tilassa: Tallennettu",
+          notes: "Tallennettu mielenkiintoinen Product Manager -paikka myöhempää viimeistelyä varten.",
+        },
+      ];
+    case "d11": // Fortum (Luotu 20.5. klo 17:20, haettu 20.5. klo 18:00, ghosted-tila todettu 19.6. eli 30 päivän kuluttua)
+      return [
+        {
+          id: "demo-h11-3",
+          created_at: "2026-06-19T15:00:00Z", // Tasan 30 päivää hakuajankohdan jälkeen
+          new_status: "ghosted",
+          description: "Tila muuttunut: Haettu ➔ Ei vastausta (Ghosted)",
+          notes:
+            "Hakemuksen lähettämisestä on kulunut yli 30 päivää. Rekrytointi on edennyt hiljaisuudessa ilman ilmoituksia, joten hakemus on merkitty haamuuntuneeksi.",
+        },
+        {
+          id: "demo-h11-2",
+          created_at: "2026-05-20T15:00:00Z", // Alkuperäinen hakuajankohta (Suomen ajassa klo 18:00)
+          new_status: "Haettu",
+          description: "Tila muuttunut: Tallennettu ➔ Haettu",
+          notes: "Hakemus ja CV lähetetty Fortumin urasivuston kautta Data Scientist -tehtävään.",
+        },
+        {
+          id: "demo-h11-1",
+          created_at: "2026-05-20T14:20:00Z", // Luontiajankohta (Suomen ajassa klo 17:20)
+          new_status: "Tallennettu",
+          description: "Luotu tilassa: Tallennettu",
+          notes: "Mielenkiintoinen energiadatan parissa oleva rooli tallennettu seurantaan.",
         },
       ];
 

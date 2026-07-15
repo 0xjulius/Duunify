@@ -14,6 +14,7 @@ import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import RecentApplications from "@/components/dashboard/RecentApplications";
 import UpcomingDeadlines from "@/components/dashboard/UpcomingDeadlines";
 import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
+import GhostedCard from "@/components/dashboard/GhostedCard";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
 import {
   Briefcase,
@@ -38,6 +39,7 @@ type StatFilterType =
   | "interviews"
   | "offers"
   | "rejected"
+  | "ghosted"
   | null;
 
 const getStatusBadgeClass = (status: string) => {
@@ -54,6 +56,9 @@ const getStatusBadgeClass = (status: string) => {
   if (["suosikki", "tallennettu"].includes(s)) {
     return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400";
   }
+  if (["ghosted", "ei vastausta"].includes(s)) {
+    return "bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-400";
+  }
   return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
 };
 
@@ -61,8 +66,9 @@ export default function DemoDashboardPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [open, setOpen] = useState(false);
   const [isDemoClick, setIsDemoClick] = useState(false);
-  const [activeStatFilter, setActiveStatFilter] = useState<StatFilterType>(null);
-  
+  const [activeStatFilter, setActiveStatFilter] =
+    useState<StatFilterType>(null);
+
   // Estetään hydraatiovirheet (aikaleimat ja kellonajat vain selaimessa)
   const [mounted, setMounted] = useState(false);
 
@@ -70,10 +76,17 @@ export default function DemoDashboardPage() {
     setMounted(true);
   }, []);
 
+  // ALUSTETAAN TILASTOT JA PROSENTIT HETI ALUSSA JÄRJESTYKSESSÄ[cite: 5]
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
+  
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
+
+  // Varmistetaan nollalla suojautuminen, jos stats.ghosted on undefined[cite: 5]
+  const ghostedCount = (stats as any).ghosted || 0;
+  const ghostedPercentage =
+    stats.total > 0 ? Math.round((ghostedCount / stats.total) * 100) : 0;
 
   const getStatModalJobs = () => {
     return DEMO_APPLICATIONS.filter((app) => {
@@ -92,6 +105,7 @@ export default function DemoDashboardPage() {
             "hylätty",
             "hylätyt",
             "rejected",
+            "ghosted",
           ].includes(s);
         case "favorites":
           return ["suosikki", "tallennettu"].includes(s);
@@ -101,6 +115,8 @@ export default function DemoDashboardPage() {
           return ["tarjous", "offer"].includes(s);
         case "rejected":
           return ["hylätty", "hylätyt", "rejected"].includes(s);
+        case "ghosted":
+          return ["ghosted", "ei vastausta"].includes(s);
         default:
           return false;
       }
@@ -121,6 +137,8 @@ export default function DemoDashboardPage() {
         return "Saadut työtarjoukset";
       case "rejected":
         return "Päättyneet / Hylätyt hakemukset";
+      case "ghosted":
+        return "Hiljaiset hylkäykset (Ghosted)";
       default:
         return "";
     }
@@ -206,7 +224,8 @@ export default function DemoDashboardPage() {
 
         <div className="flex flex-col gap-6">
           <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
-            <div className="md:col-span-6">
+            {/* YLÄRIVI: 3 KORTTIA (Kukin vie 4 palstaa md-koossa) */}
+            <div className="md:col-span-4">
               <StatsCard
                 title="Hakemukset"
                 value={stats.total}
@@ -216,7 +235,8 @@ export default function DemoDashboardPage() {
                 onClick={() => setActiveStatFilter("total")}
               />
             </div>
-            <div className="md:col-span-6">
+            
+            <div className="md:col-span-4">
               <StatsCard
                 title="Vireillä olevat hakemukset"
                 value={stats.pending}
@@ -231,6 +251,15 @@ export default function DemoDashboardPage() {
               />
             </div>
 
+            <div className="md:col-span-4">
+              <GhostedCard
+                value={ghostedCount}
+                percentage={ghostedPercentage}
+                onClick={() => setActiveStatFilter("ghosted")}
+              />
+            </div>
+
+            {/* ALARIVI: SEURAAVAT 4 KORTTIA (Kukin vie 3 palstaa md-koossa) */}
             <div className="md:col-span-3">
               <StatsCard
                 title="Tallennetut"
@@ -245,6 +274,7 @@ export default function DemoDashboardPage() {
                 onClick={() => setActiveStatFilter("favorites")}
               />
             </div>
+
             <div className="md:col-span-3">
               <StatsCard
                 title="Haastattelut"
@@ -255,6 +285,7 @@ export default function DemoDashboardPage() {
                 onClick={() => setActiveStatFilter("interviews")}
               />
             </div>
+
             <div className="md:col-span-3">
               <StatsCard
                 title="Tarjoukset"
@@ -269,6 +300,7 @@ export default function DemoDashboardPage() {
                 onClick={() => setActiveStatFilter("offers")}
               />
             </div>
+
             <div className="md:col-span-3">
               <StatsCard
                 title="Hylätyt"
