@@ -13,7 +13,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { eachDayOfInterval, format, subDays, isAfter } from "date-fns";
+import { eachDayOfInterval, format, subDays, isAfter, startOfDay, parseISO } from "date-fns";
 
 type ChartRow = { day: string; applications: number };
 type Application = { applied_date: string };
@@ -40,15 +40,31 @@ function makeCustomTooltip(isDark: boolean) {
   };
 }
 
+// Apufunktio muuttamaan erilaiset pvm-formaatit vertailukelpoiseksi stringiksi (YYYY-MM-DD)
+function normalizeDateStr(dateInput: string): string {
+  try {
+    const d = dateInput.includes("T") ? parseISO(dateInput) : new Date(dateInput);
+    return format(d, "yyyy-MM-dd");
+  } catch {
+    return dateInput;
+  }
+}
+
 function calculate(rows: Application[]) {
   const baseDate = new Date();
-  const startOfCurrentPeriod = subDays(baseDate, 29);
+  const startOfCurrentPeriod = subDays(baseDate, 59); // Säädetty 60 päivän tarkastelujaksolle
 
-  const currentPeriodRows = rows.filter(
-    (a) => !isAfter(startOfCurrentPeriod, new Date(a.applied_date))
+  // Suodatetaan ja normitetaan hakemukset
+  const normalizedRows = rows.map(r => ({
+    ...r,
+    normalized_date: normalizeDateStr(r.applied_date)
+  }));
+
+  const currentPeriodRows = normalizedRows.filter(
+    (a) => !isAfter(startOfCurrentPeriod, startOfDay(new Date(a.applied_date)))
   );
-  const previousPeriodRows = rows.filter((a) =>
-    isAfter(startOfCurrentPeriod, new Date(a.applied_date))
+  const previousPeriodRows = normalizedRows.filter((a) =>
+    isAfter(startOfCurrentPeriod, startOfDay(new Date(a.applied_date)))
   );
 
   const currentTotal = currentPeriodRows.length;
@@ -66,7 +82,8 @@ function calculate(rows: Application[]) {
   let cumulativeSum = 0;
   const chartData: ChartRow[] = days.map((day) => {
     const dateStr = format(day, "yyyy-MM-dd");
-    const daysCount = currentPeriodRows.filter((a) => a.applied_date === dateStr).length;
+    // Verrataan normitettuja päivämääriä (ohittaa kellonajat)
+    const daysCount = currentPeriodRows.filter((a) => a.normalized_date === dateStr).length;
     cumulativeSum += daysCount;
     return { day: format(day, "d.M."), applications: cumulativeSum };
   });
@@ -115,7 +132,8 @@ export default function ApplicationTrendChart({
     }
 
     const baseDate = new Date();
-    const startOfPreviousPeriod = subDays(baseDate, 59);
+    // Haetaan yhteensä 120 päivää, jotta saadaan vertailudata edelliselle 60 päivälle
+    const startOfPreviousPeriod = subDays(baseDate, 119);
     const formattedStartDate = format(startOfPreviousPeriod, "yyyy-MM-dd");
 
     const { data: applications, error } = await supabase
@@ -155,7 +173,7 @@ export default function ApplicationTrendChart({
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between h-[340px]">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Hakemuksia ajassa</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Hakemuksia ajassa (60 pv)</h2>
         <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-lg">
           {totalCount} yhteensä
         </span>
@@ -179,7 +197,7 @@ export default function ApplicationTrendChart({
               tickLine={false}
               axisLine={false}
               dy={10}
-              interval={Math.floor(data.length / 5)}
+              interval={Math.floor(data.length / 6)} // Välimatka X-akselin pvm-merkinnöille
             />
 
             <YAxis
@@ -207,11 +225,11 @@ export default function ApplicationTrendChart({
       <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold mt-2">
         {percentageChange >= 0 ? (
           <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-            ↑ {percentageChange} % <span className="text-slate-500 dark:text-slate-400 font-medium">enemmän kuin edelliset 30 päivää</span>
+            ↑ {percentageChange} % <span className="text-slate-500 dark:text-slate-400 font-medium">enemmän kuin edelliset 60 päivää</span>
           </span>
         ) : (
           <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-            ↓ {Math.abs(percentageChange)} % <span className="text-slate-500 dark:text-slate-400 font-medium">vähemmän kuin edelliset 30 päivää</span>
+            ↓ {Math.abs(percentageChange)} % <span className="text-slate-500 dark:text-slate-400 font-medium">vähemmän kuin edelliset 60 päivää</span>
           </span>
         )}
       </div>

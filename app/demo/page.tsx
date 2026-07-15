@@ -307,7 +307,7 @@ export default function DemoDashboardPage() {
                 <ApplicationTrendChart demoApplications={DEMO_APPLICATIONS} />
               </div>
               <div className="lg:col-span-4">
-                <ActivityHeatmap demoApplications={DEMO_APPLICATIONS} />
+                <ActivityHeatmap demoApplications={[]} />
               </div>
             </div>
 
