@@ -64,7 +64,12 @@ export default function LoginPage() {
   }
 
 async function register() {
-    if (loading) return;
+  if (loading) return;
+  
+  if (!fullName.trim()) {
+    toast.error("Syötä koko nimesi.");
+    return;
+  }
 
     if (!meetsRequirements) {
       toast.error("Salasana ei täytä turvallisuusvaatimuksia.");
@@ -277,7 +282,7 @@ async function register() {
                   </div>
 
                   <TextField
-                    label="Koko nimi"
+                    label="Koko nimi *"
                     type="text"
                     placeholder="Maija Meikäläinen"
                     value={fullName}
@@ -286,7 +291,7 @@ async function register() {
                   <TextField
                     label="Sähköpostiosoite"
                     type="email"
-                    placeholder="etunimi@yritys.fi"
+                    placeholder="sinun@sähköposti.fi"
                     value={email}
                     onChange={setEmail}
                   />
@@ -315,7 +320,7 @@ async function register() {
                     label="Luo tunnus"
                     onClick={register}
                     loading={loading}
-                    disabled={!acceptTerms || !meetsRequirements}
+                    disabled={!fullName.trim() || !acceptTerms || !meetsRequirements}
                   />
                 </form>
                 <SwitchLine

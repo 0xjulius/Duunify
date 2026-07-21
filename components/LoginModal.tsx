@@ -80,6 +80,11 @@ export default function LoginModal({
   async function register() {
     if (loading) return;
 
+    if (!fullName.trim()) {
+    toast.error("Syötä koko nimesi.");
+    return;
+    }
+    
     if (!meetsRequirements) {
       toast.error(
         "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta."
@@ -303,7 +308,7 @@ export default function LoginModal({
                   </div>
 
                   <TextField
-                    label="Koko nimi"
+                    label="Koko nimi *"
                     type="text"
                     placeholder="Maija Meikäläinen"
                     value={fullName}
@@ -341,7 +346,7 @@ export default function LoginModal({
                     label="Luo tunnus"
                     onClick={register}
                     loading={loading}
-                    disabled={!acceptTerms || !meetsRequirements}
+                    disabled={!fullName.trim() || !acceptTerms || !meetsRequirements}
                   />
                 </form>
                 <SwitchLine
