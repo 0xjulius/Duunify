@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
-import { loginAction } from "./actions";
+import { loginAction, registerAction } from "./actions";
 import { createLog } from "@/lib/logger";
 
 export default function LoginPage() {
@@ -47,14 +47,8 @@ export default function LoginPage() {
     }
   }
 
-  async function register() {
+async function register() {
     if (loading) return;
-
-    if (honeypot) {
-      console.warn("Botti estetty honeypot-ansalla.");
-      toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-      return;
-    }
 
     if (!meetsRequirements) {
       toast.error("Salasana ei täytä turvallisuusvaatimuksia.");
@@ -68,43 +62,24 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    let ipAddress = "Ei saatavilla";
-    try {
-      const res = await fetch("https://api.ipify.org?format=json");
-      const data = await res.json();
-      ipAddress = data.ip;
-    } catch (e) {
-      console.error("IP-osoitteen haku epäonnistui:", e);
-    }
+    // Package data into FormData for Server Action
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("fullName", fullName);
+    formData.append("company_website", honeypot); // Honeypot field
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          user_agent: typeof window !== "undefined" ? navigator.userAgent : "",
-          referrer:
-            typeof document !== "undefined"
-              ? document.referrer || "Suoraan sivustolle"
-              : "Suoraan sivustolle",
-          ip_address: ipAddress,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    });
+    const result = await registerAction(formData);
 
     setLoading(false);
 
-    if (error) {
-      toast.error(translateAuthError(error.message));
+    if (result?.error) {
+      toast.error(translateAuthError(result.error));
       return;
     }
 
-    if (data?.session) {
+    if (result?.fake || result?.data?.session) {
       toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-      // Käytetään tässäkin location.href-ohjausta evästeiden varmistamiseksi, 
-      // kunnes tästäkin tehdään Server Action
       setTimeout(() => {
         window.location.href = "/dashboard";
       }, 600);

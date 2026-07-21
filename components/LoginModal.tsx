@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { translateAuthError } from "@/lib/auth-errors";
 import { X } from "lucide-react";
-import { loginAction } from "@/app/login/actions";
+import { loginAction, registerAction } from "@/app/login/actions";
 import { createLog } from "@/lib/logger";
 
 export default function LoginModal({
@@ -61,7 +61,6 @@ export default function LoginModal({
       if (onSuccess) onSuccess();
       onClose();
 
-      // Päivitetään reitittimen tila evästeiden synkronointia varten ja siirrytään dashboardille SPA-navigaatiolla
       router.refresh();
       router.push("/dashboard");
     } catch (err) {
@@ -72,14 +71,6 @@ export default function LoginModal({
 
   async function register() {
     if (loading) return;
-
-    if (honeypot) {
-      console.warn("Botti estetty honeypot-ansalla.");
-      toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-      if (onSuccess) onSuccess();
-      onClose();
-      return;
-    }
 
     if (!meetsRequirements) {
       toast.error(
@@ -95,76 +86,63 @@ export default function LoginModal({
 
     setLoading(true);
 
-    let ipAddress = "Ei saatavilla";
     try {
-      const res = await fetch("https://api.ipify.org?format=json");
-      const data = await res.json();
-      ipAddress = data.ip;
-    } catch (e) {
-      console.error("IP-osoitteen haku epäonnistui:", e);
-    }
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("fullName", fullName);
+      formData.append("company_website", honeypot); // Server-side honeypot field
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+      const result = await registerAction(formData);
+
+      setLoading(false);
+
+      if (result?.error) {
+        toast.error(translateAuthError(result.error));
+        return;
+      }
+
+      if (result?.fake || result?.data?.session) {
+        toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
+        if (onSuccess) onSuccess();
+        onClose();
+
+        router.refresh();
+        router.push("/dashboard");
+      } else {
+        toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error("Rekisteröitymisessä tapahtui odottamaton virhe:", err);
+    }
+  }
+
+  async function loginWithGoogle() {
+    if (googleLoading) return;
+
+    setGoogleLoading(true);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
       options: {
-        data: {
-          full_name: fullName,
-          user_agent: typeof window !== "undefined" ? navigator.userAgent : "",
-          referrer:
-            typeof document !== "undefined"
-              ? document.referrer || "Suoraan sivustolle"
-              : "Suoraan sivustolle",
-          ip_address: ipAddress,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
 
-    setLoading(false);
-
     if (error) {
+      setGoogleLoading(false);
+
       toast.error(translateAuthError(error.message));
-      return;
-    }
 
-    if (data?.session) {
-      toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-      if (onSuccess) onSuccess();
-      onClose();
-
-      router.refresh();
-      router.push("/dashboard");
-    } else {
-      toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
+      await createLog({
+        action: "login_failed",
+        details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
+        category: "auth",
+        status: "failure",
+      });
     }
   }
-
- async function loginWithGoogle() {
-  if (googleLoading) return;
-
-  setGoogleLoading(true);
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-    },
-  });
-
-  if (error) {
-    setGoogleLoading(false);
-
-    toast.error(translateAuthError(error.message));
-
-    await createLog({
-      action: "login_failed",
-      details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
-      category: "auth",
-      status: "failure",
-    });
-  }
-}
 
   return (
     <div
