@@ -30,20 +30,36 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
 
-    // Paketoidaan sähköposti ja salasana FormData-muotoon palvelinta varten
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("password", password);
+    try {
+      // Paketoidaan sähköposti ja salasana FormData-muotoon palvelinta varten
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
 
-    // Kutsutaan Server Actionia
-    const result = await loginAction(formData);
+      // Kutsutaan Server Actionia
+      const result = await loginAction(formData);
 
-    // Jos reititys onnistuu, redirect() katkaisee suorituksen,
-    // joten tänne päädytään ainoastaan virhetilanteessa.
-    if (result?.error) {
+      if (result?.isBanned) {
+        setLoading(false);
+        router.push("/banned");
+        return;
+      }
+
+      if (result?.error) {
+        setLoading(false);
+        toast.error(translateAuthError(result.error));
+        return;
+      }
+
+      if (result?.success) {
+        toast.success("Tervetuloa takaisin 👋");
+        router.refresh();
+        router.push("/dashboard");
+      }
+    } catch (err) {
       setLoading(false);
-      toast.error(translateAuthError(result.error));
-      return;
+      console.error("Kirjautumisessa tapahtui odottamaton virhe:", err);
+      toast.error("Kirjautumisessa tapahtui virhe. Yritä uudelleen.");
     }
   }
 
@@ -62,57 +78,62 @@ async function register() {
 
     setLoading(true);
 
-    // Package data into FormData for Server Action
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("fullName", fullName);
-    formData.append("company_website", honeypot); // Honeypot field
+    try {
+      // Package data into FormData for Server Action
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("fullName", fullName);
+      formData.append("company_website", honeypot); // Honeypot field
 
-    const result = await registerAction(formData);
+      const result = await registerAction(formData);
 
-    setLoading(false);
+      setLoading(false);
 
-    if (result?.error) {
-      toast.error(translateAuthError(result.error));
-      return;
-    }
+      if (result?.error) {
+        toast.error(translateAuthError(result.error));
+        return;
+      }
 
-    if (result?.fake || result?.data?.session) {
-      toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 600);
-    } else {
-      toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
+      if (result?.fake || result?.data?.session) {
+        toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
+        router.refresh();
+        router.push("/dashboard");
+      } else {
+        toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error("Rekisteröitymisessä tapahtui virhe:", err);
+      toast.error("Rekisteröitymisessä tapahtui virhe. Yritä uudelleen.");
     }
   }
 
-async function loginWithGoogle() {
-  if (googleLoading) return;
+  async function loginWithGoogle() {
+    if (googleLoading) return;
 
-  setGoogleLoading(true);
+    setGoogleLoading(true);
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-    },
-  });
-
-  if (error) {
-    setGoogleLoading(false);
-
-    toast.error(translateAuthError(error.message));
-
-    await createLog({
-      action: "login_failed",
-      details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
-      category: "auth",
-      status: "failure",
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+      },
     });
+
+    if (error) {
+      setGoogleLoading(false);
+
+      toast.error(translateAuthError(error.message));
+
+      await createLog({
+        action: "login_failed",
+        details: `Google OAuth -aloitus epäonnistui: ${error.message}`,
+        category: "auth",
+        status: "failure",
+      });
+    }
   }
-}
 
   return (
     <div

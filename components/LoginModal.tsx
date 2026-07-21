@@ -19,7 +19,7 @@ export default function LoginModal({
   onSuccess?: () => void;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState<"login" | "register">("login");
   const flipped = mode === "register";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,15 +42,19 @@ export default function LoginModal({
     setLoading(true);
 
     try {
-      // Paketoidaan syötteet FormData-muotoon Server Actionia varten
       const formData = new FormData();
       formData.append("email", email);
       formData.append("password", password);
 
-      // Kutsutaan palvelimen toimintoa (Server Action)
       const result = await loginAction(formData);
 
-      // Jos Server Action palauttaa virheen, käsitellään se täällä
+      if (result?.isBanned) {
+        setLoading(false);
+        onClose();
+        router.push("/banned");
+        return;
+      }
+
       if (result?.error) {
         setLoading(false);
         toast.error(translateAuthError(result.error));
@@ -58,14 +62,18 @@ export default function LoginModal({
       }
 
       toast.success("Tervetuloa takaisin 👋");
-      if (onSuccess) onSuccess();
       onClose();
 
-      router.refresh();
-      router.push("/dashboard");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+        router.push("/dashboard");
+      }
     } catch (err) {
       setLoading(false);
       console.error("Kirjautumisessa tapahtui odottamaton virhe:", err);
+      toast.error("Kirjautumisessa tapahtui virhe. Yritä uudelleen.");
     }
   }
 
@@ -74,7 +82,7 @@ export default function LoginModal({
 
     if (!meetsRequirements) {
       toast.error(
-        "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta.",
+        "Salasana ei täytä turvallisuusvaatimuksia. Tarkista vaatimukset alta."
       );
       return;
     }
@@ -91,7 +99,7 @@ export default function LoginModal({
       formData.append("email", email);
       formData.append("password", password);
       formData.append("fullName", fullName);
-      formData.append("company_website", honeypot); // Server-side honeypot field
+      formData.append("company_website", honeypot);
 
       const result = await registerAction(formData);
 
@@ -104,17 +112,21 @@ export default function LoginModal({
 
       if (result?.fake || result?.data?.session) {
         toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-        if (onSuccess) onSuccess();
         onClose();
 
-        router.refresh();
-        router.push("/dashboard");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.refresh();
+          router.push("/dashboard");
+        }
       } else {
         toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
       }
     } catch (err) {
       setLoading(false);
       console.error("Rekisteröitymisessä tapahtui odottamaton virhe:", err);
+      toast.error("Rekisteröitymisessä tapahtui virhe. Yritä uudelleen.");
     }
   }
 
@@ -132,7 +144,6 @@ export default function LoginModal({
 
     if (error) {
       setGoogleLoading(false);
-
       toast.error(translateAuthError(error.message));
 
       await createLog({
@@ -172,13 +183,10 @@ export default function LoginModal({
           -webkit-backface-visibility: hidden;
         }
         .duunify-face-back { transform: rotateY(180deg); }
-        .duunify-perforation {
-          background-image: radial-gradient(circle, rgba(13,11,38,0) 0, rgba(13,11,38,0) 3px, transparent 3px);
-        }
       `}</style>
 
       <div
-        className="duunify-modal duunify-perspective w-full max-w-4xl my-auto"
+        className="duunify-modal duunify-perspective w-full max-w-4xl my-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -191,7 +199,7 @@ export default function LoginModal({
         </button>
 
         <div className={`duunify-card-inner ${flipped ? "is-flipped" : ""}`}>
-          {/* ---------- FRONT FACE (LOGIN) ---------- */}
+          {/* FRONT FACE (LOGIN) */}
           <div
             className="duunify-face duunify-face-stack w-full rounded-[28px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 grid md:grid-cols-[44%_56%]"
             aria-hidden={flipped}
@@ -259,7 +267,7 @@ export default function LoginModal({
             </div>
           </div>
 
-          {/* ---------- BACK FACE (REGISTER) ---------- */}
+          {/* BACK FACE (REGISTER) */}
           <div
             className="duunify-face duunify-face-stack duunify-face-back w-full rounded-[28px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 grid md:grid-cols-[56%_44%]"
             aria-hidden={!flipped}
@@ -359,6 +367,8 @@ export default function LoginModal({
     </div>
   );
 }
+
+/* --- Apukomponentit ennallaan --- */
 
 function getPasswordStrength(password: string) {
   const checks = {

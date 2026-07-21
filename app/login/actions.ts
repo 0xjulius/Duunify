@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase-server";
-import { redirect } from "next/navigation";
 import { createLog } from "@/lib/logger";
 import { ratelimit } from "@/lib/ratelimit";
 import { headers } from "next/headers";
@@ -61,7 +60,7 @@ export async function loginAction(formData: FormData) {
       error.status === 403;
 
     if (isBanned) {
-      redirect("/banned");
+      return { isBanned: true, error: "Tili on estetty." };
     }
 
     return { error: error.message };
@@ -75,7 +74,7 @@ export async function loginAction(formData: FormData) {
     userId: data.user.id,
   });
 
-  redirect("/dashboard");
+  return { success: true, user: data.user };
 }
 
 export async function registerAction(formData: FormData) {
