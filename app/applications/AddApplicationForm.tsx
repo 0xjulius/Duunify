@@ -63,16 +63,16 @@ export default function AddApplicationForm({
   async function addHistory(
     userId: string,
     applicationId: string,
-    event: string,
-    oldValue?: string,
-    newValue?: string,
+    eventType: string,
+    oldStatus?: string | null,
+    newStatus?: string | null,
   ) {
     await supabase.from("application_history").insert({
       user_id: userId,
       application_id: applicationId,
-      event,
-      old_value: oldValue ?? null,
-      new_value: newValue ?? null,
+      event_type: eventType,
+      old_status: oldStatus ?? null,
+      new_status: newStatus ?? null,
     });
   }
 
@@ -127,6 +127,14 @@ export default function AddApplicationForm({
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 408) {
+          toast.error("Haku aikakatkaistiin", {
+            description:
+              "Sivuston vastaus kesti liian kauan. Yritä uudelleen hetken kuluttua.",
+          });
+          return;
+        }
+
         if (response.status === 401) {
           toast.error("Kirjaudu sisään", {
             description:
@@ -248,11 +256,9 @@ export default function AddApplicationForm({
       await addHistory(
         user.id,
         data.id,
-        status === "Tallennettu"
-          ? "Hakemus tallennettu luonnokseksi"
-          : "Hakemus lähetetty",
-        undefined,
-        status,
+        "created", // Tapahtumatyyppi on aina "created"
+        null, // Ei vanhaa tilaa luontihetkellä
+        status, // Valittu tila (esim. "Tallennettu", "Haettu", "Haastattelu")
       );
 
       toast.success("🎉 Hakemus tallennettu!", {
@@ -285,7 +291,8 @@ export default function AddApplicationForm({
 
   const inputStyle =
     "w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
-  const labelStyle = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2";
+  const labelStyle =
+    "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2";
 
   return (
     <form
@@ -293,8 +300,10 @@ export default function AddApplicationForm({
       className="bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 w-full xl:w-4/5 xl:mx-auto"
     >
       <div className="flex">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Uusi mahdollisuus</h2>
-          {/* Info-ikoni vihjetekstillä */}
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+          Uusi mahdollisuus
+        </h2>
+        {/* Info-ikoni vihjetekstillä */}
         <div className="ml-2 group relative inline-block cursor-help text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
           <svg
             className="h-4 w-4"
@@ -325,7 +334,10 @@ export default function AddApplicationForm({
         </div>
       </div>
       <div>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 mb-6">Aloita liittämällä linkki automaattista täyttöä varten tai kirjaa tiedot itse.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 mb-6">
+          Aloita liittämällä linkki automaattista täyttöä varten tai kirjaa
+          tiedot itse.
+        </p>
       </div>
 
       {/* URL AUTOFILL */}
@@ -417,7 +429,9 @@ export default function AddApplicationForm({
               onChange={(e) => setEmploymentType(e.target.value)}
               className={`${inputStyle} appearance-none cursor-pointer`}
             >
-              <option value="" className="dark:bg-slate-850">— Valitse —</option>
+              <option value="" className="dark:bg-slate-850">
+                — Valitse —
+              </option>
               {Object.entries(EMPLOYMENT_TYPE_FI).map(([val, label]) => (
                 <option key={val} value={val} className="dark:bg-slate-850">
                   {label}
@@ -475,7 +489,9 @@ export default function AddApplicationForm({
                 min={0}
                 className={inputStyle}
               />
-              <span className="text-slate-400 dark:text-slate-500 shrink-0">–</span>
+              <span className="text-slate-400 dark:text-slate-500 shrink-0">
+                –
+              </span>
               <input
                 type="number"
                 placeholder="Max"

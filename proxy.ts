@@ -14,7 +14,11 @@ const PROTECTED_PREFIXES = [
 const ADMIN_PREFIX = "/admin";
 
 export async function proxy(request: NextRequest) {
-  // POISTETTU: Kehitysympäristön ohitus tietoturvan vuoksi
+  // 🚀 KEHITYSYMPÄRISTÖN OHITUS:
+  // Sallitaan kaikkien sivujen käyttö ilman kirjautumista lokaalisti
+  if (process.env.NODE_ENV === "development") {
+    return NextResponse.next();
+  }
 
   const { response: sessionResponse, user, supabase } = await updateSession(request);
 

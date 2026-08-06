@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import { Building2, AlertCircle } from "lucide-react";
+import { Building2, AlertCircle, Filter } from "lucide-react";
 import DownloadButton from "../DownloadButton";
 
 type Application = {
@@ -22,12 +22,10 @@ const formatActivityTime = (dateString?: string) => {
   if (!dateString) return "";
   const date = new Date(dateString);
 
-  // Suomalainen päivämäärämuoto
   const day = date.getDate();
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
 
-  // Tuntien ja minuuttien nollan lisäys (esim. 09:05)
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
 
@@ -47,7 +45,6 @@ const getStatusBadgeClass = (status: string) => {
   if (["suosikki", "tallennettu", "saved"].includes(s))
     return "bg-amber-50/50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-100 dark:border-amber-500/20";
 
-  // Oletus ("haettu" / "pending") - vaihdettu kirkkaampi tausta ja teksti dark modeen
   return "bg-blue-50/50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 border-blue-100 dark:border-blue-500/30";
 };
 
@@ -58,11 +55,10 @@ export default function RecentApplications({
   onOpenApplication: (app: Application, isDemo?: boolean) => void;
   demoApps?: Application[];
 }) {
-  const [apps, setApps] = useState<Application[]>(
-    demoApps ? demoApps.slice(0, 4) : [],
-  );
+  const [apps, setApps] = useState<Application[]>(demoApps || []);
   const [loading, setLoading] = useState(!demoApps);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const isDemoMode = !!demoApps;
 
   useEffect(() => {
@@ -75,8 +71,7 @@ export default function RecentApplications({
         const { data, error } = await supabase
           .from("applications")
           .select("*")
-          .order("created_at", { ascending: false })
-          .limit(4);
+          .order("created_at", { ascending: false });
 
         if (error) {
           console.error("Supabase-virhe aktiviteeteissa:", error);
@@ -94,6 +89,20 @@ export default function RecentApplications({
     fetchRecent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Uniikit statukset valikkoa varten
+  const availableStatuses = useMemo(() => {
+    const statuses = new Set(apps.map((a) => a.status).filter(Boolean));
+    return Array.from(statuses);
+  }, [apps]);
+
+  // Suodatettu lista statuksen mukaan (näytetään max 4)
+  const filteredApps = useMemo(() => {
+    if (selectedStatus === "all") return apps.slice(0, 4);
+    return apps
+      .filter((app) => app.status?.toLowerCase() === selectedStatus.toLowerCase())
+      .slice(0, 4);
+  }, [apps, selectedStatus]);
 
   if (loading) {
     return (
@@ -135,24 +144,39 @@ export default function RecentApplications({
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
             Viimeisimmät aktiviteetit
           </h2>
-          <DownloadButton data={apps} fileName="tyohakemukset_30pv" />
+          <div className="flex items-center gap-2">
+            {/* Status-suodattimen pudotusvalikko */}
+            <div className="relative flex items-center">
+              <Filter size={12} className="absolute left-2 text-slate-400 pointer-events-none" />
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="pl-6 pr-2 py-1 text-xs font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 capitalize cursor-pointer"
+              >
+                <option value="all">Suodata</option>
+                {availableStatuses.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <DownloadButton data={filteredApps} fileName="tyohakemukset" />
+          </div>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500">
-          Neljä viimeisintä aktiviteettiasi.
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+          {selectedStatus === "all" ? "Viimeisimmät aktiviteettisi." : `Suodatettu: ${selectedStatus}`}
         </p>
 
         <div className="mt-1 flex flex-col">
-          {apps.length === 0 ? (
+          {filteredApps.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-12">
               <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">
-                Ei vielä hakemuksia.
-              </p>
-              <p className="text-xs text-slate-300 dark:text-slate-600 mt-0.5">
-                Lisää ensimmäinen! 🚀
+                Ei hakemuksia valitulla statuksella.
               </p>
             </div>
           ) : (
-            apps.map((app) => (
+            filteredApps.map((app) => (
               <button
                 key={app.id}
                 onClick={() => onOpenApplication(app, isDemoMode)}
@@ -163,7 +187,6 @@ export default function RecentApplications({
                     <Building2 size={16} />
                   </div>
 
-                  {/* Nimi ja tehtävä omassa kontissaan */}
                   <div className="min-w-0 truncate">
                     <div className="flex items-baseline gap-2">
                       <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
@@ -179,7 +202,6 @@ export default function RecentApplications({
                   </div>
                 </div>
 
-                {/* Status omassa tilassaan oikealla */}
                 <span
                   className={`ml-4 text-[11px] font-bold px-2 py-0.5 rounded-lg border capitalize flex-shrink-0 tracking-tight ${getStatusBadgeClass(app.status)}`}
                 >

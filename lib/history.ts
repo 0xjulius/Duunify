@@ -18,12 +18,13 @@ export interface HistoryItem {
 }
 
 function mapEventType(row: any): EventType {
-  if (row.old_status && row.new_status) return "status_changed";
-
   const e = String(row.event_type || "").toLowerCase();
-  if (e.includes("poistet")) return "deleted";
-  if (e.includes("muistiinpano")) return "note_added";
-  return "created";
+  
+  if (e === "created" || e.includes("luotu")) return "created";
+  if (e.includes("poistet") || e.includes("deleted")) return "deleted";
+  if (e.includes("muistiinpano") || e.includes("note")) return "note_added";
+  
+  return "status_changed";
 }
 
 export async function fetchHistoryItems(): Promise<HistoryItem[]> {
@@ -36,7 +37,7 @@ export async function fetchHistoryItems(): Promise<HistoryItem[]> {
 
   const items: HistoryItem[] = [];
 
-  // 1. Tilamuutokset ja luonnit application_history-taulusta
+  // 1. Haetaan kaikki tapahtumat application_history-taulusta
   const { data: historyRows, error: historyError } = await supabase
     .from("application_history")
     .select(
@@ -49,10 +50,18 @@ export async function fetchHistoryItems(): Promise<HistoryItem[]> {
     console.error("Virhe haettaessa hakemushistoriaa:", historyError);
   }
 
+  // Seurataan mitkä hakemukset ovat jo luoneet historiapaikan
+  const appsWithCreatedEvent = new Set<string>();
+
   (historyRows || []).forEach((row: any) => {
+    const event = mapEventType(row);
+    if (event === "created" && row.application_id) {
+      appsWithCreatedEvent.add(row.application_id);
+    }
+
     items.push({
       id: `hist-${row.id}`,
-      event: mapEventType(row),
+      event,
       company: row.applications?.company || "Tuntematon yritys",
       jobTitle: row.applications?.job_title || "Ei tehtävänimikettä",
       oldStatus: row.old_status,
@@ -61,18 +70,33 @@ export async function fetchHistoryItems(): Promise<HistoryItem[]> {
     });
   });
 
-  // 2. Käyttäjän itse lisäämät kalenteritapahtumat
-  const { data: eventRows, error: eventError } = await supabase
-    .from("calendar_events")
-    .select(
-      "id, title, event_date, created_at, application_id, applications(company, job_title)"
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  // 2. Varajärjestelmä VANHOILLE hakemuksille, joille ei ole luontihetkellä 
+  // ehditty kirjoittaa application_history-riviä tietokantaan:
+  const { data: appRows } = await supabase
+    .from("applications")
+    .select("id, company, job_title, status, created_at")
+    .eq("user_id", user.id);
 
-  if (eventError) {
-    console.error("Virhe haettaessa kalenteritapahtumia:", eventError);
-  }
+  (appRows || []).forEach((app: any) => {
+    // Jos hakemuksella ei ole lainkaan "created"-tapahtumaa historiassa, luodaan se varalle
+    if (!appsWithCreatedEvent.has(app.id)) {
+      items.push({
+        id: `fallback-created-${app.id}`,
+        event: "created",
+        company: app.company,
+        jobTitle: app.job_title,
+        oldStatus: null,
+        newStatus: app.status,
+        createdAt: app.created_at,
+      });
+    }
+  });
+
+  // 3. Kalenteritapahtumat
+  const { data: eventRows } = await supabase
+    .from("calendar_events")
+    .select("id, title, created_at, applications(company, job_title)")
+    .eq("user_id", user.id);
 
   (eventRows || []).forEach((row: any) => {
     items.push({
@@ -86,50 +110,11 @@ export async function fetchHistoryItems(): Promise<HistoryItem[]> {
     });
   });
 
-  // 3. Varmistetaan että jokaisella hakemuksella on "luotu"-merkintä,
-  // vaikka application_history-rivi puuttuisi (esim. koska addHistory
-  // epäonnistui aiemmin skeemavirheen takia).
-  const { data: appRows, error: appError } = await supabase
-    .from("applications")
-    .select("id, company, job_title, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (appError) {
-    console.error("Virhe haettaessa hakemuksia:", appError);
-  }
-
-  const hasCreatedEntry = new Set(
-    (historyRows || [])
-      .filter((r: any) => mapEventType(r) === "created")
-      .map((r: any) => r.application_id)
-  );
-
-  (appRows || []).forEach((app: any) => {
-    if (!hasCreatedEntry.has(app.id)) {
-      items.push({
-        id: `app-created-${app.id}`,
-        event: "created",
-        company: app.company,
-        jobTitle: app.job_title,
-        oldStatus: null,
-        newStatus: null,
-        createdAt: app.created_at,
-      });
-    }
-  });
-
-  // 4. UUSI: Poistetut hakemukset erillisestä lokitaulusta
-  // (ei cascade-riskiä, koska ei foreign keytä applications-tauluun)
-  const { data: deletedRows, error: deletedError } = await supabase
+  // 4. Poistetut hakemukset
+  const { data: deletedRows } = await supabase
     .from("deleted_applications_log")
     .select("id, company, job_title, last_status, deleted_at")
-    .eq("user_id", user.id)
-    .order("deleted_at", { ascending: false });
-
-  if (deletedError) {
-    console.error("Virhe haettaessa poistolokia:", deletedError);
-  }
+    .eq("user_id", user.id);
 
   (deletedRows || []).forEach((row: any) => {
     items.push({
@@ -143,9 +128,7 @@ export async function fetchHistoryItems(): Promise<HistoryItem[]> {
     });
   });
 
-  items.sort(
+  return items.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
-
-  return items;
 }

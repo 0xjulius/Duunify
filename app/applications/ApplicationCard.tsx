@@ -103,52 +103,6 @@ function formatDate(iso?: string | null): string | null {
   }
 }
 
-function CompanyAvatar({ company }: { company: string }) {
-  const initials = company
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  const hue = (company.charCodeAt(0) * 37) % 360;
-  const palettes = [
-    {
-      bg: "bg-violet-100 dark:bg-violet-500/10",
-      text: "text-violet-700 dark:text-violet-400",
-    },
-    {
-      bg: "bg-teal-100 dark:bg-teal-500/10",
-      text: "text-teal-700 dark:text-teal-400",
-    },
-    {
-      bg: "bg-rose-100 dark:bg-rose-500/10",
-      text: "text-rose-700 dark:text-rose-400",
-    },
-    {
-      bg: "bg-sky-100 dark:bg-sky-500/10",
-      text: "text-sky-700 dark:text-sky-400",
-    },
-    {
-      bg: "bg-amber-100 dark:bg-amber-500/10",
-      text: "text-amber-700 dark:text-amber-400",
-    },
-    {
-      bg: "bg-emerald-100 dark:bg-emerald-500/10",
-      text: "text-emerald-700 dark:text-emerald-400",
-    },
-  ];
-  const palette = palettes[hue % palettes.length];
-
-  return (
-    <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ${palette.bg} ${palette.text}`}
-    >
-      {initials}
-    </div>
-  );
-}
-
 function StatusBadge({ status }: { status: string }) {
   const config = STATUS_CONFIG[status] ?? {
     label: status,
@@ -340,7 +294,7 @@ export default function ApplicationCard({
 
   async function saveStatus(e?: React.FormEvent) {
     if (e) e.preventDefault();
-    if (newStatus === app.status) {
+    if (loading || newStatus === app.status) {
       setEditingStatus(false);
       return;
     }
@@ -360,22 +314,6 @@ export default function ApplicationCard({
       return;
     }
 
-    // Luodaan merkintä historianhallintaan (application_history)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user && !isDemo) {
-      await supabase.from("application_history").insert({
-        application_id: app.id,
-        event_type: "status_change",
-        old_status: app.status,
-        new_status: newStatus,
-        user_id: user.id,
-        description: `Tila vaihdettu: ${app.status} ➔ ${newStatus}`,
-      });
-    }
-
     setLoading(false);
     setEditingStatus(false);
     onChange();
@@ -383,6 +321,7 @@ export default function ApplicationCard({
 
   async function saveApplication(e?: React.FormEvent) {
     if (e) e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     const { error } = await supabase
@@ -400,19 +339,6 @@ export default function ApplicationCard({
       console.error("Virhe muokkauksessa:", error);
       setLoading(false);
       return;
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user && !isDemo) {
-      await supabase.from("application_history").insert({
-        application_id: app.id,
-        event_type: "application_edit",
-        user_id: user.id,
-        description: "Hakemuksen tietoja muokattu",
-      });
     }
 
     setLoading(false);
@@ -659,7 +585,8 @@ export default function ApplicationCard({
           <div className="flex gap-2">
             <button
               onClick={saveApplication}
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-white font-semibold hover:bg-emerald-700"
+              disabled={loading}
+              className="rounded-xl bg-emerald-600 px-4 py-2 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50"
             >
               💾 Tallenna
             </button>

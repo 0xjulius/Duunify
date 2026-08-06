@@ -8,16 +8,45 @@ interface DownloadButtonProps {
   fileName: string;
 }
 
+// Apufunktio siistille päivämäärämuotoilulle CSV:ssä (DD.MM.YYYY HH:mm)
+const formatDateForCSV = (dateString?: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+};
+
 export default function DownloadButton({ data, fileName }: DownloadButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDownload = () => {
+    // 1. Sarakkeiden otsikot (mukaan lukien Status)
+    const headers = ["Työtehtävä", "Työnantaja", "Status", "Hakupäivä"];
+
+    // 2. Rivien muotoilu lainausmerkeillä ja heittomerkkien paikkauksella
+    const rows = data.map((row) => [
+      `"${(row.job_title || "").replace(/"/g, '""')}"`,
+      `"${(row.company || "").replace(/"/g, '""')}"`,
+      `"${(row.status || "Haettu").replace(/"/g, '""')}"`,
+      `"${formatDateForCSV(row.applied_date || row.created_at)}"`,
+    ]);
+
+    // 3. Yhdistetään CSV-sisältö
     const csvContent = [
-      ["Työtehtävä", "Työnantaja", "Hakupäivä"].join(","),
-      ...data.map(row => [row.job_title, row.company, row.created_at].join(","))
+      headers.join(","),
+      ...rows.map((r) => r.join(",")),
     ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    // 4. Lisätään UTF-8 BOM (\uFEFF) alkuun, joka korjaa Ä- ja Ö-kirjaimet Excelissä
+    const blob = new Blob(["\uFEFF" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -25,6 +54,7 @@ export default function DownloadButton({ data, fileName }: DownloadButtonProps) 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     setIsOpen(false);
   };
 
@@ -33,6 +63,7 @@ export default function DownloadButton({ data, fileName }: DownloadButtonProps) 
       <button 
         onClick={() => setIsOpen(true)} 
         className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors"
+        title="Lataa / Esikatsele"
       >
         <Download size={18} />
       </button>
@@ -50,13 +81,12 @@ export default function DownloadButton({ data, fileName }: DownloadButtonProps) 
               </button>
             </div>
 
-            <div className="space-y-4 max-h-150 overflow-y-auto mb-6">
+            <div className="space-y-4 max-h-256 overflow-y-auto mb-6 pr-1">
               {data.map((app, i) => (
                 <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-sm space-y-1 border border-slate-100 dark:border-slate-800">
-                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Työtehtävä:</span> {app.job_title}</p>
-                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Työnantaja:</span> {app.company}</p>
-                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Hakupäivä:</span> {app.created_at ? new Date(app.created_at).toLocaleDateString('fi-FI') : "Ei päivämäärää"}</p>
-                  {/* Tässä status näkyy modalissa */}
+                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Työtehtävä:</span> {app.job_title || "-"}</p>
+                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Työnantaja:</span> {app.company || "-"}</p>
+                  <p><span className="font-bold text-slate-500 dark:text-slate-400">Hakupäivä:</span> {formatDateForCSV(app.applied_date || app.created_at) || "Ei päivämäärää"}</p>
                   <p className="flex items-center"><span className="font-bold text-slate-500 dark:text-slate-400">Status:</span> 
                     <span className="ml-2 capitalize px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded text-[10px] font-bold">
                       {app.status || "Haettu"}
