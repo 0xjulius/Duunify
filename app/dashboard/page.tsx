@@ -7,10 +7,10 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
+import GhostedCard from "@/components/dashboard/GhostedCard";
 import Sidebar from "@/components/Sidebar";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
-// KORJATTU: Tuontipolku osoittamaan komponentin oikeaan sijaintiin[cite: 7]
-import { CompanyLogo } from "@/components/applications/CompanyLogo"; 
+import { CompanyLogo } from "@/components/applications/CompanyLogo";
 import {
   Briefcase,
   Clock,
@@ -37,15 +37,15 @@ import {
   ChartSkeleton,
 } from "@/components/ui/skeletons";
 
-// KORJATTU: Vaihdettu logo-kenttä vastaamaan tietokannan company_logo-sarakenimeä
 type DashboardApplication = {
   id: string;
   company: string;
   job_title: string;
   location: string;
   status: string;
-  company_logo?: string | null; 
+  company_logo?: string | null;
   created_at?: string;
+  valid_through?: string;
 };
 
 type StatFilterType =
@@ -55,6 +55,7 @@ type StatFilterType =
   | "interviews"
   | "offers"
   | "rejected"
+  | "ghosted"
   | null;
 
 const formatDate = (dateString?: string) => {
@@ -76,6 +77,15 @@ const formatDate = (dateString?: string) => {
   }
 };
 
+// Apufunktio: Tarkistaa onko päivämäärästä kulunut yli 30 päivää
+const isOlderThan30Days = (dateStr?: string) => {
+  if (!dateStr) return false;
+  const targetDate = new Date(dateStr);
+  const now = new Date();
+  const diffInDays = (now.getTime() - targetDate.getTime()) / (1000 * 3600 * 24);
+  return diffInDays > 30;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -90,6 +100,7 @@ export default function DashboardPage() {
     rejected: 0,
     interviews: 0,
     favorites: 0,
+    ghosted: 0,
     consistency: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -117,7 +128,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // Supabase hakee kaikki kentät (mukaan lukien company_logo)
     const { data: applications, error } = await supabase
       .from("applications")
       .select("*")
@@ -135,15 +145,27 @@ export default function DashboardPage() {
       const statsData = applications.reduce(
         (acc, app) => {
           const s = app.status?.toLowerCase().trim() || "";
-          if (["suosikki", "tallennettu"].includes(s)) acc.favorites++;
-          else if (["haastattelu", "interview"].includes(s)) acc.interviews++;
-          else if (["tarjous", "offer"].includes(s)) acc.offers++;
-          else if (["hylätty", "hylätyt", "rejected"].includes(s))
+          
+          if (["suosikki", "tallennettu"].includes(s)) {
+            acc.favorites++;
+          } else if (["haastattelu", "interview"].includes(s)) {
+            acc.interviews++;
+          } else if (["tarjous", "offer"].includes(s)) {
+            acc.offers++;
+          } else if (["hylätty", "hylätyt", "rejected"].includes(s)) {
             acc.rejected++;
-          else acc.pending++;
+          } else {
+            // Jos hakemus on avoin/meneillään, tarkistetaan onko se yli 30 pvä vanha
+            const refDate = app.valid_through || app.created_at;
+            if (isOlderThan30Days(refDate)) {
+              acc.ghosted++;
+            } else {
+              acc.pending++;
+            }
+          }
           return acc;
         },
-        { favorites: 0, interviews: 0, offers: 0, rejected: 0, pending: 0 },
+        { favorites: 0, interviews: 0, offers: 0, rejected: 0, ghosted: 0, pending: 0 },
       );
 
       const today = new Date();
@@ -163,7 +185,8 @@ export default function DashboardPage() {
         statsData.pending +
         statsData.interviews +
         statsData.offers +
-        statsData.rejected;
+        statsData.rejected +
+        statsData.ghosted;
 
       setStats({
         total: totalActive,
@@ -172,6 +195,7 @@ export default function DashboardPage() {
         interviews: statsData.interviews,
         rejected: statsData.rejected,
         favorites: statsData.favorites,
+        ghosted: statsData.ghosted,
         consistency: Math.round((activeDaysCount / 7) * 100),
       });
     }
@@ -181,21 +205,28 @@ export default function DashboardPage() {
   const getStatModalJobs = () => {
     return rawApplications.filter((app) => {
       const s = app.status?.toLowerCase().trim() || "";
+      const refDate = app.valid_through || app.created_at;
+      const isGhosted = isOlderThan30Days(refDate);
+
+      const isCompletedOrFavorite = [
+        "suosikki",
+        "tallennettu",
+        "haastattelu",
+        "interview",
+        "tarjous",
+        "offer",
+        "hylätty",
+        "hylätyt",
+        "rejected",
+      ].includes(s);
+
       switch (activeStatFilter) {
         case "total":
           return !["suosikki", "tallennettu"].includes(s);
         case "pending":
-          return ![
-            "suosikki",
-            "tallennettu",
-            "haastattelu",
-            "interview",
-            "tarjous",
-            "offer",
-            "hylätty",
-            "hylätyt",
-            "rejected",
-          ].includes(s);
+          return !isCompletedOrFavorite && !isGhosted;
+        case "ghosted":
+          return !isCompletedOrFavorite && isGhosted;
         case "favorites":
           return ["suosikki", "tallennettu"].includes(s);
         case "interviews":
@@ -241,6 +272,8 @@ export default function DashboardPage() {
         return "Saadut työtarjoukset";
       case "rejected":
         return "Päättyneet / Hylätyt hakemukset";
+      case "ghosted":
+        return "Yli 30 pvä ilman vastausta (Ghosted)";
       default:
         return "";
     }
@@ -248,6 +281,9 @@ export default function DashboardPage() {
 
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
+
+  const ghostedPercentage =
+    stats.total > 0 ? Math.round((stats.ghosted / stats.total) * 100) : 0;
 
   return (
     <div className="flex flex-row min-h-screen bg-slate-100 dark:bg-[#0f1117] overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-[#141625] dark:via-[#151320] dark:to-[#101420]">
@@ -265,10 +301,13 @@ export default function DashboardPage() {
           <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
             {loading ? (
               <>
-                <div className="md:col-span-6">
+                <div className="md:col-span-4">
                   <StatsSkeleton />
                 </div>
-                <div className="md:col-span-6">
+                <div className="md:col-span-4">
+                  <StatsSkeleton />
+                </div>
+                <div className="md:col-span-4">
                   <StatsSkeleton />
                 </div>
                 <div className="md:col-span-3">
@@ -286,7 +325,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <>
-                <div className="md:col-span-6">
+                <div className="md:col-span-4">
                   <StatsCard
                     title="Hakemukset"
                     value={stats.total}
@@ -296,7 +335,7 @@ export default function DashboardPage() {
                     onClick={() => setActiveStatFilter("total")}
                   />
                 </div>
-                <div className="md:col-span-6">
+                <div className="md:col-span-4">
                   <StatsCard
                     title="Meneillään"
                     value={stats.pending}
@@ -308,6 +347,13 @@ export default function DashboardPage() {
                     color="amber"
                     icon={<Clock className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("pending")}
+                  />
+                </div>
+                <div className="md:col-span-4">
+                  <GhostedCard
+                    value={stats.ghosted}
+                    percentage={ghostedPercentage}
+                    onClick={() => setActiveStatFilter("ghosted")}
                   />
                 </div>
 
@@ -510,7 +556,6 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-10 w-10 shrink-0 flex items-center justify-center">
-                      {/* KORJATTU: Käytetään tietokannan mukaista company_logo-kenttää */}
                       <CompanyLogo logo={job.company_logo} company={job.company} />
                     </div>
 
