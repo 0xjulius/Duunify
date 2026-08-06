@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import AddApplicationForm from "@/app/applications/AddApplicationForm";
 import ApplicationCard from "@/app/applications/ApplicationCard";
 import Sidebar from "@/components/Sidebar";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Filter } from "lucide-react";
 
 type Application = {
   id: string;
@@ -30,6 +30,7 @@ export default function Home() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
   async function fetchApplications() {
@@ -74,18 +75,18 @@ export default function Home() {
     fetchApplications();
   }
 
-  const filtered = applications.filter(
-    (app) =>
+  // Suodatetaan hakemukset hakusanan sekä valitun tilan (statusFilter) mukaan
+  const filtered = applications.filter((app) => {
+    const matchesSearch =
       app.company.toLowerCase().includes(search.toLowerCase()) ||
-      app.job_title.toLowerCase().includes(search.toLowerCase()),
-  );
+      app.job_title.toLowerCase().includes(search.toLowerCase());
 
-  const stats = {
-    Haettu: applications.filter((a) => a.status === "Haettu").length,
-    Haastattelu: applications.filter((a) => a.status === "Haastattelu").length,
-    Hylätty: applications.filter((a) => a.status === "Hylätty").length,
-    Tarjous: applications.filter((a) => a.status === "Tarjous").length,
-  };
+    const matchesStatus =
+      statusFilter === "all" ||
+      app.status?.toLowerCase().trim() === statusFilter.toLowerCase().trim();
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <main className="min-h-screen flex bg-slate-100 dark:bg-[#12141c]">
@@ -111,8 +112,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SEARCH + BUTTON */}
+          {/* SEARCH + FILTER + BUTTON */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            {/* Hakukenttä */}
             <div className="relative flex-1">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                 <svg
@@ -137,9 +139,33 @@ export default function Home() {
               />
             </div>
 
+            {/* Status-suodatin */}
+            <div className="relative min-w-[180px]">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
+                <Filter className="h-4 w-4" />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 pl-11 pr-8 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100 cursor-pointer appearance-none"
+              >
+                <option value="all">Suodata</option>
+                <option value="haettu">Haettu</option>
+                <option value="haastattelu">Haastattelu</option>
+                <option value="tarjous">Tarjous</option>
+                <option value="hylätty">Hylätty</option>
+                <option value="tallennettu">Tallennettu</option>
+              </select>
+            </div>
+
+            {/* Lisää-painike */}
             <button
               onClick={() => setShowForm(!showForm)}
-              className={`px-6 py-4 rounded-2xl font-semibold transition-all cursor-pointer ${showForm ? "bg-red-500 text-white hover:bg-red-600 dark:bg-red-500/20 dark:text-red-400 dark:border dark:border-red-500/30 dark:hover:bg-red-500/30" : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"}`}
+              className={`px-6 py-4 rounded-2xl font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                showForm
+                  ? "bg-red-500 text-white hover:bg-red-600 dark:bg-red-500/20 dark:text-red-400 dark:border dark:border-red-500/30 dark:hover:bg-red-500/30"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
+              }`}
             >
               {showForm ? "✕ Sulje" : "+ Lisää hakemus"}
             </button>
@@ -186,17 +212,23 @@ export default function Home() {
               <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700">
                 <div className="col-span-full">
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                    Ei hakemuksia vielä
+                    {search || statusFilter !== "all"
+                      ? "Ei hakemuksia valituilla ehdoilla"
+                      : "Ei hakemuksia vielä"}
                   </h2>
                   <p className="text-slate-500 dark:text-slate-400 mb-6">
-                    Aloita lisäämällä ensimmäinen hakemuksesi.
+                    {search || statusFilter !== "all"
+                      ? "Kokeile muuttaa hakusanaa tai suodatinta."
+                      : "Aloita lisäämällä ensimmäinen hakemuksesi."}
                   </p>
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl font-medium"
-                  >
-                    + Lisää ensimmäinen hakemus
-                  </button>
+                  {!search && statusFilter === "all" && (
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl font-medium"
+                    >
+                      + Lisää ensimmäinen hakemus
+                    </button>
+                  )}
                 </div>
               </div>
             )}
