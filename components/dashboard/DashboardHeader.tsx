@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { LayoutDashboard } from "lucide-react";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -17,55 +16,65 @@ const getGreeting = () => {
 export default function DashboardHeader() {
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [now, setNow] = useState<Date | null>(null);
+
   const greeting = getGreeting();
-  const now = new Date();
 
   useEffect(() => {
+    setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 10000);
+
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "käyttäjä";
+        const fullName =
+          user.user_metadata?.full_name ||
+          user.email?.split("@")[0] ||
+          "käyttäjä";
         setUserName(fullName.split(" ")[0]);
       }
       setIsLoading(false);
     };
+
     getUser();
+    return () => clearInterval(timer);
   }, []);
 
+  const formattedDate = now
+    ? now.toLocaleDateString("fi-FI", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : "";
+
+  const formattedTime = now
+    ? `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
+    : "";
+
   return (
-    <header className="mb-8">
-      <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-50 mb-1 flex items-center gap-2">
-        {greeting},
-        {isLoading ? (
-          <div className="h-9 w-32 animate-pulse bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-        ) : (
-          <span>{userName} 👋</span>
-        )}
-      </h1>
-
-      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-        {now.toLocaleDateString("fi-FI", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })}{" "}
-        • Klo {now.getHours()}:{now.getMinutes().toString().padStart(2, "0")}
-      </p>
-
-      <div className="flex items-center gap-4">
-        <div className="bg-gradient-to-br from-indigo-200 to-violet-600 dark:from-indigo-400 dark:to-violet-700 p-3.5 rounded-2xl shadow-md">
-          <LayoutDashboard className="h-6 w-6 text-white" />
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Yleiskatsaus</h2>
-          <p className="mt-1 text-slate-500 dark:text-slate-400 text-sm xl:text-md font-medium">
-            Työnhakusi yhdellä silmäyksellä
-          </p>
-        </div>
+    <header className="mb-2 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+          {greeting},
+          {isLoading ? (
+            <span className="h-8 w-28 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-md inline-block" />
+          ) : (
+            <span>{userName} 👋</span>
+          )}
+        </h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400 text-sm font-medium">
+          Tässä on tilannekatsaus työnhakuusi
+        </p>
       </div>
+
+      {now && (
+        <div className="text-xs md:text-sm font-medium text-slate-400 dark:text-slate-500 capitalize">
+          {formattedDate} • Klo {formattedTime}
+        </div>
+      )}
     </header>
   );
 }
