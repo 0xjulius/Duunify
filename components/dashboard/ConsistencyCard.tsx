@@ -2,13 +2,13 @@
 
 import { useTheme } from "next-themes";
 import { Info } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   LineChart,
@@ -19,27 +19,85 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+type Application = {
+  id: string;
+  created_at: string;
+  applied_date?: string;
+};
+
 export default function ConsistencyCard({
   percentage,
+  applications,
 }: {
   percentage: number;
+  applications?: Application[];
 }) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const axisColor = isDark ? "#64748b" : "#94a3b8";
 
-  const data = [
-    { day: "Ma", count: 1 },
-    { day: "Ti", count: 0 },
-    { day: "Ke", count: 2 },
-    { day: "To", count: 1 },
-    { day: "Pe", count: 3 },
-    { day: "La", count: 0 },
-    { day: "Su", count: 1 },
-  ];
-
   const [historyOpen, setHistoryOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [fetchedApps, setFetchedApps] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Jos hakemuksia ei tuoda propeina, haetaan ne Supabasesta
+  useEffect(() => {
+    if (applications) return;
+
+    async function fetchApplications() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("applications")
+        .select("id, created_at, applied_date");
+
+      if (!error && data) {
+        setFetchedApps(data);
+      }
+      setLoading(false);
+    }
+
+    fetchApplications();
+  }, [applications]);
+
+  const appsToUse = applications || fetchedApps;
+
+  // Lasketaan dynaaminen data ja muotoillaan päivämäärät
+  const dynamicChartData = useMemo(() => {
+    const days = ["Su", "Ma", "Ti", "Ke", "To", "Pe", "La"];
+    const today = new Date();
+    
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(today.getDate() - (6 - i));
+      
+      const dayName = days[d.getDay()];
+      const dayNum = d.getDate();
+      const monthNum = d.getMonth() + 1;
+      
+      return {
+        dateStr: d.toISOString().split("T")[0],
+        label: `${dayName} ${dayNum}.${monthNum}.`, // Esim: "Ma 12.8."
+        count: 0,
+      };
+    });
+
+    appsToUse.forEach((app) => {
+      const rawDate = app.applied_date || app.created_at;
+      if (!rawDate) return;
+
+      const appDateStr = new Date(rawDate).toISOString().split("T")[0];
+      const foundDay = last7Days.find((d) => d.dateStr === appDateStr);
+      if (foundDay) {
+        foundDay.count += 1;
+      }
+    });
+
+    return last7Days.map((d) => ({
+      day: d.label,
+      count: d.count,
+    }));
+  }, [appsToUse]);
 
   // Swipe-tilat molemmille dialogeille erikseen
   const [touchStart, setTouchStart] = useState(0);
@@ -180,30 +238,43 @@ export default function ConsistencyCard({
           </DialogHeader>
           <div className="h-64 w-full mt-4 flex flex-col justify-between">
             <div className="h-48 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data}>
-                  <XAxis dataKey="day" stroke={axisColor} fontSize={12} />
-                  <YAxis stroke={axisColor} fontSize={12} />
-                  <ChartTooltip
-                    contentStyle={
-                      isDark
-                        ? {
-                            background: "#1e293b",
-                            border: "1px solid #334155",
-                            color: "#e2e8f0",
-                          }
-                        : undefined
-                    }
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#6366f1"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {loading ? (
+                <div className="h-full w-full flex items-center justify-center text-sm text-slate-400">
+                  Ladataan tietoja...
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={dynamicChartData} margin={{ left: -20, right: 10 }}>
+                    <XAxis 
+                      dataKey="day" 
+                      stroke={axisColor} 
+                      fontSize={10} 
+                      tickLine={false}
+                    />
+                    <YAxis stroke={axisColor} fontSize={12} allowDecimals={false} />
+                    <ChartTooltip
+                      formatter={(value: any) => [`${value} aktiviteettia`, "Aktiivisuus"]}
+                      contentStyle={
+                        isDark
+                          ? {
+                              background: "#1e293b",
+                              border: "1px solid #334155",
+                              color: "#e2e8f0",
+                              borderRadius: "8px",
+                            }
+                          : { borderRadius: "8px" }
+                      }
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#6366f1"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-2">
               Olet ollut aktiivinen <strong>{percentage}%</strong> ajasta viimeisen viikon aikana.

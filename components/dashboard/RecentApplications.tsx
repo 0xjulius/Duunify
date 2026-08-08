@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import { Building2, AlertCircle, Filter } from "lucide-react";
+import { AlertCircle, Filter } from "lucide-react";
 import DownloadButton from "../DownloadButton";
+import { CompanyLogo } from "@/components/applications/CompanyLogo";
+import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 
 type Application = {
   id: string;
@@ -16,6 +18,7 @@ type Application = {
   job_url?: string;
   notes?: string;
   job_description?: string;
+  company_logo?: string | null;
 };
 
 const formatActivityTime = (dateString?: string) => {
@@ -90,13 +93,11 @@ export default function RecentApplications({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Uniikit statukset valikkoa varten
   const availableStatuses = useMemo(() => {
     const statuses = new Set(apps.map((a) => a.status).filter(Boolean));
     return Array.from(statuses);
   }, [apps]);
 
-  // Suodatettu lista statuksen mukaan (näytetään max 4)
   const filteredApps = useMemo(() => {
     if (selectedStatus === "all") return apps.slice(0, 4);
     return apps
@@ -145,7 +146,6 @@ export default function RecentApplications({
             Viimeisimmät aktiviteetit
           </h2>
           <div className="flex items-center gap-2">
-            {/* Status-suodattimen pudotusvalikko */}
             <div className="relative flex items-center">
               <Filter size={12} className="absolute left-2 text-slate-400 pointer-events-none" />
               <select
@@ -183,8 +183,12 @@ export default function RecentApplications({
                 className="w-full flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-800 last:border-0 group transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-lg -mx-2 px-2 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
-                    <Building2 size={16} />
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors overflow-hidden">
+                    {isDemoMode ? (
+                      <DemoCompanyLogo logo={app.company_logo} company={app.company} />
+                    ) : (
+                      <CompanyLogo logo={app.company_logo} company={app.company} />
+                    )}
                   </div>
 
                   <div className="min-w-0 truncate">
@@ -192,7 +196,7 @@ export default function RecentApplications({
                       <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                         {app.company || "Tuntematon yritys"}
                       </h4>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">
+                      <span className="text-[10px] text-slate-400 dark:text-orange-300 font-medium whitespace-nowrap">
                         {formatActivityTime(app.created_at)}
                       </span>
                     </div>
