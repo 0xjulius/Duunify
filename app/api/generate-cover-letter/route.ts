@@ -44,16 +44,22 @@ HAKEMUKSEN RAKENNE JA SISÄLTÖ:
    - Kerro mitä tehtävää haet ja osoita aitoa kiinnostusta yritystä/tehtävää kohtaan.
    - Yhdistä tehtävä heti hakijan osaamiseen ja kerro, miksi hakija on kiinnostava työnantajalle. Vältä geneerisiä aloituksia.
 
-2. KOULUTUS (Education):
-    - Käytä Koulutus väliotsikkoa lihavoituna, jonka jälkeen riviväli ja leipätekstillä kerrotaan koulutuksesta.
+1.1 ALOITUS:
+    - Aloita hakemus TARKALLEEN seuraavalla tavalla: Neljä tyhjää riviä ja ## ${company}, <Paikkakunta>
+    - Toinen rivi: ${jobTitle}
+    - Lisää tämän jälkeen kaksi tyhjää riviä, ja jatka hakemuksen varsinaisella sisällöllä. Älä muuta tätä rakennetta.
+
+2. KOULUTUS:
+   - Käytä otsikkona täsmälleen Markdown-muotoa: ## Koulutus
    - Kuvaa koulutusta työn kannalta relevantista näkökulmasta (mitä osaamista se on tuonut ja miten se tukee tehtävää).
 
-3. TYÖKOKEMUS JA KÄYTÄNNÖN OSAAMINEN (Work Experience and Practical Skills):
-Käytä Työkokemus ja käytännön osaaminen väliotsikkoa lihavoituna, jonka jälkeen riviväli ja leipätekstillä kerrotaan työkokemuksesta.
+3. TYÖKOKEMUS JA KÄYTÄNNÖN OSAAMINEN:
+   - Käytä otsikkona täsmälleen Markdown-muotoa: ## Työkokemus ja käytännön osaaminen
    - Yhdistä aiempi kokemus uuden tehtävän vaatimuksiin.
    - Kerro mitä hyötyä aiemmasta kokemuksesta on uudessa roolissa (esim. asiakaspalvelu -> viestintä ja käyttäjätuki, projektit -> vastuunotto ja toimitus).
 
-4. SOVELTUVUUS TEHTÄVÄÄN (Why do I feel I am suitable for this role? | Miksi koen olevani sopiva tähän tehtävään?) lihavoituna, jonka jälkeen riviväli:
+4. SOVELTUVUUS TEHTÄVÄÄN:
+   - Käytä otsikkona täsmälleen Markdown-muotoa: ## Miksi koen olevani sopiva tähän tehtävään?
    - Luo selkeä osio, jossa on 5-6 sisällöllisesti eri näkökulmasta kirjoitettua bullet pointia (esim. Strong technical foundation, Analytical problem-solving, Quality-oriented mindset, Continuous learning).
    - Jokaisen bullet pointin tulee vastata kysymykseen: "Mitä hyötyä tästä on työnantajalle?"
    - Bullet pointin title tulee olla boldattuna, jonka jälkeen boldaus pois ja lyhyt selitys, miksi hakija on vahva juuri tässä osa-alueessa.
@@ -70,10 +76,10 @@ Palauta VASTAUKSEKSI AINOASTAAN valmis, valmiiksi muotoiltu työhakemus suomeksi
 - ÄLÄ lisää tekstin alkuun hakijan yhteystietoja, päivämäärää, otsikkoa "Saatekirje" tai sivunumeroa (koska ylätunniste luodaan automaattisesti käyttöliittymässä).
 - Yrityksen nimi ja paikkakunta tulee olla lihavoituna.
 - Aloita teksti TARKALLEEN seuraavalla muodolla:
-Lihavoituna tämä rivi ${company}, <Paikkakunta> + RIVIVÄLI
-Normaalitekstinä tämä rivi${jobTitle}
+1. Lihavoituna tämä rivi: ${company}, <Paikkakunta> 
+2. Toinen rivi, HUOMIO! MUISTA RIVIVÄLI NYT, JONKA JÄLKEEN: Normaalitekstinä tämä rivi${jobTitle}
 
-- Tämän jälkeen riviväli ja aloita varsinainen hakemusteksti (ensimmäinen kappale).
+- Tämän jälkeen 2 riviväliä ja aloita varsinainen hakemusteksti (ensimmäinen kappale).
 `;
 
     let response;

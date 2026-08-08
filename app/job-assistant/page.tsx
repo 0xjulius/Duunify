@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import Sidebar from "@/components/Sidebar"; // <-- Varmista että tämä polku on oikein
+import Sidebar from "@/components/Sidebar";
 import {
   Sparkles,
   Briefcase,
@@ -27,6 +27,7 @@ type SavedJob = {
   description?: string;
   tags?: string[];
   status?: string;
+  company_logo?: string; // <-- Korjattu: tietokannan sarakkeen nimi on company_logo
 };
 
 const formatDate = (dateString?: string) => {
@@ -47,6 +48,7 @@ export default function JobAssistantPage() {
   const [jobs, setJobs] = useState<SavedJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchSavedJobs();
@@ -80,6 +82,10 @@ export default function JobAssistantPage() {
     setLoading(false);
   }
 
+  const handleImageError = (jobId: string) => {
+    setFailedLogos((prev) => ({ ...prev, [jobId]: true }));
+  };
+
   const filteredJobs = jobs.filter((job) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -90,13 +96,9 @@ export default function JobAssistantPage() {
   });
 
   return (
-    /* Kääritään koko näkymä flex-kontaineriin, jotta Sidebar ja sisältö asettuvat vierekkäin */
     <div className="flex min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
-      
-      {/* Sivupalkki tulee tänne vasemmalle */}
       <Sidebar />
 
-      {/* Pääsisältö, joka vie lopun tilasta */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* HEADER */}
@@ -225,13 +227,22 @@ export default function JobAssistantPage() {
                   >
                     <div className="relative rounded-2xl border border-slate-200 dark:border-[#1F2937] p-5 sm:p-6 hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/[0.03] transition-all">
                       <div className="flex flex-col lg:flex-row lg:items-center gap-5">
-                        {/* COMPANY ICON */}
+                        {/* COMPANY ICON / LOGO */}
                         <div className="flex items-start gap-4 flex-1 min-w-0">
-                          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                            <Building2
-                              size={22}
-                              className="text-slate-500 dark:text-slate-400"
-                            />
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/50 flex items-center justify-center shrink-0 overflow-hidden">
+                            {job.company_logo && !failedLogos[job.id] ? (
+                              <img
+                                src={job.company_logo}
+                                alt={`${job.company} logo`}
+                                className="w-full h-full object-contain p-1.5"
+                                onError={() => handleImageError(job.id)}
+                              />
+                            ) : (
+                              <Building2
+                                size={22}
+                                className="text-slate-500 dark:text-slate-400"
+                              />
+                            )}
                           </div>
 
                           <div className="min-w-0">

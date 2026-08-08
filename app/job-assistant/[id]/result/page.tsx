@@ -92,7 +92,7 @@ export default function ResultPage({
         }
 
         const fullName = profileData?.full_name || "Etunimi Sukunimi";
-        const city = profileData?.location || jobData.location || "Paikkakunta";
+        const city = profileData?.location || "Paikkakunta";
         const phone = profileData?.phone_number || "Puhelinnumero";
         const email = profileData?.email || user?.email || "Sähköposti";
 
@@ -246,6 +246,25 @@ export default function ResultPage({
           @page {
             size: A4;
             margin: 20mm;
+          }
+          /* Kohdennetaan suoraan otsikkoon, joka sisältää tekstin "Miksi koen" */
+          article h1, article h2, article h3 {
+            break-inside: avoid;
+          }
+          article h2:nth-of-type(2),
+          article h3:nth-of-type(2),
+          article h2, article h3 {
+            /* Tarkistetaan elementti, joka vastaa haluttua otsikkoa tulostuksessa */
+          }
+        }
+        /* Pakotettu sivunvaihto Markdown-renderöidylle otsikolle, joka alkaa halutulla tekstillä */
+        @media print {
+          article h2, article h3 {
+            break-before: auto;
+          }
+          /* Etsitään otsikko, joka sisältää tekstin "Miksi koen" ja pakotetaan sivunvaihto ennen sitä */
+          article *:not(script):not(style) {
+            /* Kohdennetaan seuraavasti: */
           }
         }
       `}</style>
@@ -454,7 +473,36 @@ export default function ResultPage({
                   </div>
                 ) : generatedLetter ? (
                   <div className="max-w-2xl mx-auto space-y-4 text-base leading-relaxed text-slate-700 dark:text-slate-300 print:text-black print:text-[11pt] print:leading-[1.4] print:font-sans [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-white [&_h1]:print:text-black [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:dark:text-white [&_h2]:print:text-black [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:dark:text-white [&_h3]:print:text-black [&_h3]:mt-4 [&_strong]:font-semibold [&_strong]:text-slate-900 [&_strong]:dark:text-white [&_strong]:print:text-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-4">
-                    <ReactMarkdown>{generatedLetter}</ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        h2: ({ node, children, ...props }) => {
+                          const text = String(children);
+                          const isTarget = text.toLowerCase().includes("miksi koen");
+                          return (
+                            <h2
+                              {...props}
+                              style={isTarget ? { breakBefore: "page", pageBreakBefore: "always" } : undefined}
+                            >
+                              {children}
+                            </h2>
+                          );
+                        },
+                        h3: ({ node, children, ...props }) => {
+                          const text = String(children);
+                          const isTarget = text.toLowerCase().includes("miksi koen");
+                          return (
+                            <h3
+                              {...props}
+                              style={isTarget ? { breakBefore: "page", pageBreakBefore: "always" } : undefined}
+                            >
+                              {children}
+                            </h3>
+                          );
+                        },
+                      }}
+                    >
+                      {generatedLetter}
+                    </ReactMarkdown>
                   </div>
                 ) : (
                   <div className="py-12 text-center text-slate-400">
@@ -493,7 +541,7 @@ export default function ResultPage({
               </div>
             </section>
 
-            {/* Sidebar (Painikkeet allekkain ja kunnolla tilaa mobiililla) */}
+            {/* Sidebar */}
             <aside className="space-y-4 pb-12 sm:pb-0 print:hidden">
               <button
                 onClick={() => job && generateLetterWithGemini(job)}
