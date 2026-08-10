@@ -17,19 +17,25 @@ export function anonymizeText(text: string, userName?: string): string {
     "[SÄHKÖPOSTI_POISTETTU]"
   );
 
-  // 3. Poistetaan puhelinnumerot (+358 40..., 040-1234567, 050 123 4567 jne.)
+  // 3. Poistetaan verkko-osoitteet (URLit, protokollat sekä www-alkuiset ja yleiset päätteet)
+  cleaned = cleaned.replace(
+    /\b(?:https?:\/\/|www\.)[^\s<>]+|\b[a-z0-9][-a-z0-9]+\.(?:fi|com|org|net|edu|gov|eu|io|me|info)\b[^\s]*/gi,
+    "[VERKKOOSOITE_POISTETTU]"
+  );
+
+  // 4. Poistetaan puhelinnumerot (+358 40..., 040-1234567, 050 123 4567 jne.)
   cleaned = cleaned.replace(
     /(?:\+358|0)\s?\(?0?\)?\s?\d{1,4}[\s-]?\d{3,4}[\s-]?\d{3,4}/g,
     "[PUHELIN_POISTETTU]"
   );
 
-  // 4. Poistetaan katuosoitteet (esim. Mannerheimintie 12 A 4, Esimerkkikatu 5)
+  // 5. Poistetaan katuosoitteet (esim. Mannerheimintie 12 A 4, Esimerkkikatu 5)
   cleaned = cleaned.replace(
     /\b([A-ZÅÄÖa-zåäö]+(?:katu|tie|kuja|polku|kaari|ranta|rinne|tie|väylä))\s+\d+(\s+[A-Za-z]\s+\d+)?\b/gi,
     "[OSOITE_POISTETTU]"
   );
 
-  // 5. Poistetaan käyttäjän nimi (jos se on välitetty mukana)
+  // 6. Poistetaan käyttäjän nimi (jos se on välitetty mukana)
   if (userName && userName.trim().length > 0) {
     const nameParts = userName.trim().split(/\s+/);
     nameParts.forEach((part) => {

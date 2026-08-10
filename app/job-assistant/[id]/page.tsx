@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Upload,
   Trash2,
+  ShieldCheck,
 } from "lucide-react";
 
 type Application = {
@@ -435,13 +436,13 @@ export default function JobAssistantJobPage({
                   </p>
                 )}
 
-                <div className="whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300 max-h-[500px] overflow-y-auto pr-2">
+                <div className="whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300 max-h-[650px] overflow-y-auto pr-2">
                   {job?.job_description || "Ei tarkempaa kuvausta saatavilla."}
                 </div>
               </div>
             </section>
 
-            {/* DOCUMENTS */}
+            {/* DOCUMENTS & AI INFO */}
             <div className="space-y-6">
               <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl overflow-hidden shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-[#1F2937]">
@@ -622,6 +623,58 @@ export default function JobAssistantJobPage({
                   </div>
                 </div>
               </section>
+
+              {/* UUSI: YKSITYISYYS & ANONYMSOINTI -BOKSI */}
+              <section className="rounded-3xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/[0.06] p-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <ShieldCheck size={19} />
+                  </div>
+
+                  <div>
+                    <h2 className="font-bold text-emerald-900 dark:text-emerald-300">
+                      Tietosuoja ja anonymisointi
+                    </h2>
+
+                    <p className="text-sm text-emerald-800/70 dark:text-emerald-200/70 mt-2 leading-relaxed">
+                      Suojaamme yksityisyyttäsi automaattisesti ennen tietojen lähettämistä tekoälylle.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <div className="flex gap-3 text-sm">
+                    <CheckCircle2
+                      size={17}
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                    />
+                    <span className="text-emerald-900/80 dark:text-emerald-200/80">
+                      Poistaa henkilötunnukset ja puhelinnumerot.
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3 text-sm">
+                    <CheckCircle2
+                      size={17}
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                    />
+                    <span className="text-emerald-900/80 dark:text-emerald-200/80">
+                      Korvaa nimesi, sähköpostisi ja katuosoitteesi suojatulla tunnisteella.
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3 text-sm">
+                    <CheckCircle2
+                      size={17}
+                      className="text-emerald-500 mt-0.5 shrink-0"
+                    />
+                    <span className="text-emerald-900/80 dark:text-emerald-200/80">
+                      Vain varsinainen osaamisesi ja työkokemuksesi välitetään tekoälylle.
+                    </span>
+                  </div>
+                </div>
+              </section>
+
             </div>
           </div>
 

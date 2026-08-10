@@ -116,7 +116,8 @@ export default function ResultPage({
             .eq("id", user.id)
             .maybeSingle();
 
-          if (profileError) console.error("Virhe profiilin haussa:", profileError);
+          if (profileError)
+            console.error("Virhe profiilin haussa:", profileError);
           else profileData = profile;
         }
 
@@ -171,15 +172,16 @@ export default function ResultPage({
     }
   }, [jobId]);
 
-async function generateLetterWithGemini(currentJob: JobDetail) {
+  async function generateLetterWithGemini(currentJob: JobDetail) {
     setGenerating(true);
     setError(null);
 
     setGeneratedLetter("");
 
-    // Hae käyttäjä ja profiilitiedot täällä, jotta ne ovat varmasti saatavilla
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     let letterFilename = null;
     if (user) {
       const { data: profile } = await supabase
@@ -187,7 +189,7 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
         .select("letter_filename")
         .eq("id", user.id)
         .maybeSingle();
-      
+
       letterFilename = profile?.letter_filename;
     }
 
@@ -197,13 +199,15 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
       .eq("id", currentJob.id);
 
     if (clearError) {
-      console.error("Vanhan kirjeen poisto epäonnistui tietokannasta:", clearError);
+      console.error(
+        "Vanhan kirjeen poisto epäonnistui tietokannasta:",
+        clearError,
+      );
     }
 
-    const mockUserBaseCoverLetter = `Olen kokenut ja kehityshaluinen järjestelmä- ja IT-asiantuntija...`;
-
     try {
-      const jobLocation = currentJob.location || currentJob.city || "Paikkakunta";
+      const jobLocation =
+        currentJob.location || currentJob.city || "Paikkakunta";
 
       const res = await fetch("/api/generate-cover-letter", {
         method: "POST",
@@ -213,10 +217,10 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
           company: currentJob.company,
           location: jobLocation,
           jobDescription:
-          currentJob.full_description || currentJob.description || "",
-          userId: user?.id,                        // Nyt toimii!
-          letterFilename: letterFilename,          // Nyt toimii!
-          userName: currentJob.full_name,          // KORJAUS: puuttui - tarvitaan anonymisointiin
+            currentJob.full_description || currentJob.description || "",
+          userId: user?.id,
+          letterFilename: letterFilename,
+          userName: currentJob.full_name,
         }),
       });
 
@@ -250,7 +254,7 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
     if (!job) return;
 
     const confirmDelete = window.confirm(
-      "Haluatko varmasti poistaa tämän saatekirjeen tietokannasta?"
+      "Haluatko varmasti poistaa tämän saatekirjeen tietokannasta?",
     );
     if (!confirmDelete) return;
 
@@ -268,8 +272,6 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
       if (deleteError) {
         throw deleteError;
       }
-
-      console.log("Saatekirje poistettu tietokannasta.");
     } catch (err: any) {
       console.error("Poistovirhe:", err);
       setError("Saatekirjeen poistaminen tietokannasta epäonnistui.");
@@ -338,6 +340,7 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
           article,
           article * {
             visibility: visible;
+            color: black !important; /* Pakottaa kaiken tekstin mustaksi tulostuksessa */
           }
           article {
             position: absolute;
@@ -346,12 +349,15 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
             width: 100%;
             padding: 0 !important;
             margin: 0 !important;
+            background: white !important;
           }
           @page {
             size: A4;
             margin: 20mm;
           }
-          article h1, article h2, article h3 {
+          article h1,
+          article h2,
+          article h3 {
             break-inside: avoid;
           }
         }
@@ -361,7 +367,6 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 print:p-0">
-          
           <div className="flex items-center justify-between mb-6 print:hidden">
             <Link
               href={`/job-assistant/${job?.id}`}
@@ -471,8 +476,8 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
                 </div>
               </div>
 
-              <article className="px-6 sm:px-10 py-8 sm:py-10 print:p-0 print:m-0 print:text-black">
-                <header className="grid grid-cols-3 gap-4 pb-8 mb-8 border-b border-slate-200 dark:border-slate-800 print:border-b-0 print:pb-6 print:mb-6 text-sm text-slate-700 dark:text-slate-300 print:text-black print:text-[10pt]">
+              <article className="px-6 sm:px-10 py-8 sm:py-10 print:p-0 print:m-0 print:text-black font-[Helvetica,Arial,sans-serif]">
+                <header className="grid grid-cols-3 gap-4 pb-8 mb-8 border-b border-slate-200 dark:border-slate-800 print:border-b-0 print:pb-6 print:mb-6 text-sm text-slate-700 dark:text-slate-300 print:text-black print:text-[12pt]">
                   <div className="space-y-0.5">
                     {isEditingHeader ? (
                       <div className="space-y-2 print:hidden">
@@ -506,7 +511,11 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
                         />
                       </div>
                     ) : null}
-                    <div className={isEditingHeader ? "print:block hidden" : "block"}>
+                    <div
+                      className={
+                        isEditingHeader ? "print:block hidden" : "block"
+                      }
+                    >
                       <p className="font-bold text-slate-900 dark:text-white print:text-black">
                         {editFullName || "Etunimi Sukunimi"}
                       </p>
@@ -540,16 +549,25 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
                     <CoverLetterSkeleton />
                   </div>
                 ) : generatedLetter ? (
-                  <div className="max-w-2xl mx-auto space-y-4 text-base leading-relaxed text-slate-700 dark:text-slate-300 print:text-black print:text-[11pt] print:leading-[1.4] print:font-sans [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-white [&_h1]:print:text-black [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:dark:text-white [&_h2]:print:text-black [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:dark:text-white [&_h3]:print:text-black [&_h3]:mt-4 [&_strong]:font-semibold [&_strong]:text-slate-900 [&_strong]:dark:text-white [&_strong]:print:text-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-4">
+                  <div className="max-w-2xl mx-auto space-y-6 text-base leading-relaxed text-slate-700 dark:text-slate-300 print:text-black print:text-[12pt] print:leading-[1.5] print:font-[Helvetica,Arial,sans-serif] [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-white [&_h1]:print:text-black [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:dark:text-white [&_h2]:print:text-black [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:dark:text-white [&_h3]:print:text-black [&_h3]:mt-4 [&_strong]:font-semibold [&_strong]:text-slate-900 [&_strong]:dark:text-white [&_strong]:print:text-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-4">
                     <ReactMarkdown
                       components={{
                         h2: ({ node, children, ...props }) => {
                           const text = String(children);
-                          const isTarget = text.toLowerCase().includes("miksi koen");
+                          const isTarget = text
+                            .toLowerCase()
+                            .includes("miksi koen");
                           return (
                             <h2
                               {...props}
-                              style={isTarget ? { breakBefore: "page", pageBreakBefore: "always" } : undefined}
+                              style={
+                                isTarget
+                                  ? {
+                                      breakBefore: "page",
+                                      pageBreakBefore: "always",
+                                    }
+                                  : undefined
+                              }
                             >
                               {children}
                             </h2>
@@ -557,11 +575,20 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
                         },
                         h3: ({ node, children, ...props }) => {
                           const text = String(children);
-                          const isTarget = text.toLowerCase().includes("miksi koen");
+                          const isTarget = text
+                            .toLowerCase()
+                            .includes("miksi koen");
                           return (
                             <h3
                               {...props}
-                              style={isTarget ? { breakBefore: "page", pageBreakBefore: "always" } : undefined}
+                              style={
+                                isTarget
+                                  ? {
+                                      breakBefore: "page",
+                                      pageBreakBefore: "always",
+                                    }
+                                  : undefined
+                              }
                             >
                               {children}
                             </h3>
@@ -571,11 +598,29 @@ async function generateLetterWithGemini(currentJob: JobDetail) {
                     >
                       {generatedLetter}
                     </ReactMarkdown>
+
+                    {/* Tiukka loppuosa ylätunnisteen tiedoilla */}
+                    <div className="pt-2 mt-4">
+                      <p className="m-0 p-0 leading-tight text-slate-700 dark:text-slate-300 print:text-black">
+                        Ystävällisin terveisin,
+                        <br />
+                        <strong className="font-semibold text-slate-900 dark:text-white print:text-black">
+                          {editFullName || "Etunimi Sukunimi"},{" "}
+                          {editCity || "Paikkakunta"}
+                        </strong>
+                        <br />
+                        {editPhone || "Puhelinnumero"}
+                        <br />
+                        {editEmail || "Sähköposti"}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="py-12 text-center text-slate-400">
                     <p className="text-sm">Ei saatekirjettä saatavilla.</p>
-                    {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+                    {error && (
+                      <p className="text-xs text-red-500 mt-2">{error}</p>
+                    )}
                     <button
                       onClick={() => job && generateLetterWithGemini(job)}
                       className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition"
