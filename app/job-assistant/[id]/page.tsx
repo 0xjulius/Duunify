@@ -19,6 +19,8 @@ import {
   AlertCircle,
   ArrowRight,
   ChevronRight,
+  Upload,
+  Trash2,
 } from "lucide-react";
 
 type Application = {
@@ -37,6 +39,15 @@ type UserDocument = {
   updated: string;
 };
 
+// Apufunktio tiedostonimen siivoamiseen (estää Supabasen "Invalid key" -virheet)
+function sanitizeFileName(fileName: string): string {
+  return fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Poistaa skandit (ä -> a, ö -> o)
+    .replace(/\s+/g, "_") // Korvaa välilyönnit alaviivoilla
+    .replace(/[^a-zA-Z0-9._-]/g, ""); // Poistaa muut erikoismerkit
+}
+
 export default function JobAssistantJobPage({
   params,
 }: {
@@ -50,6 +61,11 @@ export default function JobAssistantJobPage({
   const [coverLetterDoc, setCoverLetterDoc] = useState<UserDocument | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Lataustilat tiedostojen uppaukselle ja poistolle
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const [uploadingLetter, setUploadingLetter] = useState(false);
+  const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -77,7 +93,7 @@ export default function JobAssistantJobPage({
 
         setJob(jobData);
 
-        // Haetaan asiakirjat käyttäjän profiilista
+        // Haetaan asiakirjat käyttäjän profiilista (vain olemassa olevat sarakkeet)
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
@@ -116,6 +132,124 @@ export default function JobAssistantJobPage({
       loadData();
     }
   }, [jobId]);
+
+  // Tiedoston latausfunktio (rajoitus: max 250 KB)
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "cv" | "letter"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const MAX_FILE_SIZE = 250 * 1024; // 250 KB
+
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`);
+      e.target.value = "";
+      return;
+    }
+
+    if (type === "cv") setUploadingCv(true);
+    else setUploadingLetter(true);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("Käyttäjä ei ole kirjautunut sisään.");
+
+      // Puhdistetaan tiedostonimi (esim. "letter_Matti Meikäläinen.pdf" -> "letter_Matti_Meikalainen.pdf")
+      const safeName = sanitizeFileName(file.name);
+      const storagePath = `${user.id}/${type}_${safeName}`;
+
+      // 1. Ladataan puhdistettu tiedosto Supabase Storageen ('documents'-bucket)
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(storagePath, file, { upsert: true });
+
+      if (uploadError) {
+        console.warn("Storage-lataus epäonnistui:", uploadError);
+      }
+
+      const now = new Date().toISOString();
+
+      // 2. Päivitetään profiilitiedot tietokantaan puhdistetulla nimellä
+      const updates =
+        type === "cv"
+          ? { cv_filename: safeName, cv_updated_at: now }
+          : { letter_filename: safeName, letter_updated_at: now };
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      // 3. Päivitetään näkymä
+      const updatedDoc = {
+        name: safeName,
+        updated: `Päivitetty ${new Date().toLocaleDateString("fi-FI")}`,
+      };
+
+      if (type === "cv") setCvDoc(updatedDoc);
+      else setCoverLetterDoc(updatedDoc);
+    } catch (err: any) {
+      console.error(`Virhe tiedoston (${type}) latauksessa:`, err);
+      alert("Tiedoston lataus epäonnistui. Yritä uudelleen.");
+    } finally {
+      if (type === "cv") setUploadingCv(false);
+      else setUploadingLetter(false);
+      e.target.value = "";
+    }
+  };
+
+  // Tiedoston poistofunktio
+  const handleFileDelete = async (type: "cv" | "letter") => {
+    const docToDelete = type === "cv" ? cvDoc : coverLetterDoc;
+    if (!docToDelete) return;
+
+    if (!confirm(`Haluatko varmasti poistaa tiedoston "${docToDelete.name}"?`)) {
+      return;
+    }
+
+    setDeletingType(type);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("Käyttäjä ei ole kirjautunut sisään.");
+
+      // 1. Poistetaan tiedosto Storagesta puhdistetulla nimellä
+      const storagePath = `${user.id}/${type}_${docToDelete.name}`;
+      await supabase.storage.from("documents").remove([storagePath]);
+
+      // 2. Tyhjennetään profiilimerkinnät tietokannasta
+      const updates =
+        type === "cv"
+          ? { cv_filename: null, cv_updated_at: null }
+          : { letter_filename: null, letter_updated_at: null };
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      // 3. Nollataan tila
+      if (type === "cv") setCvDoc(null);
+      else setCoverLetterDoc(null);
+    } catch (err: any) {
+      console.error(`Virhe tiedoston (${type}) poistossa:`, err);
+      alert("Poisto epäonnistui. Yritä uudelleen.");
+    } finally {
+      setDeletingType(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -261,7 +395,6 @@ export default function JobAssistantJobPage({
                 </div>
               </div>
 
-              {/* YLÄOSAAN NOSTETTU CTA-NAPPI */}
               <div className="shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800">
                 <Link
                   href={`/job-assistant/${job?.id}/result`}
@@ -323,53 +456,117 @@ export default function JobAssistantJobPage({
                     <div>
                       <h2 className="font-bold">Omat asiakirjat</h2>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Näitä käytetään saatekirjeen räätälöintiin.
+                        Maks. koko 250 KB / tiedosto
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-5 space-y-3">
-                  {/* CV */}
+                  {/* CV UPLOAD & DISPLAY */}
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      <FileText size={18} className="text-slate-500" />
+                      {uploadingCv || deletingType === "cv" ? (
+                        <Loader2 size={18} className="animate-spin text-indigo-600" />
+                      ) : (
+                        <FileText size={18} className="text-slate-500" />
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">
-                        {cvDoc?.name || "CV_Omat_Tiedot.pdf"}
+                        {cvDoc?.name || "Ei ladattua CV:tä"}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {cvDoc?.updated || "Tallennettu profiiliin"}
+                        {cvDoc?.updated || "Lataa CV (maks. 250 KB)"}
                       </p>
                     </div>
 
-                    <CheckCircle2
-                      size={18}
-                      className="text-emerald-500 shrink-0"
-                    />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+                        <Upload size={13} />
+                        <span>{cvDoc ? "Vaihda" : "Lataa"}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "cv")}
+                          disabled={uploadingCv || deletingType === "cv"}
+                        />
+                      </label>
+
+                      {cvDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileDelete("cv")}
+                          disabled={deletingType === "cv"}
+                          title="Poista CV"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {cvDoc && (
+                      <CheckCircle2
+                        size={18}
+                        className="text-emerald-500 shrink-0"
+                      />
+                    )}
                   </div>
 
-                  {/* COVER LETTER */}
+                  {/* COVER LETTER UPLOAD & DISPLAY */}
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      <FileText size={18} className="text-slate-500" />
+                      {uploadingLetter || deletingType === "letter" ? (
+                        <Loader2 size={18} className="animate-spin text-indigo-600" />
+                      ) : (
+                        <FileText size={18} className="text-slate-500" />
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate">
-                        {coverLetterDoc?.name || "Saatekirje_pohja.pdf"}
+                        {coverLetterDoc?.name || "Ei ladattua pohjaa"}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {coverLetterDoc?.updated || "Tallennettu profiiliin"}
+                        {coverLetterDoc?.updated || "Lataa pohja (maks. 250 KB)"}
                       </p>
                     </div>
 
-                    <CheckCircle2
-                      size={18}
-                      className="text-emerald-500 shrink-0"
-                    />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+                        <Upload size={13} />
+                        <span>{coverLetterDoc ? "Vaihda" : "Lataa"}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "letter")}
+                          disabled={uploadingLetter || deletingType === "letter"}
+                        />
+                      </label>
+
+                      {coverLetterDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileDelete("letter")}
+                          disabled={deletingType === "letter"}
+                          title="Poista pohja"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {coverLetterDoc && (
+                      <CheckCircle2
+                        size={18}
+                        className="text-emerald-500 shrink-0"
+                      />
+                    )}
                   </div>
                 </div>
               </section>

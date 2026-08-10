@@ -17,6 +17,7 @@ import {
   AlertCircle,
   ChevronRight,
   Pencil,
+  Trash2,
 } from "lucide-react";
 
 type JobDetail = {
@@ -27,12 +28,53 @@ type JobDetail = {
   description?: string;
   full_description?: string;
   cover_letter?: string;
-  generated_letter?: string;
   full_name?: string;
   city?: string;
   phone?: string;
   email?: string;
 };
+
+// Visuaalinen Skeleton-lataustila tekoälyn kirjoitusefektille
+function CoverLetterSkeleton() {
+  return (
+    <div className="max-w-2xl mx-auto space-y-6 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-md w-1/3"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-1/4"></div>
+      </div>
+
+      <div className="space-y-2.5 pt-4">
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-full"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[92%]"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[96%]"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[85%]"></div>
+      </div>
+
+      <div className="pt-4 space-y-3">
+        <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-2/5"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-full"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[88%]"></div>
+      </div>
+
+      <div className="pt-4 space-y-3">
+        <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/2"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-full"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[94%]"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[75%]"></div>
+      </div>
+
+      <div className="pt-4 space-y-3">
+        <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-3/5"></div>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-start gap-3 pl-2">
+            <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700 mt-2 shrink-0"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-[90%]"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ResultPage({
   params,
@@ -70,7 +112,7 @@ export default function ResultPage({
         if (user) {
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
-            .select("full_name, location, phone_number, email")
+            .select("full_name, location, phone_number, email, letter_filename")
             .eq("id", user.id)
             .maybeSingle();
 
@@ -111,7 +153,7 @@ export default function ResultPage({
         setEditEmail(email);
         setLoading(false);
 
-        const existingLetter = jobData.cover_letter || jobData.generated_letter;
+        const existingLetter = jobData.cover_letter;
         if (existingLetter) {
           setGeneratedLetter(existingLetter);
         } else {
@@ -129,22 +171,52 @@ export default function ResultPage({
     }
   }, [jobId]);
 
-  async function generateLetterWithGemini(currentJob: JobDetail) {
+async function generateLetterWithGemini(currentJob: JobDetail) {
     setGenerating(true);
     setError(null);
 
-    const mockUserBaseCoverLetter = `Olen kokenut ja kehityshaluinen järjestelmä- ja IT-asiantuntija, jolla on vahva tausta nykyaikaisista verkkoteknologioista, pilvipalveluista sekä järjestelmäarkkitehtuureista. Nautin monimutkaisten teknisten haasteiden ratkomisesta, prosessien automatisoinnista ja laadukkaasta dokumentoinnista. Minulla on erinomaiset yhteistyö- ja asiakaspalvelutaidot.`;
+    setGeneratedLetter("");
+
+    // Hae käyttäjä ja profiilitiedot täällä, jotta ne ovat varmasti saatavilla
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    let letterFilename = null;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("letter_filename")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      letterFilename = profile?.letter_filename;
+    }
+
+    const { error: clearError } = await supabase
+      .from("applications")
+      .update({ cover_letter: null })
+      .eq("id", currentJob.id);
+
+    if (clearError) {
+      console.error("Vanhan kirjeen poisto epäonnistui tietokannasta:", clearError);
+    }
+
+    const mockUserBaseCoverLetter = `Olen kokenut ja kehityshaluinen järjestelmä- ja IT-asiantuntija...`;
 
     try {
+      const jobLocation = currentJob.location || currentJob.city || "Paikkakunta";
+
       const res = await fetch("/api/generate-cover-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobTitle: currentJob.job_title,
           company: currentJob.company,
+          location: jobLocation,
           jobDescription:
-            currentJob.full_description || currentJob.description || "",
-          userBaseCoverLetter: mockUserBaseCoverLetter,
+          currentJob.full_description || currentJob.description || "",
+          userId: user?.id,                        // Nyt toimii!
+          letterFilename: letterFilename,          // Nyt toimii!
+          userName: currentJob.full_name,          // KORJAUS: puuttui - tarvitaan anonymisointiin
         }),
       });
 
@@ -169,6 +241,38 @@ export default function ResultPage({
     } catch (e: any) {
       console.error("Generointivirhe:", e);
       setError(e.message || "Saatekirjeen luominen epäonnistui.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function deleteCoverLetter() {
+    if (!job) return;
+
+    const confirmDelete = window.confirm(
+      "Haluatko varmasti poistaa tämän saatekirjeen tietokannasta?"
+    );
+    if (!confirmDelete) return;
+
+    setGenerating(true);
+    setError(null);
+
+    try {
+      setGeneratedLetter("");
+
+      const { error: deleteError } = await supabase
+        .from("applications")
+        .update({ cover_letter: null })
+        .eq("id", job.id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      console.log("Saatekirje poistettu tietokannasta.");
+    } catch (err: any) {
+      console.error("Poistovirhe:", err);
+      setError("Saatekirjeen poistaminen tietokannasta epäonnistui.");
     } finally {
       setGenerating(false);
     }
@@ -247,24 +351,8 @@ export default function ResultPage({
             size: A4;
             margin: 20mm;
           }
-          /* Kohdennetaan suoraan otsikkoon, joka sisältää tekstin "Miksi koen" */
           article h1, article h2, article h3 {
             break-inside: avoid;
-          }
-          article h2:nth-of-type(2),
-          article h3:nth-of-type(2),
-          article h2, article h3 {
-            /* Tarkistetaan elementti, joka vastaa haluttua otsikkoa tulostuksessa */
-          }
-        }
-        /* Pakotettu sivunvaihto Markdown-renderöidylle otsikolle, joka alkaa halutulla tekstillä */
-        @media print {
-          article h2, article h3 {
-            break-before: auto;
-          }
-          /* Etsitään otsikko, joka sisältää tekstin "Miksi koen" ja pakotetaan sivunvaihto ennen sitä */
-          article *:not(script):not(style) {
-            /* Kohdennetaan seuraavasti: */
           }
         }
       `}</style>
@@ -274,7 +362,6 @@ export default function ResultPage({
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 print:p-0">
           
-          {/* Back link */}
           <div className="flex items-center justify-between mb-6 print:hidden">
             <Link
               href={`/job-assistant/${job?.id}`}
@@ -290,7 +377,6 @@ export default function ResultPage({
             </div>
           </div>
 
-          {/* STEP INDICATOR */}
           <div className="flex items-center gap-3 mb-8 print:hidden">
             <Link
               href="/job-assistant"
@@ -348,7 +434,6 @@ export default function ResultPage({
             </div>
           </section>
 
-          {/* Job card */}
           <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-5 sm:p-6 mb-6 shadow-sm print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
               <div className="flex items-center gap-4">
@@ -371,8 +456,8 @@ export default function ResultPage({
             </div>
           </section>
 
-          {/* Main content */}
           <div className="grid lg:grid-cols-[1fr_300px] gap-6 print:block">
+            {/* DOKUMENTTIKORTTI */}
             <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl shadow-sm overflow-hidden print:border-none print:shadow-none print:bg-transparent">
               <div className="flex items-center justify-between gap-4 px-5 sm:px-7 py-5 border-b border-slate-200 dark:border-[#1F2937] print:hidden">
                 <div className="flex items-center gap-3">
@@ -384,29 +469,9 @@ export default function ResultPage({
                     <h2 className="font-bold">Saatekirje</h2>
                   </div>
                 </div>
-
-                <button
-                  onClick={copyLetter}
-                  disabled={generating || !generatedLetter}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-[#1F2937] hover:bg-slate-50 dark:hover:bg-slate-800 transition text-sm font-medium disabled:opacity-50"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle2 size={16} />
-                      Kopioitu
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} />
-                      <span className="hidden sm:inline">Kopioi</span>
-                    </>
-                  )}
-                </button>
               </div>
 
-              {/* Asiakirjan tulostettava osio */}
               <article className="px-6 sm:px-10 py-8 sm:py-10 print:p-0 print:m-0 print:text-black">
-                {/* Standardin mukainen Ylätunniste - Asettelu säilytetty täsmälleen */}
                 <header className="grid grid-cols-3 gap-4 pb-8 mb-8 border-b border-slate-200 dark:border-slate-800 print:border-b-0 print:pb-6 print:mb-6 text-sm text-slate-700 dark:text-slate-300 print:text-black print:text-[10pt]">
                   <div className="space-y-0.5">
                     {isEditingHeader ? (
@@ -441,7 +506,6 @@ export default function ResultPage({
                         />
                       </div>
                     ) : null}
-                    {/* Tulostuksessa tai kun ei muokata */}
                     <div className={isEditingHeader ? "print:block hidden" : "block"}>
                       <p className="font-bold text-slate-900 dark:text-white print:text-black">
                         {editFullName || "Etunimi Sukunimi"}
@@ -467,9 +531,13 @@ export default function ResultPage({
                 </header>
 
                 {generating ? (
-                  <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400">
-                    <Loader2 size={32} className="animate-spin text-indigo-600" />
-                    <p className="text-sm font-medium">Generoidaan saatekirjettä Geminillä...</p>
+                  <div className="relative">
+                    <div className="flex items-center justify-center gap-2 mb-8 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 py-2 px-4 rounded-full w-fit mx-auto animate-pulse">
+                      <Sparkles size={14} className="animate-spin" />
+                      <span>Tekoäly laatii saatekirjettä...</span>
+                    </div>
+
+                    <CoverLetterSkeleton />
                   </div>
                 ) : generatedLetter ? (
                   <div className="max-w-2xl mx-auto space-y-4 text-base leading-relaxed text-slate-700 dark:text-slate-300 print:text-black print:text-[11pt] print:leading-[1.4] print:font-sans [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:dark:text-white [&_h1]:print:text-black [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:dark:text-white [&_h2]:print:text-black [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:dark:text-white [&_h3]:print:text-black [&_h3]:mt-4 [&_strong]:font-semibold [&_strong]:text-slate-900 [&_strong]:dark:text-white [&_strong]:print:text-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-4">
@@ -518,31 +586,28 @@ export default function ResultPage({
                   </div>
                 )}
               </article>
-
-              {/* Actions */}
-              <div className="border-t border-slate-200 dark:border-[#1F2937] px-5 sm:px-7 py-5 flex flex-col sm:flex-row gap-3 print:hidden">
-                <button
-                  onClick={copyLetter}
-                  disabled={generating || !generatedLetter}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition disabled:opacity-50"
-                >
-                  <Copy size={18} />
-                  {copied ? "Kopioitu!" : "Kopioi saatekirje"}
-                </button>
-
-                <button
-                  onClick={() => window.print()}
-                  disabled={generating || !generatedLetter}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-slate-200 dark:border-[#1F2937] hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold transition disabled:opacity-50"
-                >
-                  <Download size={18} />
-                  Tulosta / Lataa PDF
-                </button>
-              </div>
             </section>
 
-            {/* Sidebar */}
-            <aside className="space-y-4 pb-12 sm:pb-0 print:hidden">
+            {/* SIVUPANEELI */}
+            <aside className="space-y-3 pb-12 sm:pb-0 print:hidden">
+              <button
+                onClick={copyLetter}
+                disabled={generating || !generatedLetter}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition disabled:opacity-50 shadow-sm"
+              >
+                <Copy size={17} />
+                {copied ? "Kopioitu!" : "Kopioi saatekirje"}
+              </button>
+
+              <button
+                onClick={() => window.print()}
+                disabled={generating || !generatedLetter}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-slate-200 dark:border-[#1F2937] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold transition disabled:opacity-50 shadow-sm"
+              >
+                <Download size={17} />
+                Tulosta / Lataa PDF
+              </button>
+
               <button
                 onClick={() => job && generateLetterWithGemini(job)}
                 disabled={generating}
@@ -560,7 +625,16 @@ export default function ResultPage({
                 className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-slate-200 dark:border-[#1F2937] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold transition shadow-sm"
               >
                 <Pencil size={17} />
-                {isEditingHeader ? "Valmis ylätunnisteen muokkauksesta" : "Muokkaa ylätunnistetta"}
+                {isEditingHeader ? "Sulje muokkaus" : "Muokkaa ylätunnistetta"}
+              </button>
+
+              <button
+                onClick={deleteCoverLetter}
+                disabled={generating || !generatedLetter}
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+              >
+                <Trash2 size={17} />
+                Poista saatekirje
               </button>
             </aside>
           </div>

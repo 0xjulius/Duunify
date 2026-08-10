@@ -1,7 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { User, Lock, Bell, Loader2, Check } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import {
+  User,
+  Lock,
+  Bell,
+  Loader2,
+  Check,
+  FileText,
+  Upload,
+  Trash2,
+  CheckCircle2,
+} from "lucide-react";
 import AvatarUpload from "@/components/settings/AvatarUpload";
 import PasswordChangeForm from "@/components/settings/PasswordChangeForm";
 import { supabase } from "@/lib/supabase";
@@ -9,9 +19,24 @@ import { useRouter } from "next/navigation";
 
 const menuItems = [
   { id: "profiili", name: "Profiili", icon: User },
+  { id: "asiakirjat", name: "Omat asiakirjat", icon: FileText },
   { id: "tili", name: "Tili ja kirjautuminen", icon: Lock },
   { id: "ilmoitukset", name: "Ilmoitukset", icon: Bell },
 ];
+
+type UserDocument = {
+  name: string;
+  updated: string;
+};
+
+// Apufunktio tiedostonimen siivoamiseen (estää Supabasen "Invalid key" -virheet)
+function sanitizeFileName(fileName: string): string {
+  return fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Poistaa skandit (ä -> a, ö -> o)
+    .replace(/\s+/g, "_") // Korvaa välilyönnit alaviivoilla
+    .replace(/[^a-zA-Z0-9._-]/g, ""); // Poistaa muut erikoismerkit
+}
 
 export default function SettingsClient({
   userId,
@@ -20,7 +45,7 @@ export default function SettingsClient({
   avatarUrl,
   phone: initialPhone,
   location: initialLocation,
-  isEmailConfirmed, // Vastaanotetaan tieto onko sähköposti vahvistettu
+  isEmailConfirmed,
 }: {
   userId: string;
   fullName: string;
@@ -32,18 +57,58 @@ export default function SettingsClient({
 }) {
   const router = useRouter();
   const [active, setActive] = useState("profiili");
-  
-  // Kaikki profiilikentät samassa isäkomponentissa
+
+  // Profiilikentät
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone || "");
   const [location, setLocation] = useState(initialLocation || "");
-  
+
+  // Asiakirjojen tilat
+  const [cvDoc, setCvDoc] = useState<UserDocument | null>(null);
+  const [coverLetterDoc, setCoverLetterDoc] = useState<UserDocument | null>(null);
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const [uploadingLetter, setUploadingLetter] = useState(false);
+  const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [verifyStatus, setVerifyStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  
+
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  // Haetaan olemassa olevat asiakirjat profiilista sivun latautuessa
+  useEffect(() => {
+    async function loadDocuments() {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("cv_filename, cv_updated_at, letter_filename, letter_updated_at")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (profile?.cv_filename) {
+        setCvDoc({
+          name: profile.cv_filename,
+          updated: profile.cv_updated_at
+            ? `Päivitetty ${new Date(profile.cv_updated_at).toLocaleDateString("fi-FI")}`
+            : "Aktiivinen",
+        });
+      }
+
+      if (profile?.letter_filename) {
+        setCoverLetterDoc({
+          name: profile.letter_filename,
+          updated: profile.letter_updated_at
+            ? `Päivitetty ${new Date(profile.letter_updated_at).toLocaleDateString("fi-FI")}`
+            : "Aktiivinen",
+        });
+      }
+    }
+
+    if (userId) {
+      loadDocuments();
+    }
+  }, [userId]);
 
   function scrollTo(id: string) {
     setActive(id);
@@ -53,7 +118,115 @@ export default function SettingsClient({
     });
   }
 
-  // Funktio vahvistussähköpostin uudelleenlähetykseen
+  // Tiedoston latausfunktio (maksimikoko 250 KB)
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "cv" | "letter"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const MAX_FILE_SIZE = 250 * 1024; // 250 KB
+
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`);
+      e.target.value = "";
+      return;
+    }
+
+    if (type === "cv") setUploadingCv(true);
+    else setUploadingLetter(true);
+
+    try {
+      const safeName = sanitizeFileName(file.name);
+      const storagePath = `${userId}/${type}_${safeName}`;
+
+      // 1. Ladataan puhdistettu tiedosto Supabase Storageen
+      const { error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(storagePath, file, { upsert: true });
+
+      if (uploadError) {
+        console.warn("Storage-lataus epäonnistui:", uploadError);
+      }
+
+      const now = new Date().toISOString();
+
+      // 2. Päivitetään tiedot profiles-tauluun
+      const updates =
+        type === "cv"
+          ? { cv_filename: safeName, cv_updated_at: now }
+          : { letter_filename: safeName, letter_updated_at: now };
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+
+      // 3. Päivitetään paikallinen tila
+      const updatedDoc = {
+        name: safeName,
+        updated: `Päivitetty ${new Date().toLocaleDateString("fi-FI")}`,
+      };
+
+      if (type === "cv") setCvDoc(updatedDoc);
+      else setCoverLetterDoc(updatedDoc);
+
+      router.refresh();
+    } catch (err: any) {
+      console.error(`Virhe tiedoston (${type}) latauksessa:`, err);
+      alert("Tiedoston lataus epäonnistui. Yritä uudelleen.");
+    } finally {
+      if (type === "cv") setUploadingCv(false);
+      else setUploadingLetter(false);
+      e.target.value = "";
+    }
+  };
+
+  // Tiedoston poistofunktio
+  const handleFileDelete = async (type: "cv" | "letter") => {
+    const docToDelete = type === "cv" ? cvDoc : coverLetterDoc;
+    if (!docToDelete) return;
+
+    if (!confirm(`Haluatko varmasti poistaa tiedoston "${docToDelete.name}"?`)) {
+      return;
+    }
+
+    setDeletingType(type);
+
+    try {
+      // 1. Poistetaan tiedosto Storagesta
+      const storagePath = `${userId}/${type}_${docToDelete.name}`;
+      await supabase.storage.from("documents").remove([storagePath]);
+
+      // 2. Tyhjennetään profiilimerkinnät tietokannasta
+      const updates =
+        type === "cv"
+          ? { cv_filename: null, cv_updated_at: null }
+          : { letter_filename: null, letter_updated_at: null };
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+
+      // 3. Nollataan paikallinen tila
+      if (type === "cv") setCvDoc(null);
+      else setCoverLetterDoc(null);
+
+      router.refresh();
+    } catch (err: any) {
+      console.error(`Virhe tiedoston (${type}) poistossa:`, err);
+      alert("Poisto epäonnistui. Yritä uudelleen.");
+    } finally {
+      setDeletingType(null);
+    }
+  };
+
   const handleResendVerification = async () => {
     setVerifying(true);
     setVerifyStatus(null);
@@ -73,38 +246,52 @@ export default function SettingsClient({
     setVerifyStatus({ type: "success", message: "Vahvistuslinkki lähetetty sähköpostiisi!" });
   };
 
-  // Yhteinen tallennusfunktio kaikille profiilitiedoille
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus(null);
 
-    // 1. Päivitetään nimi ja muut tiedot Supabasen auth-metadataan
-    const { error } = await supabase.auth.updateUser({
-      data: { 
-        full_name: fullName.trim(),
-        phone: phone.trim(),
-        location: location.trim()
+    const trimmedFullName = fullName.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedLocation = location.trim();
+
+    const { error: authError } = await supabase.auth.updateUser({
+      data: {
+        full_name: trimmedFullName,
+        phone: trimmedPhone,
+        location: trimmedLocation,
       },
     });
 
-    if (error) {
-      setStatus({ type: "error", message: `Virhe: ${error.message}` });
+    if (authError) {
+      setStatus({ type: "error", message: `Virhe Auth-tiedoissa: ${authError.message}` });
+      setLoading(false);
+      return;
+    }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        full_name: trimmedFullName,
+        phone_number: trimmedPhone,
+        location: trimmedLocation,
+      })
+      .eq("id", userId);
+
+    if (profileError) {
+      setStatus({ type: "error", message: `Virhe profiilin tallennuksessa: ${profileError.message}` });
       setLoading(false);
       return;
     }
 
     setStatus({ type: "success", message: "Muutokset tallennettu onnistuneesti!" });
     setLoading(false);
-    
-    // Päivitetään palvelimen datat (kuten Sidebarin nimitieto)
     router.refresh();
   };
 
-  // Tarkistetaan onko mikään kenttä muuttunut alkuperäisestä
-  const isChanged = 
-    fullName !== initialFullName || 
-    phone !== (initialPhone || "") || 
+  const isChanged =
+    fullName !== initialFullName ||
+    phone !== (initialPhone || "") ||
     location !== (initialLocation || "");
 
   return (
@@ -119,13 +306,13 @@ export default function SettingsClient({
           </header>
 
           <div className="flex flex-col md:flex-row gap-12 items-start">
-            {/* SIVUPALKIN VALINTANAPIT (TOGGLE) */}
+            {/* SIVUPALKIN VALINTANAPIT */}
             <aside className="w-full md:w-64 flex-shrink-0 space-y-1 md:sticky md:top-8">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollTo(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                     active === item.id
                       ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60"
@@ -156,7 +343,6 @@ export default function SettingsClient({
                     onUploaded={() => {}}
                   />
                   <div className="flex-1">
-                    {/* YHTEINEN LOMAKE KAIKILLE KENTILLE */}
                     <form onSubmit={handleSaveProfile} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -196,7 +382,6 @@ export default function SettingsClient({
                             className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-400 cursor-not-allowed text-sm font-medium"
                           />
 
-                          {/* Näytetään linkin uudelleenlähetys vain jos sähköpostia ei ole vahvistettu */}
                           {!isEmailConfirmed && (
                             <div className="mt-2">
                               <button
@@ -268,7 +453,6 @@ export default function SettingsClient({
                         </div>
                       )}
 
-                      {/* Tallenna-painike on aktiivinen vain, jos jotain on oikeasti muutettu */}
                       <div className="flex justify-end pt-2">
                         <button
                           type="submit"
@@ -286,6 +470,130 @@ export default function SettingsClient({
                         </button>
                       </div>
                     </form>
+                  </div>
+                </div>
+              </section>
+
+              {/* ASIAKIRJAT */}
+              <section
+                id="asiakirjat"
+                ref={(el) => {
+                  sectionRefs.current["asiakirjat"] = el;
+                }}
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
+              >
+                <h2 className="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100">
+                  Omat asiakirjat
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                  Lataa ansioluettelosi (CV) ja yleinen saatekirjepohjasi tekoälyavustajaa varten. Maks. koko 250 KB / tiedosto.
+                </p>
+
+                <div className="space-y-4">
+                  {/* CV LATAUS JA NÄYTTÖ */}
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0">
+                      {uploadingCv || deletingType === "cv" ? (
+                        <Loader2 size={18} className="animate-spin text-indigo-600" />
+                      ) : (
+                        <FileText size={18} className="text-slate-500" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate text-slate-900 dark:text-slate-100">
+                        {cvDoc?.name || "Ei ladattua CV:tä"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {cvDoc?.updated || "Lataa CV (.pdf, .doc, .docx, .txt)"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+                        <Upload size={13} />
+                        <span>{cvDoc ? "Vaihda" : "Lataa"}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "cv")}
+                          disabled={uploadingCv || deletingType === "cv"}
+                        />
+                      </label>
+
+                      {cvDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileDelete("cv")}
+                          disabled={deletingType === "cv"}
+                          title="Poista CV"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {cvDoc && (
+                      <CheckCircle2
+                        size={18}
+                        className="text-emerald-500 shrink-0"
+                      />
+                    )}
+                  </div>
+
+                  {/* SAATEKIRJE LATAUS JA NÄYTTÖ */}
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0">
+                      {uploadingLetter || deletingType === "letter" ? (
+                        <Loader2 size={18} className="animate-spin text-indigo-600" />
+                      ) : (
+                        <FileText size={18} className="text-slate-500" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate text-slate-900 dark:text-slate-100">
+                        {coverLetterDoc?.name || "Ei ladattua pohjaa"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {coverLetterDoc?.updated || "Lataa saatekirjepohja (.pdf, .doc, .docx, .txt)"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+                        <Upload size={13} />
+                        <span>{coverLetterDoc ? "Vaihda" : "Lataa"}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "letter")}
+                          disabled={uploadingLetter || deletingType === "letter"}
+                        />
+                      </label>
+
+                      {coverLetterDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileDelete("letter")}
+                          disabled={deletingType === "letter"}
+                          title="Poista pohja"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    {coverLetterDoc && (
+                      <CheckCircle2
+                        size={18}
+                        className="text-emerald-500 shrink-0"
+                      />
+                    )}
                   </div>
                 </div>
               </section>
@@ -332,11 +640,11 @@ export default function SettingsClient({
                       className="flex justify-between items-center py-2"
                     >
                       <p className="text-sm text-slate-700 dark:text-slate-300">{item}</p>
-                      
+
                       <div
                         className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 ${
-                          i < 2 
-                            ? "bg-indigo-600 dark:bg-indigo-500" 
+                          i < 2
+                            ? "bg-indigo-600 dark:bg-indigo-500"
                             : "bg-slate-300 dark:bg-slate-700"
                         }`}
                       >
@@ -354,21 +662,6 @@ export default function SettingsClient({
           </div>
         </div>
       </main>
-
-      {/* ALATUNNISTE */}
-      <footer className="p-8 border-t border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 transition-colors">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-          <div>
-            <span className="font-bold text-slate-900 dark:text-slate-100">Duunify</span>
-            <span className="ml-2">© 2026 Kaikki oikeudet pidätetään.</span>
-          </div>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Tietosuoja</a>
-            <a href="#" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Käyttöehdot</a>
-            <a href="#" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Yhteystiedot</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
