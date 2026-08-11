@@ -148,7 +148,6 @@ export default function JobAssistantJobPage({
 
       const storagePath = `${user.id}/${type}_${docToOpen.name}`;
 
-      // Haetaan väliaikainen latauslinkki Supabase Storagesta (voimassa 60s)
       const { data, error: signedUrlError } = await supabase.storage
         .from("documents")
         .createSignedUrl(storagePath, 60);
@@ -157,7 +156,6 @@ export default function JobAssistantJobPage({
         throw new Error("Tiedoston avaaminen epäonnistui.");
       }
 
-      // Avataan tiedosto uuteen välilehteen
       window.open(data.signedUrl, "_blank");
     } catch (err: any) {
       console.error(`Virhe tiedoston (${type}) avaamisessa:`, err);
@@ -482,133 +480,141 @@ export default function JobAssistantJobPage({
 
                 <div className="p-5 space-y-3">
                   {/* CV UPLOAD & DISPLAY */}
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
-                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      {uploadingCv || deletingType === "cv" || openingType === "cv" ? (
-                        <Loader2 size={18} className="animate-spin text-indigo-600" />
-                      ) : (
-                        <FileText size={18} className="text-slate-500" />
-                      )}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
+                        {uploadingCv || deletingType === "cv" || openingType === "cv" ? (
+                          <Loader2 size={18} className="animate-spin text-indigo-600" />
+                        ) : (
+                          <FileText size={18} className="text-slate-500" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate break-all">
+                          {cvDoc?.name || "Ei ladattua CV:tä"}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                          {cvDoc?.updated || "Lataa CV (maks. 500 KB)"}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold truncate">
-                        {cvDoc?.name || "Ei ladattua CV:tä"}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {cvDoc?.updated || "Lataa CV (maks. 500 KB)"}
-                      </p>
-                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center gap-1.5">
+                        {cvDoc && (
+                          <button
+                            type="button"
+                            onClick={() => handleFileOpen("cv")}
+                            disabled={openingType === "cv"}
+                            title="Avaa CV"
+                            className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition cursor-pointer"
+                          >
+                            <Eye size={14} />
+                          </button>
+                        )}
 
-                    <div className="flex items-center gap-1.5 shrink-0">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+                          <Upload size={13} />
+                          <span>{cvDoc ? "Vaihda" : "Lataa"}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "cv")}
+                            disabled={uploadingCv || deletingType === "cv"}
+                          />
+                        </label>
+
+                        {cvDoc && (
+                          <button
+                            type="button"
+                            onClick={() => handleFileDelete("cv")}
+                            disabled={deletingType === "cv"}
+                            title="Poista CV"
+                            className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+
                       {cvDoc && (
-                        <button
-                          type="button"
-                          onClick={() => handleFileOpen("cv")}
-                          disabled={openingType === "cv"}
-                          title="Avaa CV"
-                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition cursor-pointer"
-                        >
-                          <Eye size={14} />
-                        </button>
-                      )}
-
-                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
-                        <Upload size={13} />
-                        <span>{cvDoc ? "Vaihda" : "Lataa"}</span>
-                        <input
-                          type="file"
-                          accept=".pdf,.doc,.docx,.txt"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "cv")}
-                          disabled={uploadingCv || deletingType === "cv"}
+                        <CheckCircle2
+                          size={18}
+                          className="text-emerald-500 shrink-0 ml-1"
                         />
-                      </label>
-
-                      {cvDoc && (
-                        <button
-                          type="button"
-                          onClick={() => handleFileDelete("cv")}
-                          disabled={deletingType === "cv"}
-                          title="Poista CV"
-                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
-                        >
-                          <Trash2 size={14} />
-                        </button>
                       )}
                     </div>
-
-                    {cvDoc && (
-                      <CheckCircle2
-                        size={18}
-                        className="text-emerald-500 shrink-0"
-                      />
-                    )}
                   </div>
 
                   {/* COVER LETTER UPLOAD & DISPLAY */}
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
-                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      {uploadingLetter || deletingType === "letter" || openingType === "letter" ? (
-                        <Loader2 size={18} className="animate-spin text-indigo-600" />
-                      ) : (
-                        <FileText size={18} className="text-slate-500" />
-                      )}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
+                        {uploadingLetter || deletingType === "letter" || openingType === "letter" ? (
+                          <Loader2 size={18} className="animate-spin text-indigo-600" />
+                        ) : (
+                          <FileText size={18} className="text-slate-500" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate break-all">
+                          {coverLetterDoc?.name || "Ei ladattua pohjaa"}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                          {coverLetterDoc?.updated || "Lataa pohja (maks. 500 KB)"}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold truncate">
-                        {coverLetterDoc?.name || "Ei ladattua pohjaa"}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {coverLetterDoc?.updated || "Lataa pohja (maks. 500 KB)"}
-                      </p>
-                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center gap-1.5">
+                        {coverLetterDoc && (
+                          <button
+                            type="button"
+                            onClick={() => handleFileOpen("letter")}
+                            disabled={openingType === "letter"}
+                            title="Avaa pohja"
+                            className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition cursor-pointer"
+                          >
+                            <Eye size={14} />
+                          </button>
+                        )}
 
-                    <div className="flex items-center gap-1.5 shrink-0">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+                          <Upload size={13} />
+                          <span>{coverLetterDoc ? "Vaihda" : "Lataa"}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "letter")}
+                            disabled={uploadingLetter || deletingType === "letter"}
+                          />
+                        </label>
+
+                        {coverLetterDoc && (
+                          <button
+                            type="button"
+                            onClick={() => handleFileDelete("letter")}
+                            disabled={deletingType === "letter"}
+                            title="Poista pohja"
+                            className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+
                       {coverLetterDoc && (
-                        <button
-                          type="button"
-                          onClick={() => handleFileOpen("letter")}
-                          disabled={openingType === "letter"}
-                          title="Avaa pohja"
-                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition cursor-pointer"
-                        >
-                          <Eye size={14} />
-                        </button>
-                      )}
-
-                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
-                        <Upload size={13} />
-                        <span>{coverLetterDoc ? "Vaihda" : "Lataa"}</span>
-                        <input
-                          type="file"
-                          accept=".pdf,.doc,.docx,.txt"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "letter")}
-                          disabled={uploadingLetter || deletingType === "letter"}
+                        <CheckCircle2
+                          size={18}
+                          className="text-emerald-500 shrink-0 ml-1"
                         />
-                      </label>
-
-                      {coverLetterDoc && (
-                        <button
-                          type="button"
-                          onClick={() => handleFileDelete("letter")}
-                          disabled={deletingType === "letter"}
-                          title="Poista pohja"
-                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-600 hover:border-red-200 dark:hover:border-red-900/50 transition cursor-pointer"
-                        >
-                          <Trash2 size={14} />
-                        </button>
                       )}
                     </div>
-
-                    {coverLetterDoc && (
-                      <CheckCircle2
-                        size={18}
-                        className="text-emerald-500 shrink-0"
-                      />
-                    )}
                   </div>
                 </div>
               </section>
