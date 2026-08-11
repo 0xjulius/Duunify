@@ -7,6 +7,8 @@ import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
 import {
   ArrowLeft,
+  Briefcase,
+  Building2,
   CheckCircle2,
   Copy,
   Download,
@@ -18,6 +20,8 @@ import {
   ChevronRight,
   Pencil,
   Trash2,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
 
 type JobDetail = {
@@ -25,6 +29,8 @@ type JobDetail = {
   job_title: string;
   company: string;
   location?: string;
+  employment_type?: string;
+  job_url?: string;
   job_description?: string;
   cover_letter?: string;
   full_name?: string;
@@ -33,7 +39,6 @@ type JobDetail = {
   email?: string;
 };
 
-// Visuaalinen Skeleton-lataustila tekoälyn kirjoitusefektille
 function CoverLetterSkeleton() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-pulse">
@@ -90,7 +95,6 @@ export default function ResultPage({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Tilat ylätunnisteen muokkausta varten
   const [isEditingHeader, setIsEditingHeader] = useState(false);
   const [editFullName, setEditFullName] = useState("");
   const [editCity, setEditCity] = useState("");
@@ -186,7 +190,6 @@ export default function ResultPage({
     let cvFilename = null;
 
     if (user) {
-      // KORJATTU: Haetaan MIKÄLI MOLEMMAT tiedostonimet profiilista
       const { data: profile } = await supabase
         .from("profiles")
         .select("letter_filename, cv_filename")
@@ -222,8 +225,8 @@ export default function ResultPage({
           location: jobLocation,
           jobDescription: currentJob.job_description || "",
           userId: user?.id,
-          cvFilename: cvFilename, // Lähetetään erillisenä
-          letterFilename: letterFilename, // Lähetetään erillisenä
+          cvFilename: cvFilename,
+          letterFilename: letterFilename,
           userName: currentJob.full_name,
         }),
       });
@@ -386,6 +389,7 @@ export default function ResultPage({
             </div>
           </div>
 
+          {/* STEP INDICATOR */}
           <div className="flex items-center gap-3 mb-8 print:hidden">
             <Link
               href="/job-assistant"
@@ -425,6 +429,7 @@ export default function ResultPage({
             </div>
           </div>
 
+          {/* HAKEMUKSESI SAATEKIRJE - LOHKO */}
           <section className="mb-8 print:hidden">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -443,24 +448,66 @@ export default function ResultPage({
             </div>
           </section>
 
-          <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-5 sm:p-6 mb-6 shadow-sm print:hidden">
+          {/* JOB HEADER (sisältää linkin työpaikkaan ID-sivun tyylillä) */}
+          <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 sm:p-8 shadow-sm mb-6 print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 font-bold">
-                  {job?.company?.charAt(0)}
+              <div className="flex items-start gap-5 min-w-0">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
+                  <Building2
+                    size={26}
+                    className="text-indigo-600 dark:text-indigo-400"
+                  />
                 </div>
 
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Työpaikka
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                    Valittu työpaikka
                   </p>
 
-                  <h2 className="font-bold text-lg">{job?.job_title}</h2>
+                  <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+                    {job?.job_title}
+                  </h2>
 
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {job?.company} {job?.location ? `· ${job.location}` : ""}
+                  <p className="text-base font-semibold text-slate-600 dark:text-slate-300 mt-1">
+                    {job?.company}
                   </p>
+
+                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
+                    {job?.location && (
+                      <span className="flex items-center gap-1.5">
+                        <MapPin size={15} />
+                        {job.location}
+                      </span>
+                    )}
+
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase size={15} />
+                      {job?.employment_type || "Kokoaikainen"}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* LINKKI TYÖPAIKKAAN */}
+              <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                <Link
+                  href={`/job-assistant/${job?.id}`}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-semibold transition"
+                >
+                  Avaa työpaikan tiedot
+                </Link>
+
+                {job?.job_url && (
+                  <a
+                    href={job.job_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold transition"
+                  >
+                    Alkuperäinen ilmoitus
+                    <ExternalLink size={15} />
+                  </a>
+                )}
               </div>
             </div>
           </section>
@@ -603,7 +650,6 @@ export default function ResultPage({
                       {generatedLetter}
                     </ReactMarkdown>
 
-                    {/* Tiukka loppuosa ylätunnisteen tiedoilla */}
                     <div className="pt-2 mt-4">
                       <p className="m-0 p-0 leading-tight text-slate-700 dark:text-slate-300 print:text-black">
                         Ystävällisin terveisin,

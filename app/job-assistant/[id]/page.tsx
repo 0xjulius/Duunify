@@ -22,6 +22,7 @@ import {
   Upload,
   Trash2,
   ShieldCheck,
+  Eye,
 } from "lucide-react";
 
 type Application = {
@@ -40,13 +41,12 @@ type UserDocument = {
   updated: string;
 };
 
-// Apufunktio tiedostonimen siivoamiseen (estää Supabasen "Invalid key" -virheet)
 function sanitizeFileName(fileName: string): string {
   return fileName
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Poistaa skandit (ä -> a, ö -> o)
-    .replace(/\s+/g, "_") // Korvaa välilyönnit alaviivoilla
-    .replace(/[^a-zA-Z0-9._-]/g, ""); // Poistaa muut erikoismerkit
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9._-]/g, "");
 }
 
 export default function JobAssistantJobPage({
@@ -63,10 +63,10 @@ export default function JobAssistantJobPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Lataustilat tiedostojen uppaukselle ja poistolle
   const [uploadingCv, setUploadingCv] = useState(false);
   const [uploadingLetter, setUploadingLetter] = useState(false);
   const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(null);
+  const [openingType, setOpeningType] = useState<"cv" | "letter" | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -78,7 +78,6 @@ export default function JobAssistantJobPage({
           data: { user },
         } = await supabase.auth.getUser();
 
-        // Haetaan hakemus applications-taulusta
         const { data: jobData, error: jobError } = await supabase
           .from("applications")
           .select("*")
@@ -94,7 +93,6 @@ export default function JobAssistantJobPage({
 
         setJob(jobData);
 
-        // Haetaan asiakirjat käyttäjän profiilista (vain olemassa olevat sarakkeet)
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
@@ -134,7 +132,41 @@ export default function JobAssistantJobPage({
     }
   }, [jobId]);
 
-// Tiedoston latausfunktio (rajoitus: max 500 KB)
+  // Tiedoston avaaminen / katselu
+  const handleFileOpen = async (type: "cv" | "letter") => {
+    const docToOpen = type === "cv" ? cvDoc : coverLetterDoc;
+    if (!docToOpen) return;
+
+    setOpeningType(type);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("Käyttäjä ei ole kirjautunut sisään.");
+
+      const storagePath = `${user.id}/${type}_${docToOpen.name}`;
+
+      // Haetaan väliaikainen latauslinkki Supabase Storagesta (voimassa 60s)
+      const { data, error: signedUrlError } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(storagePath, 60);
+
+      if (signedUrlError || !data?.signedUrl) {
+        throw new Error("Tiedoston avaaminen epäonnistui.");
+      }
+
+      // Avataan tiedosto uuteen välilehteen
+      window.open(data.signedUrl, "_blank");
+    } catch (err: any) {
+      console.error(`Virhe tiedoston (${type}) avaamisessa:`, err);
+      alert("Tiedoston avaaminen epäonnistui. Varmista, että tiedosto on ladattu oikein.");
+    } finally {
+      setOpeningType(null);
+    }
+  };
+
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "cv" | "letter"
@@ -142,7 +174,7 @@ export default function JobAssistantJobPage({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const MAX_FILE_SIZE = 500 * 1024; // 500 KB tavuina
+    const MAX_FILE_SIZE = 500 * 1024;
 
     if (file.size > MAX_FILE_SIZE) {
       alert(`Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 500 KB.`);
@@ -160,11 +192,9 @@ export default function JobAssistantJobPage({
 
       if (!user) throw new Error("Käyttäjä ei ole kirjautunut sisään.");
 
-      // Puhdistetaan tiedostonimi (esim. "letter_Matti Meikäläinen.pdf" -> "letter_Matti_Meikalainen.pdf")
       const safeName = sanitizeFileName(file.name);
       const storagePath = `${user.id}/${type}_${safeName}`;
 
-      // 1. Ladataan puhdistettu tiedosto Supabase Storageen ('documents'-bucket)
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(storagePath, file, { upsert: true });
@@ -175,7 +205,6 @@ export default function JobAssistantJobPage({
 
       const now = new Date().toISOString();
 
-      // 2. Päivitetään profiilitiedot tietokantaan puhdistetulla nimellä
       const updates =
         type === "cv"
           ? { cv_filename: safeName, cv_updated_at: now }
@@ -188,7 +217,6 @@ export default function JobAssistantJobPage({
 
       if (profileError) throw profileError;
 
-      // 3. Päivitetään näkymä
       const updatedDoc = {
         name: safeName,
         updated: `Päivitetty ${new Date().toLocaleDateString("fi-FI")}`,
@@ -206,7 +234,6 @@ export default function JobAssistantJobPage({
     }
   };
 
-  // Tiedoston poistofunktio
   const handleFileDelete = async (type: "cv" | "letter") => {
     const docToDelete = type === "cv" ? cvDoc : coverLetterDoc;
     if (!docToDelete) return;
@@ -224,11 +251,9 @@ export default function JobAssistantJobPage({
 
       if (!user) throw new Error("Käyttäjä ei ole kirjautunut sisään.");
 
-      // 1. Poistetaan tiedosto Storagesta puhdistetulla nimellä
       const storagePath = `${user.id}/${type}_${docToDelete.name}`;
       await supabase.storage.from("documents").remove([storagePath]);
 
-      // 2. Tyhjennetään profiilimerkinnät tietokannasta
       const updates =
         type === "cv"
           ? { cv_filename: null, cv_updated_at: null }
@@ -241,7 +266,6 @@ export default function JobAssistantJobPage({
 
       if (profileError) throw profileError;
 
-      // 3. Nollataan tila
       if (type === "cv") setCvDoc(null);
       else setCoverLetterDoc(null);
     } catch (err: any) {
@@ -299,7 +323,6 @@ export default function JobAssistantJobPage({
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
           
-          {/* BACK */}
           <Link
             href="/job-assistant"
             className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition mb-6"
@@ -308,7 +331,6 @@ export default function JobAssistantJobPage({
             Takaisin työpaikkoihin
           </Link>
 
-          {/* STEP INDICATOR */}
           <div className="flex items-center gap-3 mb-8">
             <Link
               href="/job-assistant"
@@ -345,7 +367,6 @@ export default function JobAssistantJobPage({
             </div>
           </div>
 
-          {/* JOB HEADER & CTA */}
           <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 sm:p-8 shadow-sm mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="flex items-start gap-5 flex-1 min-w-0">
@@ -409,10 +430,7 @@ export default function JobAssistantJobPage({
             </div>
           </section>
 
-          {/* TWO COLUMN CONTENT */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_0.8fr] gap-6">
-            
-            {/* JOB DESCRIPTION */}
             <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl overflow-hidden shadow-sm">
               <div className="px-6 sm:px-8 py-5 border-b border-slate-200 dark:border-[#1F2937]">
                 <div className="flex items-center gap-3">
@@ -442,7 +460,6 @@ export default function JobAssistantJobPage({
               </div>
             </section>
 
-            {/* DOCUMENTS & AI INFO */}
             <div className="space-y-6">
               <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl overflow-hidden shadow-sm">
                 <div className="px-6 py-5 border-b border-slate-200 dark:border-[#1F2937]">
@@ -457,7 +474,7 @@ export default function JobAssistantJobPage({
                     <div>
                       <h2 className="font-bold">Omat asiakirjat</h2>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Maks. koko 250 KB / tiedosto
+                        Maks. koko 500 KB / tiedosto
                       </p>
                     </div>
                   </div>
@@ -467,7 +484,7 @@ export default function JobAssistantJobPage({
                   {/* CV UPLOAD & DISPLAY */}
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      {uploadingCv || deletingType === "cv" ? (
+                      {uploadingCv || deletingType === "cv" || openingType === "cv" ? (
                         <Loader2 size={18} className="animate-spin text-indigo-600" />
                       ) : (
                         <FileText size={18} className="text-slate-500" />
@@ -484,6 +501,18 @@ export default function JobAssistantJobPage({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {cvDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileOpen("cv")}
+                          disabled={openingType === "cv"}
+                          title="Avaa CV"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition cursor-pointer"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      )}
+
                       <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
                         <Upload size={13} />
                         <span>{cvDoc ? "Vaihda" : "Lataa"}</span>
@@ -520,7 +549,7 @@ export default function JobAssistantJobPage({
                   {/* COVER LETTER UPLOAD & DISPLAY */}
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0B0F19] border border-slate-200 dark:border-[#1F2937]">
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      {uploadingLetter || deletingType === "letter" ? (
+                      {uploadingLetter || deletingType === "letter" || openingType === "letter" ? (
                         <Loader2 size={18} className="animate-spin text-indigo-600" />
                       ) : (
                         <FileText size={18} className="text-slate-500" />
@@ -537,6 +566,18 @@ export default function JobAssistantJobPage({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {coverLetterDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileOpen("letter")}
+                          disabled={openingType === "letter"}
+                          title="Avaa pohja"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition cursor-pointer"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      )}
+
                       <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
                         <Upload size={13} />
                         <span>{coverLetterDoc ? "Vaihda" : "Lataa"}</span>
@@ -572,7 +613,6 @@ export default function JobAssistantJobPage({
                 </div>
               </section>
 
-              {/* AI PREVIEW */}
               <section className="rounded-3xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/[0.06] p-6">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
@@ -624,7 +664,6 @@ export default function JobAssistantJobPage({
                 </div>
               </section>
 
-              {/* UUSI: YKSITYISYYS & ANONYMSOINTI -BOKSI */}
               <section className="rounded-3xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/[0.06] p-6">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
