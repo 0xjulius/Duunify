@@ -17,31 +17,38 @@ export function anonymizeText(text: string, userName?: string): string {
     "[SÄHKÖPOSTI_POISTETTU]"
   );
 
-  // 3. Poistetaan verkko-osoitteet (URLit, protokollat sekä www-alkuiset ja yleiset päätteet)
+  // 3. Poistetaan verkko-osoitteet
   cleaned = cleaned.replace(
     /\b(?:https?:\/\/|www\.)[^\s<>]+|\b[a-z0-9][-a-z0-9]+\.(?:fi|com|org|net|edu|gov|eu|io|me|info)\b[^\s]*/gi,
     "[VERKKOOSOITE_POISTETTU]"
   );
 
-  // 4. Poistetaan puhelinnumerot (+358 40..., 040-1234567, 050 123 4567 jne.)
+  // 4. Poistetaan puhelinnumerot (Sanarajat \b estävät numeroiden leikkautumisen leipätekstistä)
   cleaned = cleaned.replace(
-    /(?:\+358|0)\s?\(?0?\)?\s?\d{1,4}[\s-]?\d{3,4}[\s-]?\d{3,4}/g,
+    /\b(?:\+358|0)\s?\(?0?\)?\s?\d{1,4}[\s-]?\d{3,4}[\s-]?\d{3,4}\b/g,
     "[PUHELIN_POISTETTU]"
   );
 
-  // 5. Poistetaan katuosoitteet (esim. Mannerheimintie 12 A 4, Esimerkkikatu 5)
+  // 5. Poistetaan katuosoitteet JA postinumerot/toimipaikat
+  // Korjattu: Sanarajat \b ja tarkennettu katuosien listaus (poistettu tupla-tie)
   cleaned = cleaned.replace(
-    /\b([A-ZÅÄÖa-zåäö]+(?:katu|tie|kuja|polku|kaari|ranta|rinne|tie|väylä))\s+\d+(\s+[A-Za-z]\s+\d+)?\b/gi,
+    /\b([A-ZÅÄÖa-zåäö]{3,}(?:katu|tie|kuja|polku|kaari|ranta|rinne|väylä|aukea|toritori))\s+\d+(\s+[A-Za-z]\s+\d+)?\b/gi,
     "[OSOITE_POISTETTU]"
   );
+  
+  // Poistetaan myös suomalaiset postinumerot ja paikkakunnat (esim. 00100 Helsinki)
+  cleaned = cleaned.replace(/\b\d{5}\s+[A-ZÅÄÖa-zåäö]+\b/g, "[POSTITOIMIPAIKKA_POISTETTU]");
 
-  // 6. Poistetaan käyttäjän nimi (jos se on välitetty mukana)
+  // 6. Poistetaan käyttäjän nimi turvallisesti
   if (userName && userName.trim().length > 0) {
-    const nameParts = userName.trim().split(/\s+/);
+    // Erotetaan nimi osiin myös yhdysmerkin (-) kohdalta
+    const nameParts = userName.trim().split(/[\s-]+/);
+    
     nameParts.forEach((part) => {
       if (part.length > 2) {
-        // Poistetaan nimen osat siten, ettei kirjainkoolla ole väliä
-        const reg = new RegExp(`\\b${part}\\b`, "gi");
+        // Escapatan erikoismerkit Regexiä varten (esim. väliviivat)
+        const escapedPart = part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const reg = new RegExp(`\\b${escapedPart}\\b`, "gi");
         cleaned = cleaned.replace(reg, "[HAKIJAN_NIMI]");
       }
     });

@@ -134,7 +134,7 @@ export default function JobAssistantJobPage({
     }
   }, [jobId]);
 
-  // Tiedoston latausfunktio (rajoitus: max 250 KB)
+// Tiedoston latausfunktio (rajoitus: max 500 KB)
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "cv" | "letter"
@@ -142,10 +142,10 @@ export default function JobAssistantJobPage({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const MAX_FILE_SIZE = 250 * 1024; // 250 KB
+    const MAX_FILE_SIZE = 500 * 1024; // 500 KB tavuina
 
     if (file.size > MAX_FILE_SIZE) {
-      alert(`Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`);
+      alert(`Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 500 KB.`);
       e.target.value = "";
       return;
     }
@@ -479,7 +479,7 @@ export default function JobAssistantJobPage({
                         {cvDoc?.name || "Ei ladattua CV:tä"}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {cvDoc?.updated || "Lataa CV (maks. 250 KB)"}
+                        {cvDoc?.updated || "Lataa CV (maks. 500 KB)"}
                       </p>
                     </div>
 
@@ -532,7 +532,7 @@ export default function JobAssistantJobPage({
                         {coverLetterDoc?.name || "Ei ladattua pohjaa"}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {coverLetterDoc?.updated || "Lataa pohja (maks. 250 KB)"}
+                        {coverLetterDoc?.updated || "Lataa pohja (maks. 500 KB)"}
                       </p>
                     </div>
 

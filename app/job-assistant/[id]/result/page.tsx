@@ -25,8 +25,7 @@ type JobDetail = {
   job_title: string;
   company: string;
   location?: string;
-  description?: string;
-  full_description?: string;
+  job_description?: string;
   cover_letter?: string;
   full_name?: string;
   city?: string;
@@ -112,7 +111,9 @@ export default function ResultPage({
         if (user) {
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
-            .select("full_name, location, phone_number, email, letter_filename")
+            .select(
+              "full_name, location, phone_number, email, letter_filename, cv_filename"
+            )
             .eq("id", user.id)
             .maybeSingle();
 
@@ -175,7 +176,6 @@ export default function ResultPage({
   async function generateLetterWithGemini(currentJob: JobDetail) {
     setGenerating(true);
     setError(null);
-
     setGeneratedLetter("");
 
     const {
@@ -183,14 +183,18 @@ export default function ResultPage({
     } = await supabase.auth.getUser();
 
     let letterFilename = null;
+    let cvFilename = null;
+
     if (user) {
+      // KORJATTU: Haetaan MIKÄLI MOLEMMAT tiedostonimet profiilista
       const { data: profile } = await supabase
         .from("profiles")
-        .select("letter_filename")
+        .select("letter_filename, cv_filename")
         .eq("id", user.id)
         .maybeSingle();
 
       letterFilename = profile?.letter_filename;
+      cvFilename = profile?.cv_filename;
     }
 
     const { error: clearError } = await supabase
@@ -201,7 +205,7 @@ export default function ResultPage({
     if (clearError) {
       console.error(
         "Vanhan kirjeen poisto epäonnistui tietokannasta:",
-        clearError,
+        clearError
       );
     }
 
@@ -216,10 +220,10 @@ export default function ResultPage({
           jobTitle: currentJob.job_title,
           company: currentJob.company,
           location: jobLocation,
-          jobDescription:
-            currentJob.full_description || currentJob.description || "",
+          jobDescription: currentJob.job_description || "",
           userId: user?.id,
-          letterFilename: letterFilename,
+          cvFilename: cvFilename, // Lähetetään erillisenä
+          letterFilename: letterFilename, // Lähetetään erillisenä
           userName: currentJob.full_name,
         }),
       });
@@ -254,7 +258,7 @@ export default function ResultPage({
     if (!job) return;
 
     const confirmDelete = window.confirm(
-      "Haluatko varmasti poistaa tämän saatekirjeen tietokannasta?",
+      "Haluatko varmasti poistaa tämän saatekirjeen tietokannasta?"
     );
     if (!confirmDelete) return;
 
@@ -340,7 +344,7 @@ export default function ResultPage({
           article,
           article * {
             visibility: visible;
-            color: black !important; /* Pakottaa kaiken tekstin mustaksi tulostuksessa */
+            color: black !important;
           }
           article {
             position: absolute;
