@@ -11,6 +11,7 @@ import {
   Upload,
   Trash2,
   CheckCircle2,
+  Eye,
 } from "lucide-react";
 import AvatarUpload from "@/components/settings/AvatarUpload";
 import PasswordChangeForm from "@/components/settings/PasswordChangeForm";
@@ -69,6 +70,7 @@ export default function SettingsClient({
   const [uploadingCv, setUploadingCv] = useState(false);
   const [uploadingLetter, setUploadingLetter] = useState(false);
   const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(null);
+  const [viewingType, setViewingType] = useState<"cv" | "letter" | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -117,6 +119,31 @@ export default function SettingsClient({
       block: "start",
     });
   }
+
+  // Tiedoston katselufunktio (avaa allekirjoitetun linkin uuteen välilehteen)
+  const handleFileView = async (type: "cv" | "letter") => {
+    const doc = type === "cv" ? cvDoc : coverLetterDoc;
+    if (!doc) return;
+
+    setViewingType(type);
+    try {
+      const storagePath = `${userId}/${type}_${doc.name}`;
+      const { data, error } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(storagePath, 60); // Linkki voimassa 60 sekuntia
+
+      if (error || !data?.signedUrl) {
+        throw error || new Error("Linkin luonti epäonnistui");
+      }
+
+      window.open(data.signedUrl, "_blank");
+    } catch (err: any) {
+      console.error(`Virhe tiedoston (${type}) avaamisessa:`, err);
+      alert("Tiedoston avaaminen epäonnistui. Yritä uudelleen.");
+    } finally {
+      setViewingType(null);
+    }
+  };
 
   // Tiedoston latausfunktio (maksimikoko 250 KB)
   const handleFileUpload = async (
@@ -510,6 +537,22 @@ export default function SettingsClient({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {cvDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileView("cv")}
+                          disabled={viewingType === "cv"}
+                          title="Katso tiedosto"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          {viewingType === "cv" ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                        </button>
+                      )}
+
                       <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
                         <Upload size={13} />
                         <span>{cvDoc ? "Vaihda" : "Lataa"}</span>
@@ -563,6 +606,22 @@ export default function SettingsClient({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {coverLetterDoc && (
+                        <button
+                          type="button"
+                          onClick={() => handleFileView("letter")}
+                          disabled={viewingType === "letter"}
+                          title="Katso tiedosto"
+                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          {viewingType === "letter" ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                        </button>
+                      )}
+
                       <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
                         <Upload size={13} />
                         <span>{coverLetterDoc ? "Vaihda" : "Lataa"}</span>
