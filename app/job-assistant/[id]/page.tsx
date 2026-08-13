@@ -34,6 +34,7 @@ type Application = {
   notes?: string;
   job_description?: string;
   job_url?: string;
+  company_logo?: string; // <-- Haetaan logo tietokannan company_logo-sarakkeesta
 };
 
 type UserDocument = {
@@ -62,6 +63,9 @@ export default function JobAssistantJobPage({
   const [coverLetterDoc, setCoverLetterDoc] = useState<UserDocument | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Tila rikkinäiselle logokuvalle (kuten esimerkkikoodissa)
+  const [failedLogo, setFailedLogo] = useState(false);
 
   const [uploadingCv, setUploadingCv] = useState(false);
   const [uploadingLetter, setUploadingLetter] = useState(false);
@@ -368,11 +372,22 @@ export default function JobAssistantJobPage({
           <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 sm:p-8 shadow-sm mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="flex items-start gap-5 flex-1 min-w-0">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0">
-                  <Building2
-                    size={26}
-                    className="text-indigo-600 dark:text-indigo-400"
-                  />
+                
+                {/* COMPANY ICON / LOGO (Sama logiikka kuin mallissa) */}
+                <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/50 flex items-center justify-center shrink-0 overflow-hidden">
+                  {job?.company_logo && !failedLogo ? (
+                    <img
+                      src={job.company_logo}
+                      alt={`${job.company} logo`}
+                      className="w-full h-full object-contain p-2"
+                      onError={() => setFailedLogo(true)}
+                    />
+                  ) : (
+                    <Building2
+                      size={26}
+                      className="text-slate-500 dark:text-slate-400"
+                    />
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1">
