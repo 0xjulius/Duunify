@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/lib/supabase";
@@ -101,8 +101,15 @@ export default function ResultPage({
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
 
+  // Estetään tuplakutsut Strict Moden aiheuttamasta tupla-useEffectistä
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
     async function loadDataAndGenerate() {
+      // Jos pyyntö on jo tehty tai käynnissä, ei tehdä sitä uudestaan
+      if (hasFetchedRef.current) return;
+      hasFetchedRef.current = true;
+
       setLoading(true);
       setError(null);
 
@@ -448,7 +455,7 @@ export default function ResultPage({
             </div>
           </section>
 
-          {/* JOB HEADER (sisältää linkin työpaikkaan ID-sivun tyylillä) */}
+          {/* JOB HEADER */}
           <section className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 sm:p-8 shadow-sm mb-6 print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
               <div className="flex items-start gap-5 min-w-0">
