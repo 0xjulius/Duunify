@@ -5,36 +5,44 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { anonymizeText } from "@/lib/anonymize";
 import { createClient } from "@supabase/supabase-js";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+// 1. RATE LIMITER -ALUSTUS (Edellyttää UPSTASH_REDIS_REST_URL ja UPSTASH_REDIS_REST_TOKEN .env-tiedostossa)
+// Jos Upstash ei ole käytössä, voit kommentoida tämän osion tilapäisesti.
+const redis = Redis.fromEnv();
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1 m"), // Max 5 pyyntöä per minuutti per IP
+  analytics: true,
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// Luodaan Supabase-asiakas palvelinpään hakuja varten
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 async function fetchAndParseFile(userId: string, prefix: string, filename: string) {
   if (!userId || !filename) return "";
-  
+
   try {
-    // Luodaan lista kaikista mahdollisista polkuvaihtoehdoista
     const cleanFilename = filename.replace(new RegExp(`^${prefix}_`), "");
     const possiblePaths = [
-      `${userId}/${filename}`,                  // 1. Tietokannan nimi sellaisenaan
-      `${userId}/${prefix}_${cleanFilename}`,   // 2. Etuliitteellä (esim. cv_julius-aalto-cv-duunify.pdf)
-      `${userId}/${cleanFilename}`              // 3. Täysin ilman etuliitettä
+      `${userId}/${filename}`,
+      `${userId}/${prefix}_${cleanFilename}`,
+      `${userId}/${cleanFilename}`,
     ];
 
-    // Poistetaan duplikaatit hakulistasta
     const uniquePaths = Array.from(new Set(possiblePaths));
 
     let fileData: Blob | null = null;
     let downloadError: any = null;
     let successfulPath = "";
 
-    // Kokeillaan polkuja järjestyksessä, kunnes tiedosto löytyy
     for (const storagePath of uniquePaths) {
       console.log(`[PDF DEBUG] Kokeillaan hakea tiedostoa polusta: ${storagePath}`);
-      const result = await supabase.storage
+      const result = await supabaseAdmin.storage
         .from("documents")
         .download(storagePath);
 
@@ -51,7 +59,6 @@ async function fetchAndParseFile(userId: string, prefix: string, filename: strin
     if (!downloadError && fileData) {
       console.log(`✅ Tiedosto LÖYTYI polusta: ${successfulPath}`);
 
-      // Tarkistetaan tiedostokoko (max 500 KB)
       if (fileData.size > 500 * 1024) {
         console.error(`❌ Tiedosto ${filename} ylittää 500 KB kokorajan (${Math.round(fileData.size / 1024)} KB)`);
         return "";
@@ -86,12 +93,36 @@ async function fetchAndParseFile(userId: string, prefix: string, filename: strin
 
 export async function POST(req: Request) {
   try {
+    // 2. RATE LIMITING -TARKISTUS
+    const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
+    if (process.env.UPSTASH_REDIS_REST_URL) {
+      const { success } = await ratelimit.limit(`generate_cover_letter_${ip}`);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Olet tehnyt liian monta pyyntöä lyhyen ajan sisällä. Odota hetki ja yritä uudelleen." },
+          { status: 429 }
+        );
+      }
+    }
+
+    // 3. KÄYTTÄJÄN AUTH-TARKISTUS
+    const authHeader = req.headers.get("Authorization");
+    let authenticatedUserId: string | null = null;
+
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+      if (user) {
+        authenticatedUserId = user.id;
+      }
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
         { error: "API-avain puuttuu konfiguraatiosta." },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -104,19 +135,29 @@ export async function POST(req: Request) {
       jobDescription,
       job_description,
       userBaseCoverLetter,
-      userId,
+      userId: bodyUserId, // Käytetään varalla vain jos auth-headeria ei ole (esim. dev-ympäristössä)
       userName,
       location = "Paikkakunta",
     } = body;
+
+    // ensisijaisesti käytetään todennettua id:tä turvallisuuden vuoksi
+    const userId = authenticatedUserId || bodyUserId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Käyttäjää ei tunnistettu. Kirjaudu sisään uudelleen." },
+        { status: 401 }
+      );
+    }
 
     const rawJobDescription = jobDescription || job_description || "";
 
     let letterFilename = body.letterFilename;
     let cvFilename = body.cvFilename;
 
-    // 1. HAETAAN TIEDOSTOJEN NIMET PROFILES-TAULUSTA (jos niitä ei lähetetty frontendistä)
-    if (userId && (!letterFilename || !cvFilename)) {
-      const { data: profile } = await supabase
+    // 4. HAETAAN TIEDOSTOJEN NIMET PROFILES-TAULUSTA
+    if (!letterFilename || !cvFilename) {
+      const { data: profile } = await supabaseAdmin
         .from("profiles")
         .select("cv_filename, letter_filename")
         .eq("id", userId)
@@ -128,15 +169,14 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. HAETAAN JA PARSITAAN SEKA CV ETTA HAKUKIRJE
+    // 5. HAETAAN JA PARSITAAN SEKA CV ETTA HAKUKIRJE
     const extractedCvText = await fetchAndParseFile(userId, "cv", cvFilename);
     const extractedLetterText = await fetchAndParseFile(
       userId,
       "letter",
-      letterFilename,
+      letterFilename
     );
 
-    // Yhdistetään kaikki saatavilla olevat taustatiedot
     const combinedBaseText = [
       extractedCvText ? `--- CV TEKSTI ---\n${extractedCvText}` : "",
       extractedLetterText
@@ -149,11 +189,11 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join("\n\n");
 
-    // 3. ANONYMISOINTI
+    // 6. ANONYMISOINTI
     const safeBaseCoverLetter = anonymizeText(combinedBaseText, userName);
     const safeJobDescription = anonymizeText(rawJobDescription);
 
-const prompt = `
+    const prompt = `
 Olet huipputason uravalmentaja ja rekrytointiasiantuntija. Tehtäväsi on kirjoittaa erittäin laadukas, uskottava ja tarkasti kyseiseen työtehtävään kohdennettu työhakemus.
 
 LÄHTÖTIEDOT:
@@ -225,12 +265,7 @@ EHDOTON SÄÄNTÖ:
 3. Älä vähättele hakijan osaamista. Älä käytä sanoja kuten "juniori", "perusosaaminen" tai "vähän kokemusta". Keskity siihen, mitä hakija osaa ja mitä hyötyä siitä on työnantajalle.
 `;
 
-    console.log("==========================================");
-    console.log("[PROMPT DEBUG] LOPULLINEN GEMINILLE LÄHETETTÄVÄ PROMPTI:");
-    console.log(prompt);
-    console.log("==========================================");
-
-    // 4. GEMINI-KUTSU
+    // 7. GEMINI-KUTSU
     let response;
     let usedModel = "gemini-3.5-flash";
 
@@ -242,7 +277,7 @@ EHDOTON SÄÄNTÖ:
     } catch (primaryError: any) {
       console.warn(
         `Ensisijainen malli (${usedModel}) epäonnistui, yritetään varamallia...`,
-        primaryError?.message,
+        primaryError?.message
       );
 
       usedModel = "gemini-3.5-flash-lite";
@@ -266,7 +301,7 @@ EHDOTON SÄÄNTÖ:
           error:
             "Palvelussa on tilapäistä ruuhkaa (kiintiöraja saavutettu). Odota 30 sekuntia ja yritä uudelleen.",
         },
-        { status: 429 },
+        { status: 429 }
       );
     }
 
@@ -275,7 +310,7 @@ EHDOTON SÄÄNTÖ:
         error:
           error?.message || "Saatekirjeen generointi epäonnistui palvelimella.",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
