@@ -21,12 +21,14 @@ import {
   X,
   Sun,
   Moon,
+  Bot, // tai Sparkles
 } from "lucide-react";
 import { DEMO_USER } from "@/lib/demo-data";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
   { icon: Briefcase, label: "Hakemukset", href: "/demo/applications" },
+  { icon: Sparkles, label: "AI-Avustaja", href: "/demo/job-assistant" },
   { icon: Calendar, label: "Kalenteri", href: "/demo/calendar" },
   { icon: StarPlus, label: "Suosikit", href: "/demo/favorites" },
   { icon: SquareActivity, label: "Toimintaloki", href: "/demo/history" },
@@ -114,8 +116,8 @@ export default function DemoSidebar() {
                   )}
 
                   <item.icon size={20} />
-                  <span className="text-[10px] font-medium leading-none">
-                    {item.label === "#" ? "Hakemukset" : item.label}
+                  <span className="text-[10px] font-medium leading-none truncate max-w-full">
+                    {item.label}
                   </span>
                 </Link>
               );
@@ -157,6 +159,19 @@ export default function DemoSidebar() {
               </div>
 
               <div className="space-y-1 mb-4">
+                {/* Loput nav-itemit jotka ei mahtunut alapalkkiin */}
+                {NAV_ITEMS.slice(4).map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <item.icon size={18} />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                ))}
+
                 <Link
                   href="/settings#pro"
                   className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
@@ -257,16 +272,15 @@ export default function DemoSidebar() {
           <SidebarItem
             key={item.label}
             icon={<item.icon size={18} />}
-            label={item.label === "#" ? "Hakemukset" : item.label}
+            label={item.label}
             href={item.href}
             collapsed={sidebarCollapsed}
           />
         ))}
       </nav>
 
-     {/* ALAPUOLENPAINIKKEET */}
+      {/* ALAPUOLENPAINIKKEET */}
       <div className="px-4 pb-4 flex flex-col gap-2">
-        
         {/* Tumma tila kytkin */}
         <button
           onClick={toggleDarkMode}
@@ -277,14 +291,14 @@ export default function DemoSidebar() {
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             {!sidebarCollapsed && <span>Tumma tila</span>}
           </div>
-          
+
           {!sidebarCollapsed && (
-            <div 
+            <div
               className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ${
                 isDarkMode ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
               }`}
             >
-              <div 
+              <div
                 className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-200 ${
                   isDarkMode ? "translate-x-4" : "translate-x-0"
                 }`}
@@ -306,7 +320,6 @@ export default function DemoSidebar() {
           <Settings size={18} />
           {!sidebarCollapsed && <span>Asetukset</span>}
         </Link>
-
       </div>
 
       {/* USER & LOGOUT */}
