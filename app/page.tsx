@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   Briefcase,
   Zap,
@@ -40,8 +40,8 @@ const MOCK_INTENSITIES = [
   0.18, 0.40, 0.77
 ];
 
-// Yhteiset scroll-reveal -asetukset osioiden otsikoille
-const fadeUp = {
+// Yhteiset scroll-reveal -asetukset osioiden otsikoille (tyypitetty Variants-tyypillä)
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
@@ -640,7 +640,7 @@ export default function LandingPage() {
               index={1}
               number="02"
               title="Tallenna"
-              description="Yritys, tehtävä, palkka ja kuvaus täyttyvät automaattisesti talteen omaan hakuprosessiisi."
+              description="Yritys, tehtävä, palkka ja kuvaus täyttyvät automaattisesti talteen omaan hakuprosesseihisi."
             />
             <StepCard
               index={2}
