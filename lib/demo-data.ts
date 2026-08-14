@@ -342,7 +342,7 @@ export function computeDemoStats() {
     interviews: statsData.interviews,
     rejected: statsData.rejected,
     favorites: statsData.favorites,
-    ghosted: statsData.ghosted, // <-- LISÄTTY TÄMÄ RIVI
+    ghosted: statsData.ghosted,
     consistency: 71,
   };
 }
@@ -377,6 +377,7 @@ export interface DemoFavoriteJob {
   location: string;
   salary: string;
   status: "Tallennettu" | "Arkistoitu";
+  company_logo?: string | null; // <-- KORJATTU: Lisätty tämä kenttä
   valid_through: string | null;
   created_at: string;
   notes?: string;
@@ -393,6 +394,7 @@ export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
       location: "Etä",
       salary: "4200–5200 €/kk",
       status: "Tallennettu",
+      company_logo: "/demo-logos/reaktor.png",
       valid_through: dateOnlyFromNow(5),
       created_at: daysFromNow(-2),
       job_description:
@@ -405,6 +407,7 @@ export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
       location: "Tampere",
       salary: "3800–4600 €/kk",
       status: "Tallennettu",
+      company_logo: "/demo-logos/gofore.webp",
       valid_through: dateOnlyFromNow(14),
       created_at: daysFromNow(-4),
       job_description:
@@ -417,6 +420,7 @@ export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
       location: "Helsinki",
       salary: "4000–5000 €/kk",
       status: "Tallennettu",
+      company_logo: "/demo-logos/nixu.webp",
       valid_through: dateOnlyFromNow(2),
       created_at: daysFromNow(-9),
       job_description: "Tietoturva-arviointeja ja -konsultointia yrityksille.",
@@ -428,6 +432,7 @@ export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
       location: "Oulu",
       salary: "3900–4700 €/kk",
       status: "Arkistoitu",
+      company_logo: "/demo-logos/solita.png",
       valid_through: null,
       created_at: daysFromNow(-15),
       job_description: "Data-alustojen rakentamista ja ylläpitoa.",
@@ -439,6 +444,7 @@ export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
       location: "Turku",
       salary: "3700–4500 €/kk",
       status: "Arkistoitu",
+      company_logo: "/demo-logos/vaadin.png",
       valid_through: null,
       created_at: daysFromNow(-21),
       job_description: "Avoimen lähdekoodin UI-komponenttien kehitystä.",
@@ -448,7 +454,7 @@ export function buildDemoFavoriteJobs(): DemoFavoriteJob[] {
 
 export function getDemoHistoryForApp(appId: string) {
   switch (appId) {
-    case "d1": // Wolt (Luotu 20.6. klo 10:00, haettu 20.6. klo 11:15, haastattelu pidetty 8.7. klo 14:00)
+    case "d1":
       return [
         {
           id: "demo-h4",
@@ -483,7 +489,7 @@ export function getDemoHistoryForApp(appId: string) {
         },
       ];
 
-    case "d2": // Supercell (Kuten aiemmin korjattu)
+    case "d2":
       return [
         {
           id: "demo-h3",
@@ -509,7 +515,7 @@ export function getDemoHistoryForApp(appId: string) {
         },
       ];
 
-    case "d4": // Nordea (Luotu 10.6. klo 14:00, haettu 10.6. klo 15:45, hylätty 2.7. klo 12:00)
+    case "d4":
       return [
         {
           id: "demo-h3",
@@ -535,11 +541,11 @@ export function getDemoHistoryForApp(appId: string) {
         },
       ];
 
-case "d5": // Relex Solutions (Luotu 5.6. klo 13:00, haettu 5.6. klo 14:20, haastattelu 15.6. klo 16:00, tarjous 29.6. klo 13:00)
+    case "d5":
       return [
         {
           id: "demo-h4",
-          created_at: "2026-06-29T10:00:00Z", // Suomen ajassa klo 13:00
+          created_at: "2026-06-29T10:00:00Z",
           new_status: "Tarjous",
           description: "Tila muuttunut: Haastattelu ➔ Tarjous",
           notes:
@@ -547,7 +553,7 @@ case "d5": // Relex Solutions (Luotu 5.6. klo 13:00, haettu 5.6. klo 14:20, haas
         },
         {
           id: "demo-h3",
-          created_at: "2026-06-15T13:00:00Z", // Suomen ajassa klo 16:00
+          created_at: "2026-06-15T13:00:00Z",
           new_status: "Haastattelu",
           description: "Tila muuttunut: Haettu ➔ Haastattelu",
           notes:
@@ -555,25 +561,25 @@ case "d5": // Relex Solutions (Luotu 5.6. klo 13:00, haettu 5.6. klo 14:20, haas
         },
         {
           id: "demo-h2",
-          created_at: "2026-06-05T11:20:00Z", // Suomen ajassa klo 14:20 (Täsmää yläpalkkiin)
+          created_at: "2026-06-05T11:20:00Z",
           new_status: "Haettu",
           description: "Tila muuttunut: Tallennettu ➔ Haettu",
           notes: "Hakuprosessi käynnistetty lähettämällä hakemus.",
         },
         {
           id: "demo-h1",
-          created_at: "2026-06-05T10:00:00Z", // Suomen ajassa klo 13:00
+          created_at: "2026-06-05T10:00:00Z",
           new_status: "Tallennettu",
           description: "Luotu tilassa: Tallennettu",
           notes: "Kiinnostava paikka tallennettu järjestelmään.",
         },
       ];
 
-case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelukutsu 3.7. klo 18:30)
+    case "d6":
       return [
         {
           id: "demo-h3",
-          created_at: "2026-07-03T15:30:00Z", // Suomen ajassa klo 18:30
+          created_at: "2026-07-03T15:30:00Z",
           new_status: "Haastattelu",
           description: "Tila muuttunut: Haettu ➔ Haastattelu",
           notes:
@@ -581,24 +587,25 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
         },
         {
           id: "demo-h2",
-          created_at: "2026-06-27T13:45:00Z", // Suomen ajassa klo 16:45 (Täsmää yläpalkkiin)
+          created_at: "2026-06-27T13:45:00Z",
           new_status: "Haettu",
           description: "Tila muuttunut: Tallennettu ➔ Haettu",
           notes: "Mobiiliystävällinen hakemus laitettu Vincitin järjestelmään.",
         },
         {
           id: "demo-h1",
-          created_at: "2026-06-27T13:00:00Z", // Suomen ajassa klo 16:00
+          created_at: "2026-06-27T13:00:00Z",
           new_status: "Tallennettu",
           description: "Luotu tilassa: Tallennettu",
           notes: "Tallennettu kiinnostavana paikkana.",
         },
-];
-        case "d7": // Elisa (Luotu 15.5. klo 12:15, haettu 15.5. klo 17:15, ghosted-tila todettu 14.6. eli 30 päivän kuluttua)
+      ];
+
+    case "d7":
       return [
         {
           id: "demo-h7-3",
-          created_at: "2026-06-14T14:15:00Z", // Tasan 30 päivää hakuajankohdan jälkeen
+          created_at: "2026-06-14T14:15:00Z",
           new_status: "ghosted",
           description: "Tila muuttunut: Haettu ➔ Ei vastausta (Ghosted)",
           notes:
@@ -606,24 +613,25 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
         },
         {
           id: "demo-h7-2",
-          created_at: "2026-05-15T14:15:00Z", // Alkuperäinen hakuajankohta (Suomen ajassa klo 17:15)
+          created_at: "2026-05-15T14:15:00Z",
           new_status: "Haettu",
           description: "Tila muuttunut: Tallennettu ➔ Haettu",
           notes: "Hakemus lähetetty Elisan rekrytointijärjestelmän kautta.",
         },
         {
           id: "demo-h7-1",
-          created_at: "2026-05-15T09:15:00Z", // Luontiajankohta (Suomen ajassa klo 12:15)
+          created_at: "2026-05-15T09:15:00Z",
           new_status: "Tallennettu",
           description: "Luotu tilassa: Tallennettu",
           notes: "Tallennettu mielenkiintoinen Product Manager -paikka myöhempää viimeistelyä varten.",
         },
       ];
-    case "d11": // Fortum (Luotu 20.5. klo 17:20, haettu 20.5. klo 18:00, ghosted-tila todettu 19.6. eli 30 päivän kuluttua)
+
+    case "d11":
       return [
         {
           id: "demo-h11-3",
-          created_at: "2026-06-19T15:00:00Z", // Tasan 30 päivää hakuajankohdan jälkeen
+          created_at: "2026-06-19T15:00:00Z",
           new_status: "ghosted",
           description: "Tila muuttunut: Haettu ➔ Ei vastausta (Ghosted)",
           notes:
@@ -631,14 +639,14 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
         },
         {
           id: "demo-h11-2",
-          created_at: "2026-05-20T15:00:00Z", // Alkuperäinen hakuajankohta (Suomen ajassa klo 18:00)
+          created_at: "2026-05-20T15:00:00Z",
           new_status: "Haettu",
           description: "Tila muuttunut: Tallennettu ➔ Haettu",
           notes: "Hakemus ja CV lähetetty Fortumin urasivuston kautta Data Scientist -tehtävään.",
         },
         {
           id: "demo-h11-1",
-          created_at: "2026-05-20T14:20:00Z", // Luontiajankohta (Suomen ajassa klo 17:20)
+          created_at: "2026-05-20T14:20:00Z",
           new_status: "Tallennettu",
           description: "Luotu tilassa: Tallennettu",
           notes: "Mielenkiintoinen energiadatan parissa oleva rooli tallennettu seurantaan.",
@@ -662,7 +670,6 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
 
       const historyEvents = [];
 
-      // Jos hakemus on "Hylätty", luodaan sille looginen välivaihe (Haettu -> Hylätty)
       if (defaultApp.status === "Hylätty") {
         historyEvents.push({
           id: `demo-${appId}-rejected`,
@@ -673,7 +680,6 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
         });
       }
 
-      // 2. Vaihe: Hakemuksen lähettäminen (Vain jos se poikkeaa luontiajasta)
       if (
         defaultApp.applied_date &&
         defaultApp.applied_date !== defaultApp.created_at
@@ -689,7 +695,6 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
             "Hakemus lähetetty onnistuneesti rekrytointijärjestelmään.",
         });
 
-        // 1. Vaihe: Jos luonti- ja hakuajat eroavat, luotiin ensin "Tallennettu" tilassa
         historyEvents.push({
           id: `demo-${appId}-created`,
           created_at: defaultApp.created_at,
@@ -699,7 +704,6 @@ case "d6": // Vincit (Luotu 27.6. klo 16:00, haettu 27.6. klo 16:45, haastattelu
             "Mielenkiintoinen työpaikka löydetty ja tallennettu seurantaan.",
         });
       } else {
-        // Jos haku- ja luontiaika ovat samat, aloitetaan suoraan "Haettu"-tilasta ilman tallennusvaihetta
         historyEvents.push({
           id: `demo-${appId}-created`,
           created_at: defaultApp.created_at,

@@ -27,7 +27,7 @@ import { DEMO_USER } from "@/lib/demo-data";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
-  { icon: Briefcase, label: "Hakemukset", href: "/demo/applications" },
+  { icon: Briefcase, label: "Työpaikat", href: "/demo/applications" },
   { icon: Sparkles, label: "AI-Avustaja", href: "/demo/job-assistant" },
   { icon: Calendar, label: "Kalenteri", href: "/demo/calendar" },
   { icon: StarPlus, label: "Suosikit", href: "/demo/favorites" },

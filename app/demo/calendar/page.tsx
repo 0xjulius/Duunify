@@ -9,9 +9,16 @@ import EventDetailModal from "@/components/calendar/EventDetailModal";
 import MiniCalendar from "@/components/calendar/MiniCalendar";
 import { Calendar, X, Briefcase, Calendar as CalendarIcon, Clock, AlignLeft, Tag } from "lucide-react";
 
-// Tuodaan valmis demodata projektin omasta tiedostosta[cite: 6]
+// Tuodaan valmis demodata projektin omasta tiedostosta
 import { DEMO_APPLICATIONS } from "@/lib/demo-data";
 import { UnifiedEvent, buildUnifiedEvents } from "@/lib/calendar";
+
+// Apufunktio: Laskee ISO-päivämäärän (YYYY-MM-DD) suhteessa nykyhetkeen
+function getRelativeDateStr(daysOffset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  return d.toISOString().split("T")[0];
+}
 
 export default function DemoCalendarPage() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -34,48 +41,74 @@ export default function DemoCalendarPage() {
     notes: ""
   });
 
-  // Ladataan demodata näkymään[cite: 7]
+  // Ladataan demodata näkymään dynaamisilla päivämäärillä
   useEffect(() => {
     const validApps = DEMO_APPLICATIONS.filter(
       (app) => !["suosikki", "tallennettu"].includes(app.status?.toLowerCase().trim() || "")
-    ).map(app => ({
-      id: app.id,
-      company: app.company,
-      job_title: app.job_title,
-      valid_through: app.applied_date, 
-      status: app.status
-    }));
+    ).map((app, index) => {
+      // Porrastetaan hakemusten päivämääriä nykyhetken ympärille (-2, 2, 6, 10... päivää)
+      const offsetDays = (index * 4) - 2;
+      return {
+        id: app.id,
+        company: app.company,
+        job_title: app.job_title,
+        valid_through: getRelativeDateStr(offsetDays), 
+        status: app.status
+      };
+    });
 
     setApplications(validApps);
 
+    // Kustomoidut tapahtumat dynaamisilla päivämäärillä
     const mockCustomEvents = [
       {
         id: "custom-demo-1",
         title: "Tekninen haastattelu Wolt",
-        date: "2026-07-15",
+        date: getRelativeDateStr(2), // 2 päivän päästä tästä hetkestä
         time: "14:00:00",
         type: "interview",
         notes: "Kerrataan Next.js-arkkitehtuuria ja CSS-ratkaisuja.",
         completed: false,
         editable: true,
+      },
+      {
+        id: "custom-demo-2",
+        title: "Ensitapaaminen Reaktor",
+        date: getRelativeDateStr(5), // 5 päivän päästä
+        time: "10:00:00",
+        type: "interview",
+        notes: "Tutustutaan tiimiin ja käydään läpi aikaisempaa kokemusta.",
+        completed: false,
+        editable: true,
+      },
+      {
+        id: "custom-demo-3",
+        title: "Kooditehtävän palautus",
+        date: getRelativeDateStr(-1), // Eilen
+        time: "23:59:00",
+        type: "deadline",
+        notes: "Muista tarkistaa testikattavuus ennen lähetystä.",
+        completed: true,
+        editable: true,
       }
     ];
+
     setCustomEvents(mockCustomEvents);
   }, []);
 
-  // Yhdistetään hakemukset ja kustomoidut tapahtumat kalenterinäkymään[cite: 7]
+  // Yhdistetään hakemukset ja kustomoidut tapahtumat kalenterinäkymään
   useEffect(() => {
     setEvents(buildUnifiedEvents(applications as any, customEvents));
   }, [applications, customEvents]);
 
-  // Simuloitu poisto livenä demossa[cite: 7]
+  // Simuloitu poisto livenä demossa
   const handleDelete = async (id: string) => {
     setCustomEvents(customEvents.filter((e) => e.id !== id));
     toast.success("Tapahtuma poistettu (Demo).");
     setSelectedEvent(null);
   };
 
-  // Simuloitu valmiiksi merkitseminen livenä demossa[cite: 7]
+  // Simuloitu valmiiksi merkitseminen livenä demossa
   const handleToggleCompleted = async (id: string, completed: boolean) => {
     setCustomEvents(
       customEvents.map((e) => (e.id === id ? { ...e, completed } : e))

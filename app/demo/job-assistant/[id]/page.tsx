@@ -41,10 +41,10 @@ const DEMO_JOBS: Record<string, Application> = {
   "demo-1": {
     id: "demo-1",
     job_title: "Senior Full Stack Developer",
-    company: "TechNordic Oy",
+    company: "RELEX Solutions",
     location: "Helsinki (Hybrid)",
     employment_type: "Kokoaikainen",
-    company_logo: "https://logo.clearbit.com/relexsolutions.com",
+    company_logo: "/demo-logos/relex.webp",
     job_url: "https://example.com/careers/senior-developer",
     job_description: `Etsimme kokenutta ja innostunutta Senior Full Stack -kehittäjää vahvistamaan kasvavaa ohjelmistokehitystiimiämme Helsinkiin. Tehtävässä pääset suunnittelemaan ja toteuttamaan skaalautuvia verkkopalveluita sekä asiakkaillemme että omiin tuotteisiimme.
 
@@ -70,10 +70,10 @@ Tarjoamme sinulle:
   "demo-2": {
     id: "demo-2",
     job_title: "AI Specialist & Automation Architect",
-    company: "FlowAutomate Oy",
+    company: "Futurice",
     location: "Etätyö / Tampere",
     employment_type: "Kokoaikainen",
-    company_logo: "https://logo.clearbit.com/futurice.com",
+    company_logo: "/demo-logos/futurice.webp",
     job_url: "https://example.com/careers/ai-architect",
     job_description: `Haetaan tekoäly- ja automaatioarkkitehtia suunnittelemaan, rakentamaan ja integroimaan moderneja tekoälypohjaisia liiketoimintaprosesseja asiakkaillemme.
 
@@ -98,10 +98,10 @@ Tarjoamme:
   "demo-3": {
     id: "demo-3",
     job_title: "Frontend Developer (React & Next.js)",
-    company: "Nordic Design Studio",
+    company: "KONE",
     location: "Espoo",
     employment_type: "Kokoaikainen",
-    company_logo: "https://logo.clearbit.com/kone.com",
+    company_logo: "/demo-logos/kone.png",
     job_url: "https://example.com/careers/frontend",
     job_description: `Etsimme pikselitarkkaa ja UI/UX-henkistä Frontend-kehittäjää luomaan visually stunning -verkkosovelluksia asiakkaidemme digitaalisiin tuotteisiin.
 
@@ -278,7 +278,7 @@ export default function DemoJobDetailPage({
                     lähettämistä tekoälypalveluun. Järjestelmä tunnistaa ja
                     poistaa esimerkiksi nimen, sähköpostiosoitteen,
                     puhelinnumeron, osoitetiedot ja henkilötunnuksen. Näin
-                    tekoäly voi keskittyä olennaiseen – osaamiseesi,
+                    tekoäly voi keskistyä olennaiseen – osaamiseesi,
                     kokemukseesi ja hakemaasi työtehtävään – ilman tarpeettomia
                     henkilötietoja.
                   </p>

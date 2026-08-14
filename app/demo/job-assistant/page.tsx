@@ -16,13 +16,13 @@ import {
 } from "lucide-react";
 
 // MOCK-DATA DEMOVIERAILEVILLE
-const DEMO_JOBS = [
+export const DEMO_JOBS = [
   {
     id: "demo-1",
     job_title: "Senior Full Stack Developer",
-    company: "TechNordic Oy",
+    company: "RELEX Solutions",
     location: "Helsinki (Hybrid)",
-    company_logo: "https://logo.clearbit.com/relexsolutions.com",
+    company_logo: "/demo-logos/relex.webp",
     created_at: "2026-08-10T10:00:00Z",
     status: "tallennettu",
     employment_type: "Kokoaikainen",
@@ -30,9 +30,9 @@ const DEMO_JOBS = [
   {
     id: "demo-2",
     job_title: "AI Specialist & Automation Architect",
-    company: "FlowAutomate Oy",
+    company: "Futurice",
     location: "Etätyö / Tampere",
-    company_logo: "https://logo.clearbit.com/futurice.com",
+    company_logo: "/demo-logos/futurice.webp",
     created_at: "2026-08-11T12:30:00Z",
     status: "suosikki",
     employment_type: "Kokoaikainen",
@@ -40,9 +40,9 @@ const DEMO_JOBS = [
   {
     id: "demo-3",
     job_title: "Frontend Developer (React & Next.js)",
-    company: "Nordic Design Studio",
+    company: "KONE",
     location: "Espoo",
-    company_logo: "https://logo.clearbit.com/kone.com",
+    company_logo: "/demo-logos/kone.png",
     created_at: "2026-08-12T08:15:00Z",
     status: "tallennettu",
     employment_type: "Kokoaikainen",

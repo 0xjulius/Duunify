@@ -27,6 +27,7 @@ import {
 export type Application = {
   id: string;
   company: string;
+  logo: string;
   job_title: string;
   location: string;
   applicant_name: string;
@@ -37,12 +38,13 @@ const DEMO_JOBS: Record<string, Application> = {
   "demo-1": {
     id: "demo-1",
     job_title: "Senior Full Stack Developer",
-    company: "TechNordic Oy",
+    company: "RELEX Solutions",
+    logo: "/demo-logos/relex.webp",
     location: "Helsinki",
     applicant_name: "Matti Meikäläinen",
     generated_cover_letter: `**Senior Full Stack Developer**
 
-TechNordic Oy, Helsinki
+RELEX Solutions, Helsinki
 
 Senior Full Stack Developerin tehtävässä yhdistyvät vahva tekninen suorituskyky ja liiketoimintalähtöinen ohjelmistokehitys. Tuon tiimiinne yli kahden vuosikymmenen aktiivisen tietoteknisen kokemuksen sekä kattavan ammattiosaamisen modernista web-kehityksestä, järjestelmäarkkitehtuureista ja rajapintaratkaisuista. Minulla on valmius ottaa välitön vastuu vaativien kokonaisuuksien rakentamisesta ja kehittää toimivia ratkaisuja työnantajan tavoitteiden mukaisesti.
 
@@ -71,12 +73,13 @@ Sovellun tehtävään erinomaisesti, sillä yhdistän pitkän linjan teknisen ha
   "demo-2": {
     id: "demo-2",
     job_title: "AI Specialist & Automation Architect",
-    company: "FlowAutomate Oy",
+    company: "Futurice",
+    logo: "/demo-logos/futurice.webp",
     location: "Tampere",
     applicant_name: "Matti Meikäläinen",
     generated_cover_letter: `**AI Specialist & Automation Architect**
 
-FlowAutomate Oy, Tampere
+Futurice, Tampere
 
 AI Specialist & Automation Architectin rooli vaatii syvällistä ymmärrystä nykyaikaisista tekoälyratkaisuista ja prosessien automaatiosta. Tuon mukanani vahvan kokemuksen laajoista kielimalleista, työnkulkujen automatisoinnista sekä järjestelmien välisistä integraatioista. Pystyn suunnittelemaan ja toteuttamaan työnantajalle sekä tämän asiakkaille suorituskykyisiä ratkaisuja, jotka säästävät aikaa ja tehostavat toimintaa.
 
@@ -100,17 +103,18 @@ Aiempi työkokemukseni IT-järjestelmien, laadunvarmistuksen ja teknisen vianmä
 
 - **Jatkuva teknologinen kehitys:** Ylläpidän osaamistani aktiivisesti tekoälyalan uusimpien teemaopintojen ja käytännön kokeilujen kautta.
 
-Osaamiseni ja käytännön kokemukseni muodostavat vahvan kokonaisuuden, jolla pystyn tuottamaan välitöntä arvoa FlowAutomate Oy:n automaatiohankkeissa. Olen erittäin motivoitunut tuomaan asiantuntemukseni tiiminne käyttöön. Olen käytettävissänne haastattelussa sovittavana ajankohtana.`,
+Osaamiseni ja käytännön kokemukseni muodostavat vahvan kokonaisuuden, jolla pystyn tuottamaan välitöntä arvoa Futuricen automaatiohankkeissa. Olen erittäin motivoitunut tuomaan asiantuntemukseni tiiminne käyttöön. Olen käytettävissänne haastattelussa sovittavana ajankohtana.`,
   },
   "demo-3": {
     id: "demo-3",
     job_title: "Frontend Developer (React & Next.js)",
-    company: "Nordic Design Studio",
+    company: "KONE",
+    logo: "/demo-logos/kone.webp",
     location: "Espoo",
     applicant_name: "Matti Meikäläinen",
     generated_cover_letter: `**Frontend Developer (React & Next.js)**
 
-Nordic Design Studio, Espoo
+KONE, Espoo
 
 Frontend Developerin tehtävässä korostuvat tarkka visuaalinen silmä, nykyaikaisten verkkoteknologioiden hallinta ja erinomainen käyttäjäkokemuksen ymmärrys. Tuon mukanani vahvan osaamisen moderneista frontend-kehyksistä, pikselintarkasta tyylittelystä ja saavutettavien käyttöliittymien rakentamisesta. Pystyn muuttamaan suunnitelmat nopeiksi, toimiviksi ja helppokäyttöisiksi verkkosovelluksiksi.
 
@@ -239,8 +243,9 @@ export default function DemoJobResultPage({
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(true);
   const [demoNotice, setDemoNotice] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
-  // Yhteystiedot (muokkaus pois käytöstä)
+  // Yhteystiedot
   const [fullName] = useState(job.applicant_name);
   const [city] = useState("Helsinki");
   const [phone] = useState("+358 40 123 4567");
@@ -384,11 +389,20 @@ export default function DemoJobResultPage({
           {/* MAIN CARD / TULOSKORTTI */}
           <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl shadow-sm overflow-hidden">
             
-            {/* CARD HEADER */}
+            {/* CARD HEADER WITH DEMO LOGO */}
             <div className="p-6 sm:p-8 border-b border-slate-200 dark:border-[#1F2937] bg-slate-50/50 dark:bg-[#0B0F19]/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center shrink-0">
-                  <Sparkles size={24} />
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-2 shrink-0 shadow-sm overflow-hidden">
+                  {!logoError ? (
+                    <img
+                      src={job.logo}
+                      alt={`${job.company} logo`}
+                      className="w-full h-full object-contain rounded-lg"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <Building2 size={24} className="text-indigo-600 dark:text-indigo-400" />
+                  )}
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">{job.job_title}</h2>

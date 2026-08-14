@@ -76,11 +76,11 @@ export default function DemoHome() {
                   <Briefcase className="h-6 w-6 text-white dark:text-indigo-400" />
                 </div>
                 <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
-                  Hakemukset <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md ml-2 font-normal">Demo</span>
+                  Työpaikat <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md ml-2 font-normal">Demo</span>
                 </h1>
               </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 ml-5 md:ml-[37px]">
-                Täällä voit hakea, tarkastella tai poistaa demoversioon kuuluvia työhakemuksia.
+                Tutustu esimerkkikohteisiin ja niiden tietoihin. Rekisteröidy käyttäjäksi, jos haluat hakea uusia työpaikkoja, muuttaa hakemusten tiloja tai hallinnoida listaasi.
               </p>
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function DemoHome() {
               onClick={() => toast.info("Hakemusten lisääminen ei ole käytössä demoversiossa.")}
               className="px-6 py-4 rounded-2xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 transition-all cursor-pointer opacity-80"
             >
-              + Lisää hakemus
+              + Lisää työpaikka
             </button>
           </div>
 
