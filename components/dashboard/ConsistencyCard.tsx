@@ -26,11 +26,13 @@ type Application = {
 };
 
 export default function ConsistencyCard({
-  percentage,
+  percentage: initialPercentage,
   applications,
+  userCreatedAt,
 }: {
   percentage: number;
   applications?: Application[];
+  userCreatedAt?: string;
 }) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -61,6 +63,30 @@ export default function ConsistencyCard({
   }, [applications]);
 
   const appsToUse = applications || fetchedApps;
+
+  // Tarkistetaan onko kyseessä käyttäjän ensimmäinen viikko (7 päivää)
+  const isFirstWeek = useMemo(() => {
+    if (userCreatedAt) {
+      const createdDate = new Date(userCreatedAt);
+      const now = new Date();
+      const diffInDays = (now.getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+      return diffInDays <= 7;
+    }
+
+    // Jos userCreatedAt-propia ei ole annettu, tarkistetaan vanhimman hakemuksen perusteella
+    if (appsToUse.length === 0) return true; // Jos ei vielä hakemuksia, pidetään uutena käyttäjänä
+
+    const earliestAppDate = appsToUse.reduce((earliest, app) => {
+      const appDate = new Date(app.created_at || app.applied_date || Date.now());
+      return appDate < earliest ? appDate : earliest;
+    }, new Date());
+
+    const daysSinceFirstApp = (new Date().getTime() - earliestAppDate.getTime()) / (1000 * 3600 * 24);
+    return daysSinceFirstApp <= 7;
+  }, [userCreatedAt, appsToUse]);
+
+  // Ensimmäisellä viikolla aktiivisuus on vähintään 20% annetun momentumin takaamiseksi
+  const percentage = isFirstWeek ? Math.max(initialPercentage, 20) : initialPercentage;
 
   // Lasketaan dynaaminen data ja muotoillaan päivämäärät
   const dynamicChartData = useMemo(() => {
@@ -313,6 +339,12 @@ export default function ConsistencyCard({
             <div className="rounded-lg bg-slate-100 dark:bg-slate-800 p-3 font-medium text-center">
               Kaava: (Aktiiviset päivät / 7) × 100
             </div>
+
+            {isFirstWeek && (
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                ✨ Uusille käyttäjille myönnetään 20 % vähimmäisaktiivisuus ensimmäisen viikon ajaksi vauhdittamaan uutta aloitusta!
+              </p>
+            )}
 
             <p>
               Mitä korkeampi prosentti on, sitä tasaisempaa työnhakusi on.

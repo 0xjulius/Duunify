@@ -9,11 +9,11 @@ const PROTECTED_PREFIXES = [
   "/settings",
   "/history",
   "/logout",
+  "/job-assistant"
 ];
 
 const ADMIN_ONLY_PREFIXES = [
-  "/admin",
-  "/job-assistant",
+  "/admin"
 ];
 
 export async function proxy(request: NextRequest) {

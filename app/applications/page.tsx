@@ -102,12 +102,12 @@ export default function Home() {
                   <Briefcase className="h-6 w-6 text-white dark:text-indigo-400" />
                 </div>
                 <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
-                  Hakemukset
+                  Työpaikat ja hakemukset
                 </h1>
               </div>
 
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 ml-5 md:ml-[37px]">
-                Täällä voit lisätä, hakea, tallentaa, poistaa tai muuttaa työhakemuksiesi tilaa. 
+                Täällä voit lisätä, hakea, tallentaa, poistaa tai muuttaa työhakemuksiesi, tai ilmoitusten tilaa. 
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function Home() {
                   : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
               }`}
             >
-              {showForm ? "✕ Sulje" : "+ Lisää hakemus"}
+              {showForm ? "✕ Sulje" : "+ Lisää työpaikka"}
             </button>
           </div>
 
