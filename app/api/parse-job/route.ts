@@ -67,26 +67,35 @@ function suomennaTyoaika(tyyppiInput: any): string {
 async function fetchJoblyHtml(targetUrl: string): Promise<string> {
   const scraperApiKey = process.env.SCRAPER_API_KEY;
 
-  // 1. Jos ScraperAPI-avain on määritelty (käytetään Vercelissä Cloudflaren ohitukseen)
+  // 1. ScraperAPI (Vercel) - ilman kasta JavaScript-renderöintiä
   if (scraperApiKey) {
+    // Poistettu &render=true -> vastausaika putoaa 30s -> 2-4 sekuntiin
     const scraperUrl = `https://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(
-      targetUrl
-    )}&render=true`;
+      targetUrl,
+    )}`;
 
-    const res = await fetch(scraperUrl, {
-      headers: {
-        "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.8",
-      },
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000); // Katkaistaan haku jos kestää yli 12s
 
-    if (!res.ok) {
-      throw new Error(`ScraperAPI palautti virheen: ${res.status}`);
+    try {
+      const res = await fetch(scraperUrl, {
+        signal: controller.signal,
+        headers: {
+          "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.8",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`ScraperAPI palautti virheen: ${res.status}`);
+      }
+
+      return await res.text();
+    } finally {
+      clearTimeout(timeout);
     }
-
-    return await res.text();
   }
 
-  // 2. Lokaali kehitysympäristö (jos SCRAPER_API_KEY puuttuu esim. .env.localista)
+  // 2. Lokaali kehitysympäristö
   const isVercel = process.env.VERCEL === "1";
   let browser = null;
 
@@ -112,12 +121,13 @@ async function fetchJoblyHtml(targetUrl: string): Promise<string> {
     const page = await browser.newPage();
 
     await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     );
 
+    // domcontentloaded on huomattavasti nopeampi kuin networkidle2
     await page.goto(targetUrl, {
-      waitUntil: "networkidle2",
-      timeout: 20000,
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
     });
 
     return await page.content();
