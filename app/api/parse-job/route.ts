@@ -65,12 +65,33 @@ function suomennaTyoaika(tyyppiInput: any): string {
 }
 
 async function fetchJoblyHtml(targetUrl: string): Promise<string> {
-  let browser = null;
-  try {
-    const isVercel = process.env.VERCEL === "1";
+  const scraperApiKey = process.env.SCRAPER_API_KEY;
 
+  // 1. Jos ScraperAPI-avain on määritelty (käytetään Vercelissä Cloudflaren ohitukseen)
+  if (scraperApiKey) {
+    const scraperUrl = `https://api.scraperapi.com?api_key=${scraperApiKey}&url=${encodeURIComponent(
+      targetUrl
+    )}&render=true`;
+
+    const res = await fetch(scraperUrl, {
+      headers: {
+        "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.8",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`ScraperAPI palautti virheen: ${res.status}`);
+    }
+
+    return await res.text();
+  }
+
+  // 2. Lokaali kehitysympäristö (jos SCRAPER_API_KEY puuttuu esim. .env.localista)
+  const isVercel = process.env.VERCEL === "1";
+  let browser = null;
+
+  try {
     if (isVercel) {
-      // Vercel-tuotantoympäristö (@sparticuz/chromium & puppeteer-core)
       const executablePath = await chromium.executablePath();
       browser = await puppeteer.launch({
         args: chromium.args,
@@ -79,10 +100,9 @@ async function fetchJoblyHtml(targetUrl: string): Promise<string> {
         headless: true,
       });
     } else {
-      // Lokaali kehitysympäristö: käytetään dynaamista importtia ESM-moduulille
       const puppeteerModule = await import("puppeteer");
       const localPuppeteer = puppeteerModule.default || puppeteerModule;
-      
+
       browser = await localPuppeteer.launch({
         headless: true,
         defaultViewport: { width: 1280, height: 720 },
