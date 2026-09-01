@@ -1,6 +1,8 @@
 // app/api/parse-job/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 import { ratelimit } from "../../../lib/ratelimit";
 import { createClient } from "@/lib/supabase-server";
 
@@ -62,6 +64,50 @@ function suomennaTyoaika(tyyppiInput: any): string {
   return "Muu";
 }
 
+async function fetchJoblyHtml(targetUrl: string): Promise<string> {
+  let browser = null;
+  try {
+    const isVercel = process.env.VERCEL === "1";
+
+    if (isVercel) {
+      // Vercel-tuotantoympäristö (@sparticuz/chromium & puppeteer-core)
+      const executablePath = await chromium.executablePath();
+      browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: { width: 1280, height: 720 },
+        executablePath,
+        headless: true,
+      });
+    } else {
+      // Lokaali kehitysympäristö: käytetään dynaamista importtia ESM-moduulille
+      const puppeteerModule = await import("puppeteer");
+      const localPuppeteer = puppeteerModule.default || puppeteerModule;
+      
+      browser = await localPuppeteer.launch({
+        headless: true,
+        defaultViewport: { width: 1280, height: 720 },
+      });
+    }
+
+    const page = await browser.newPage();
+
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    );
+
+    await page.goto(targetUrl, {
+      waitUntil: "networkidle2",
+      timeout: 20000,
+    });
+
+    return await page.content();
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -91,46 +137,62 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    let html = "";
+    const isJobly = url.includes("jobly.fi");
 
-    // Arvotaan listasta satunnainen selain-tunniste pyyntöä varten
-    const randomUserAgent =
-      USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+    if (isJobly) {
+      // Käytetään Chromiumia Jobly-linkeille Cloudflaren ohittamiseen
+      try {
+        html = await fetchJoblyHtml(url);
+      } catch (err: any) {
+        console.error("Jobly Puppeteer error:", err);
+        return NextResponse.json(
+          { error: "Failed to bypass Jobly anti-bot protection" },
+          { status: 502 },
+        );
+      }
+    } else {
+      // Normaali nopea fetch Duunitorille ja muille
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          "User-Agent": randomUserAgent,
-          // Lisätyt selain-otsikot tekemään pyynnöstä aidomman näköisen
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-          "Accept-Language": "fi-FI,fi;q=0.9,en-US;q=0.8,en;q=0.7",
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
-    } finally {
-      clearTimeout(timeout);
+      const randomUserAgent =
+        USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            "User-Agent": randomUserAgent,
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "fi-FI,fi;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      if (!response.ok) {
+        const bodySnippet = await response.text().catch(() => "");
+        console.error("Haku epäonnistui:", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          bodyPreview: bodySnippet.slice(0, 500),
+        });
+
+        return NextResponse.json(
+          { error: `Site returned ${response.status}` },
+          { status: 502 },
+        );
+      }
+      html = await response.text();
     }
 
-    if (!response.ok) {
-      const bodySnippet = await response.text().catch(() => "");
-      console.error("Haku epäonnistui:", {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        bodyPreview: bodySnippet.slice(0, 500),
-      });
-
-      return NextResponse.json(
-        { error: `Site returned ${response.status}` },
-        { status: 502 },
-      );
-    }
-    const html = await response.text();
     const $ = cheerio.load(html);
     const title = $("h1").first().text().trim() || $("title").text().trim();
 
@@ -165,14 +227,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rawCompany = jobData.hiringOrganization?.name?.trim() || "";
-    const company = rawCompany
-      ? rawCompany
-          .toLowerCase()
-          .split(" ")
-          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ")
-      : "";
+    const company = jobData.hiringOrganization?.name?.trim() || "";
 
     const logoData = jobData.hiringOrganization?.logo;
     const companyLogo =
@@ -181,9 +236,13 @@ export async function POST(req: NextRequest) {
     let location = "";
     if (Array.isArray(jobData.jobLocation)) {
       location = jobData.jobLocation
-        .map((loc: any) => loc?.address?.addressLocality)
+        .map((loc: any) =>
+          typeof loc === "string" ? loc : loc?.address?.addressLocality,
+        )
         .filter(Boolean)
         .join(", ");
+    } else if (typeof jobData.jobLocation === "string") {
+      location = jobData.jobLocation;
     } else {
       location = jobData.jobLocation?.address?.addressLocality || "";
     }
@@ -204,10 +263,10 @@ export async function POST(req: NextRequest) {
       .replace(/<\/(b|strong)>/gi, "**")
       .replace(/<li[^>]*>/gi, "\n• ")
       .replace(/<\/p>/gi, "\n\n")
+      .replace(/<[^>]*>/g, "")
       .split("\n")
       .map((line: string) => line.trim().replace(/^[-*]\s+/, "• "))
       .join("\n")
-      .replace(/<[^>]*>/g, "")
       .replace(/[ \t]+/g, " ")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
