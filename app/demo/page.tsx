@@ -223,9 +223,9 @@ export default function DemoDashboardPage() {
         </header>
 
         <div className="flex flex-col gap-6">
-          <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
-            {/* YLÄRIVI: 3 KORTTIA (Kukin vie 4 palstaa md-koossa) */}
-            <div className="md:col-span-4">
+          <section className="grid gap-6 grid-cols-12">
+            {/* YLÄRIVI: 3 KORTTIA (Mobiilissa 2 peräkkäin, työpöydällä 4 palstaa) */}
+            <div className="col-span-6 md:col-span-4">
               <StatsCard
                 title="Hakemukset"
                 value={stats.total}
@@ -236,13 +236,13 @@ export default function DemoDashboardPage() {
               />
             </div>
             
-            <div className="md:col-span-4">
+            <div className="col-span-6 md:col-span-4">
               <StatsCard
-                title="Vireillä olevat hakemukset"
+                title="Vireillä olevat"
                 value={stats.pending}
                 subtitle={
                   stats.pending > 0
-                    ? "Meneillään olevat"
+                    ? "Aktiiviset rekrytoinnit"
                     : "Ei aktiivisia hakuja"
                 }
                 color="amber"
@@ -251,7 +251,7 @@ export default function DemoDashboardPage() {
               />
             </div>
 
-            <div className="md:col-span-4">
+            <div className="col-span-12 md:col-span-4">
               <GhostedCard
                 value={ghostedCount}
                 percentage={ghostedPercentage}
@@ -259,8 +259,8 @@ export default function DemoDashboardPage() {
               />
             </div>
 
-            {/* ALARIVI: SEURAAVAT 4 KORTTIA (Kukin vie 3 palstaa md-koossa) */}
-            <div className="md:col-span-3">
+            {/* ALARIVI: SEURAAVAT 4 KORTTIA (Mobiilissa 2 peräkkäin, työpöydällä 3 palstaa) */}
+            <div className="col-span-6 md:col-span-3">
               <StatsCard
                 title="Tallennetut"
                 value={stats.favorites}
@@ -275,7 +275,7 @@ export default function DemoDashboardPage() {
               />
             </div>
 
-            <div className="md:col-span-3">
+            <div className="col-span-6 md:col-span-3">
               <StatsCard
                 title="Haastattelut"
                 value={stats.interviews}
@@ -286,7 +286,7 @@ export default function DemoDashboardPage() {
               />
             </div>
 
-            <div className="md:col-span-3">
+            <div className="col-span-6 md:col-span-3">
               <StatsCard
                 title="Tarjoukset"
                 value={stats.offers}
@@ -301,14 +301,14 @@ export default function DemoDashboardPage() {
               />
             </div>
 
-            <div className="md:col-span-3">
+            <div className="col-span-6 md:col-span-3">
               <StatsCard
                 title="Hylätyt"
                 value={stats.rejected}
                 subtitle={
                   stats.rejected === 0
                     ? "Ei vielä hylkäyksiä!"
-                    : "Olet tavoitetta lähempänä."
+                    : "Jatka hakemista!"
                 }
                 color="red"
                 icon={<XCircle className="h-6 w-6" />}

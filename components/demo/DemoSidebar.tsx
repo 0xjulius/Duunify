@@ -21,14 +21,13 @@ import {
   X,
   Sun,
   Moon,
-  Bot, // tai Sparkles
 } from "lucide-react";
 import { DEMO_USER } from "@/lib/demo-data";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/demo" },
   { icon: Briefcase, label: "Työpaikat", href: "/demo/applications" },
-  { icon: Sparkles, label: "AI-Avustaja", href: "/demo/job-assistant" },
+  { icon: Sparkles, label: "Tekoäly", href: "/demo/job-assistant" },
   { icon: Calendar, label: "Kalenteri", href: "/demo/calendar" },
   { icon: StarPlus, label: "Suosikit", href: "/demo/favorites" },
   { icon: SquareActivity, label: "Toimintaloki", href: "/demo/history" },
@@ -83,12 +82,13 @@ export default function DemoSidebar() {
   const displayName = DEMO_USER.full_name;
   const displayEmail = DEMO_USER.email;
 
-  // --- MOBIILI: kiinteä, koko leveyden alanavigaatio ---
+  // --- MOBIILI: 2x2 tyylinen leijuva / kiinteä valikko alhaalla ---
   if (isMobile) {
     const primaryItems = NAV_ITEMS.slice(0, 4);
 
     return (
       <>
+        {/* Mobiilin alapalkki (2x2-ruudukon tyylinen tai kompakti) */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700 pb-[env(safe-area-inset-bottom)]">
           <div className="grid grid-cols-5 h-16">
             {primaryItems.map((item) => {
@@ -97,7 +97,7 @@ export default function DemoSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex flex-col items-center justify-center gap-1 py-2 px-3 transition-colors duration-300 ${
+                  className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-1 transition-colors duration-300 ${
                     active
                       ? "text-indigo-800 dark:text-indigo-400"
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -106,7 +106,7 @@ export default function DemoSidebar() {
                   {active && (
                     <motion.div
                       layoutId="active-nav-pill"
-                      className="absolute inset-0 bg-indigo-100 dark:bg-indigo-500/10 rounded-4xl -z-10"
+                      className="absolute inset-1 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl -z-10"
                       transition={{
                         type: "spring",
                         stiffness: 380,
@@ -115,8 +115,8 @@ export default function DemoSidebar() {
                     />
                   )}
 
-                  <item.icon size={20} />
-                  <span className="text-[10px] font-medium leading-none truncate max-w-full">
+                  <item.icon size={18} />
+                  <span className="text-[9px] font-medium leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
                     {item.label}
                   </span>
                 </Link>
@@ -125,10 +125,10 @@ export default function DemoSidebar() {
 
             <button
               onClick={() => setShowMore(true)}
-              className="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              className="flex flex-col items-center justify-center gap-0.5 py-1 px-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             >
-              <MoreHorizontal size={20} />
-              <span className="text-[10px] font-medium leading-none">
+              <MoreHorizontal size={18} />
+              <span className="text-[9px] font-medium leading-tight whitespace-nowrap">
                 Lisää
               </span>
             </button>
@@ -148,7 +148,7 @@ export default function DemoSidebar() {
             >
               <div className="flex items-center justify-between mb-4">
                 <p className="font-bold text-slate-900 dark:text-slate-50">
-                  Lisää
+                  Lisää toimintoja
                 </p>
                 <button
                   onClick={() => setShowMore(false)}
@@ -158,22 +158,31 @@ export default function DemoSidebar() {
                 </button>
               </div>
 
-              <div className="space-y-1 mb-4">
-                {/* Loput nav-itemit jotka ei mahtunut alapalkkiin */}
-                {NAV_ITEMS.slice(4).map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    onClick={() => setShowMore(false)}
-                  >
-                    <item.icon size={18} />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </Link>
-                ))}
+              {/* Muut navigointikohteet 2x2 tyylisesti tai listana */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {NAV_ITEMS.slice(4).map((item) => {
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 p-3 rounded-2xl border transition ${
+                        active
+                          ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 font-semibold"
+                          : "bg-slate-50 dark:bg-slate-800/50 border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300"
+                      }`}
+                      onClick={() => setShowMore(false)}
+                    >
+                      <item.icon size={20} className="shrink-0" />
+                      <span className="text-xs font-medium truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
 
+              <div className="space-y-1 mb-4 border-t border-slate-100 dark:border-slate-800 pt-3">
                 <Link
-                  href="/settings#pro"
+                  href="#"
                   className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
                   onClick={() => setShowMore(false)}
                 >
@@ -281,7 +290,6 @@ export default function DemoSidebar() {
 
       {/* ALAPUOLENPAINIKKEET */}
       <div className="px-4 pb-4 flex flex-col gap-2">
-        {/* Tumma tila kytkin */}
         <button
           onClick={toggleDarkMode}
           title={isDarkMode ? "Kevyt tila" : "Tumma tila"}
@@ -307,7 +315,6 @@ export default function DemoSidebar() {
           )}
         </button>
 
-        {/* Asetukset linkki */}
         <Link
           href="#"
           title="Asetukset"

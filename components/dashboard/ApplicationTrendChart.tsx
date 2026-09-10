@@ -29,7 +29,7 @@ function makeCustomTooltip(isDark: boolean) {
               : "bg-slate-900 text-white border-slate-800"
           }`}
         >
-          <p className={isDark ? "text-slate-400" : "text-slate-400"}>{label}</p>
+          <p className="text-slate-400">{label}</p>
           <p className="mt-0.5 font-bold text-sm text-indigo-400">
             {payload[0].value} hakemusta kasassa
           </p>
@@ -40,7 +40,6 @@ function makeCustomTooltip(isDark: boolean) {
   };
 }
 
-// Apufunktio muuttamaan erilaiset pvm-formaatit vertailukelpoiseksi stringiksi (YYYY-MM-DD)
 function normalizeDateStr(dateInput: string): string {
   try {
     const d = dateInput.includes("T") ? parseISO(dateInput) : new Date(dateInput);
@@ -50,12 +49,25 @@ function normalizeDateStr(dateInput: string): string {
   }
 }
 
-function calculate(rows: Application[]) {
+function calculate(rows: Application[], isDemo: boolean = false) {
   const baseDate = new Date();
-  const startOfCurrentPeriod = subDays(baseDate, 59); // Säädetty 60 päivän tarkastelujaksolle
+  const startOfCurrentPeriod = subDays(baseDate, 59);
 
-  // Suodatetaan ja normitetaan hakemukset
-  const normalizedRows = rows.map(r => ({
+  // Jos kyseessä on demodata, mapataan päivämäärät dynaamisesti viimeisen 50 päivän sisälle,
+  // jotta kaavio näyttää aina elävältä ja automaattiselta.
+  let workingRows = rows;
+  if (isDemo && rows.length > 0) {
+    workingRows = rows.map((r, index) => {
+      const daysAgo = (index * 4) % 50; // Levittää hakemukset tasaisesti ajanjaksolle
+      const simulatedDate = subDays(baseDate, daysAgo);
+      return {
+        ...r,
+        applied_date: format(simulatedDate, "yyyy-MM-dd"),
+      };
+    });
+  }
+
+  const normalizedRows = workingRows.map(r => ({
     ...r,
     normalized_date: normalizeDateStr(r.applied_date)
   }));
@@ -82,7 +94,6 @@ function calculate(rows: Application[]) {
   let cumulativeSum = 0;
   const chartData: ChartRow[] = days.map((day) => {
     const dateStr = format(day, "yyyy-MM-dd");
-    // Verrataan normitettuja päivämääriä (ohittaa kellonajat)
     const daysCount = currentPeriodRows.filter((a) => a.normalized_date === dateStr).length;
     cumulativeSum += daysCount;
     return { day: format(day, "d.M."), applications: cumulativeSum };
@@ -103,7 +114,8 @@ export default function ApplicationTrendChart({
   const gridColor = isDark ? "#1e293b" : "#f1f5f9";
   const CustomTooltip = makeCustomTooltip(isDark);
 
-  const initial = demoApplications ? calculate(demoApplications) : null;
+  // Välitetään tieto demodatasta calculate-funktiolle
+  const initial = demoApplications ? calculate(demoApplications, true) : null;
 
   const [data, setData] = useState<ChartRow[]>(initial?.chartData || []);
   const [totalCount, setTotalCount] = useState(initial?.currentTotal || 0);
@@ -113,7 +125,6 @@ export default function ApplicationTrendChart({
   useEffect(() => {
     if (demoApplications) return;
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadData() {
@@ -125,14 +136,12 @@ export default function ApplicationTrendChart({
     } = await supabase.auth.getSession();
 
     if (sessionError || !session) {
-      console.error("Ei voimassa olevaa istuntoa trendikomponentissa.");
       setLoading(false);
       router.push("/login");
       return;
     }
 
     const baseDate = new Date();
-    // Haetaan yhteensä 120 päivää, jotta saadaan vertailudata edelliselle 60 päivälle
     const startOfPreviousPeriod = subDays(baseDate, 119);
     const formattedStartDate = format(startOfPreviousPeriod, "yyyy-MM-dd");
 
@@ -144,19 +153,19 @@ export default function ApplicationTrendChart({
       .order("applied_date");
 
     if (error) {
-      console.error("Virhe ladattaessa trendidataa:", error);
       setLoading(false);
       return;
     }
 
     const { chartData, currentTotal, percentageChange } = calculate(
-      (applications as Application[]) || []
+      (applications as Application[]) || [],
+      false
     );
 
     setData(chartData);
     setTotalCount(currentTotal);
     setPercentageChange(percentageChange);
-    loading && setLoading(false);
+    setLoading(false);
   }
 
   if (loading) {
@@ -197,7 +206,7 @@ export default function ApplicationTrendChart({
               tickLine={false}
               axisLine={false}
               dy={10}
-              interval={Math.floor(data.length / 6)} // Välimatka X-akselin pvm-merkinnöille
+              interval={Math.floor(data.length / 6)}
             />
 
             <YAxis
