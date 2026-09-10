@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import AddApplicationForm from "@/app/applications/AddApplicationForm";
 import ApplicationCard from "@/app/applications/ApplicationCard";
+import ApplicationStats from "@/components/applications/ApplicationStats";
 import Sidebar from "@/components/Sidebar";
 import { Briefcase, Filter } from "lucide-react";
 
@@ -112,6 +113,9 @@ export default function Home() {
             </div>
           </div>
 
+          {/* TILASTOT */}
+          <ApplicationStats applications={applications} loading={loading} />
+          
           {/* SEARCH + FILTER + BUTTON */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             {/* Hakukenttä */}
@@ -171,9 +175,9 @@ export default function Home() {
             </button>
           </div>
 
-          {/* FORM */}
+        {/* FORM */}
           {showForm && (
-            <div className="mb-10">
+            <div className="mb-10 animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 ease-out fill-mode-both">
               <AddApplicationForm
                 onSuccess={() => {
                   fetchApplications();

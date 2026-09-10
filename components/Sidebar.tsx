@@ -30,7 +30,7 @@ import {
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Yleiskatsaus", href: "/dashboard" },
   { icon: Briefcase, label: "Työpaikat", href: "/applications" },
-  { icon: WandSparkles, label: "AI-Avustaja", href: "/job-assistant" },
+  { icon: WandSparkles, label: "Avustaja", href: "/job-assistant" },
   { icon: StarPlus, label: "Suosikit", href: "/favorites" },
   { icon: Calendar, label: "Kalenteri", href: "/calendar" },
   { icon: SquareActivity, label: "Toimintaloki", href: "/history" },

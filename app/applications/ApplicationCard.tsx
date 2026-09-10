@@ -8,6 +8,13 @@ import { deleteApplicationWithLog } from "@/lib/applications";
 import { CompanyLogo } from "@/components/applications/CompanyLogo";
 import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Application = {
   id: string;
@@ -101,21 +108,6 @@ function formatDate(iso?: string | null): string | null {
   } catch {
     return null;
   }
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config = STATUS_CONFIG[status] ?? {
-    label: status,
-    className:
-      "bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700",
-  };
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide ${config.className}`}
-    >
-      {config.label.toUpperCase()}
-    </span>
-  );
 }
 
 function MetaChip({
@@ -212,24 +204,6 @@ const IconClock = () => (
   </svg>
 );
 
-const IconRefresh = () => (
-  <svg
-    className="h-3 w-3 shrink-0"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v6h6" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20 20v-6h-6" />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M20 9a8 8 0 00-14-4L4 10M4 15a8 8 0 0014 4l2-5"
-    />
-  </svg>
-);
-
 export default function ApplicationCard({
   app,
   onChange,
@@ -242,11 +216,10 @@ export default function ApplicationCard({
   onDelete?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [editingStatus, setEditingStatus] = useState(false);
   const [editingApplication, setEditingApplication] = useState(false);
-  const [newStatus, setNewStatus] = useState(app.status);
   const [loading, setLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const [editForm, setEditForm] = useState({
     company: app.company,
@@ -292,31 +265,48 @@ export default function ApplicationCard({
     onChange();
   }
 
-  async function saveStatus(e?: React.FormEvent) {
-    if (e) e.preventDefault();
-    if (loading || newStatus === app.status) {
-      setEditingStatus(false);
+  async function handleStatusChange(newStatus: string) {
+    if (loading || newStatus === app.status) return;
+
+    if (isDemo) {
+      toast.info("Tilan vaihtaminen ei ole käytössä demotilassa.");
       return;
     }
+
     setLoading(true);
+    const oldStatus = app.status;
 
-    // Päivitetään hakemuksen tila applications-tauluun
-    const { error } = await supabase
-      .from("applications")
-      .update({
-        status: newStatus,
-      })
-      .eq("id", app.id);
+    try {
+      // 1. Päivitetään uusi tila applications-tauluun
+      const { error: appError } = await supabase
+        .from("applications")
+        .update({ status: newStatus })
+        .eq("id", app.id);
 
-    if (error) {
+      if (appError) throw appError;
+
+      // 2. Kirjataan muutos historiaan (kuten dialogissa)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("application_history").insert({
+          user_id: user.id,
+          application_id: app.id,
+          event_type: "status_changed",
+          old_status: oldStatus,
+          new_status: newStatus,
+        });
+      }
+
+      toast.success(`Hakemuksen tila päivitetty: ${newStatus}`);
+      onChange(); // Päivittää käyttöliittymän
+    } catch (error) {
       console.error("Virhe tilan päivityksessä:", error);
+      toast.error("Tilan päivitys epäonnistui.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setLoading(false);
-    setEditingStatus(false);
-    onChange();
   }
 
   async function saveApplication(e?: React.FormEvent) {
@@ -365,7 +355,6 @@ export default function ApplicationCard({
     (deadlineDate.getTime() - Date.now()) / 86_400_000 <= 3;
 
   const appliedDate = formatDate(app.applied_date);
-  const [open, setOpen] = useState(false);
 
   return (
     <div
@@ -446,86 +435,78 @@ export default function ApplicationCard({
       <div
         onClick={(e) => {
           e.stopPropagation();
-          setOpen(false);
         }}
         className="flex items-center gap-2.5"
       >
-        {editingStatus ? (
-          <div className="flex w-full items-center gap-2">
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-800 dark:text-slate-200 outline-none focus:border-violet-400 dark:focus:border-violet-500 focus:ring-2 focus:ring-violet-100 dark:focus:ring-violet-500/20"
+        <Select
+          value={app.status}
+          onValueChange={handleStatusChange}
+          disabled={loading}
+        >
+          <SelectTrigger
+            className={`w-fit !h-6 min-h-0 rounded-full px-3 py-0 border-0 focus:ring-0 focus:ring-offset-0 text-[11px] font-semibold uppercase tracking-wide shadow-none [&>svg]:ml-1.5 [&>svg]:h-3.5 [&>svg]:w-3.5 transition-all hover:brightness-95 dark:hover:brightness-110 ${
+              STATUS_CONFIG[app.status]?.className || ""
+            }`}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="min-w-[180px] p-1.5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+            <SelectItem
+              value="Tallennettu"
+              className="cursor-pointer py-2.5 text-[13px]"
             >
-              <option>Tallennettu</option>
-              <option>Haettu</option>
-              <option>Haastattelu</option>
-              <option>Hylätty</option>
-              <option>Tarjous</option>
-            </select>
-            <button
-              onClick={saveStatus}
-              disabled={loading}
-              className="rounded-xl bg-violet-600 dark:bg-violet-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-violet-700 dark:hover:bg-violet-700 cursor-pointer disabled:opacity-55"
+              Tallennettu
+            </SelectItem>
+            <SelectItem
+              value="Haettu"
+              className="cursor-pointer py-2.5 text-[13px]"
             >
-              OK
-            </button>
-            <button
-              onClick={() => setEditingStatus(false)}
-              className="rounded-xl p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-              aria-label="Peruuta"
+              Haettu
+            </SelectItem>
+            <SelectItem
+              value="Haastattelu"
+              className="cursor-pointer py-2.5 text-[13px]"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        ) : (
-          <>
-            <StatusBadge status={app.status} />
-            <button
-              onClick={() => setEditingStatus(true)}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400"
+              Haastattelu
+            </SelectItem>
+            <SelectItem
+              value="Hylätty"
+              className="cursor-pointer py-2.5 text-[13px]"
             >
-              <IconRefresh />
-              Tila
-            </button>
-            {app.job_url && (
-              <a
-                href={app.job_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 dark:text-violet-400 hover:underline shrink-0"
-              >
-                Avaa linkki
-                <svg
-                  className="h-3 w-3"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-              </a>
-            )}
-          </>
+              Hylätty
+            </SelectItem>
+            <SelectItem
+              value="Tarjous"
+              className="cursor-pointer py-2.5 text-[13px]"
+            >
+              🎉 Työtarjous saatu
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        {app.job_url && (
+          <a
+            href={app.job_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-violet-600 dark:text-violet-400 hover:underline shrink-0"
+          >
+            Avaa linkki
+            <svg
+              className="h-3 w-3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
         )}
       </div>
 

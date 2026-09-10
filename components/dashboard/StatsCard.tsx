@@ -114,7 +114,7 @@ export default function StatsCard({
         </div>
 
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${palette.bg} ${palette.text}`}
+          className={`hidden sm:flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${palette.bg} ${palette.text}`}
         >
           {icon}
         </div>

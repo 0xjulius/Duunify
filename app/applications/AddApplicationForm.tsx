@@ -5,6 +5,13 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import LoginModal from "@/components/LoginModal";
 import AddAttachment from "@/components/applications/AddAttachment";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   FULL_TIME: "Kokoaikainen",
@@ -290,7 +297,7 @@ export default function AddApplicationForm({
   }
 
   const inputStyle =
-    "w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
+    "w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition flex items-center";
   const labelStyle =
     "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2";
 
@@ -424,20 +431,18 @@ export default function AddApplicationForm({
 
           <div>
             <label className={labelStyle}>Työsuhteen tyyppi</label>
-            <select
-              value={employmentType}
-              onChange={(e) => setEmploymentType(e.target.value)}
-              className={`${inputStyle} appearance-none cursor-pointer`}
-            >
-              <option value="" className="dark:bg-slate-850">
-                — Valitse —
-              </option>
-              {Object.entries(EMPLOYMENT_TYPE_FI).map(([val, label]) => (
-                <option key={val} value={val} className="dark:bg-slate-850">
-                  {label}
-                </option>
-              ))}
-            </select>
+            <Select value={employmentType} onValueChange={setEmploymentType}>
+              <SelectTrigger className={inputStyle}>
+                <SelectValue placeholder="— Valitse —" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl">
+                {Object.entries(EMPLOYMENT_TYPE_FI).map(([val, label]) => (
+                  <SelectItem key={val} value={val} className="cursor-pointer">
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -455,17 +460,18 @@ export default function AddApplicationForm({
 
           <div>
             <label className={labelStyle}>Hakemuksen tila</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className={`${inputStyle} appearance-none cursor-pointer bg-pink-50/50 dark:bg-pink-950/20`}
-            >
-              <option className="dark:bg-slate-850">Tallennettu</option>
-              <option className="dark:bg-slate-850">Haettu</option>
-              <option className="dark:bg-slate-850">Haastattelu</option>
-              <option className="dark:bg-slate-850">Hylätty</option>
-              <option className="dark:bg-slate-850">Tarjous</option>
-            </select>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className={`${inputStyle} bg-pink-50/50 dark:bg-pink-950/20`}>
+                <SelectValue placeholder="Valitse tila" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl">
+                <SelectItem value="Tallennettu" className="cursor-pointer">Tallennettu</SelectItem>
+                <SelectItem value="Haettu" className="cursor-pointer">Haettu</SelectItem>
+                <SelectItem value="Haastattelu" className="cursor-pointer">Haastattelu</SelectItem>
+                <SelectItem value="Hylätty" className="cursor-pointer">Hylätty</SelectItem>
+                <SelectItem value="Tarjous" className="cursor-pointer">Tarjous</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -511,7 +517,7 @@ export default function AddApplicationForm({
             placeholder="Palkkatoive, yhteyshenkilö..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className={`${inputStyle} h-[150px] resize-none`}
+            className={`${inputStyle} h-[150px] py-3 resize-none items-start`}
           />
         </div>
         <div className="md:col-span-1">
@@ -530,7 +536,7 @@ export default function AddApplicationForm({
             placeholder="Kopioi tähän tärkeimmät asiat ilmoituksesta..."
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
-            className={`${inputStyle} min-h-[150px]`}
+            className={`${inputStyle} min-h-[150px] py-3 items-start`}
           />
         </div>
         <LoginModal

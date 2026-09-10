@@ -82,7 +82,8 @@ const isOlderThan30Days = (dateStr?: string) => {
   if (!dateStr) return false;
   const targetDate = new Date(dateStr);
   const now = new Date();
-  const diffInDays = (now.getTime() - targetDate.getTime()) / (1000 * 3600 * 24);
+  const diffInDays =
+    (now.getTime() - targetDate.getTime()) / (1000 * 3600 * 24);
   return diffInDays > 30;
 };
 
@@ -145,7 +146,7 @@ export default function DashboardPage() {
       const statsData = applications.reduce(
         (acc, app) => {
           const s = app.status?.toLowerCase().trim() || "";
-          
+
           if (["suosikki", "tallennettu"].includes(s)) {
             acc.favorites++;
           } else if (["haastattelu", "interview"].includes(s)) {
@@ -165,7 +166,14 @@ export default function DashboardPage() {
           }
           return acc;
         },
-        { favorites: 0, interviews: 0, offers: 0, rejected: 0, ghosted: 0, pending: 0 },
+        {
+          favorites: 0,
+          interviews: 0,
+          offers: 0,
+          rejected: 0,
+          ghosted: 0,
+          pending: 0,
+        },
       );
 
       const today = new Date();
@@ -288,7 +296,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-row min-h-screen bg-slate-100 dark:bg-[#0f1117] overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-[#141625] dark:via-[#151320] dark:to-[#101420]">
       <Sidebar />
-      <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-10">
+      <main className="flex-1 flex flex-col p-4 pb-28 md:p-8 md:pb-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-10">
         <ApplicationDialog
           app={selectedApplication}
           open={open}
@@ -298,58 +306,46 @@ export default function DashboardPage() {
         <DashboardHeader />
 
         <div className="flex flex-col gap-6">
-          <section className="grid gap-6 grid-cols-1 md:grid-cols-12">
+         <section className="grid gap-6 grid-cols-12">
             {loading ? (
               <>
-                <div className="md:col-span-4">
-                  <StatsSkeleton />
-                </div>
-                <div className="md:col-span-4">
-                  <StatsSkeleton />
-                </div>
-                <div className="md:col-span-4">
-                  <StatsSkeleton />
-                </div>
-                <div className="md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-                <div className="md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-                <div className="md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-                <div className="md:col-span-3">
-                  <StatsSkeleton />
-                </div>
+                <div className="col-span-6 md:col-span-4"><StatsSkeleton /></div>
+                <div className="col-span-6 md:col-span-4"><StatsSkeleton /></div>
+                <div className="col-span-12 md:col-span-4"><StatsSkeleton /></div>
+                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
+                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
+                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
+                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
               </>
             ) : (
               <>
-                <div className="md:col-span-4">
+                <div className="col-span-6 md:col-span-4">
                   <StatsCard
                     title="Hakemukset"
                     value={stats.total}
-                    subtitle={<span>hakemuksia jätetty</span>}
+                    subtitle={<span className="line-clamp-2 text-xs sm:text-sm">hakemuksia jätetty</span>}
                     color="blue"
                     icon={<Briefcase className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("total")}
                   />
                 </div>
-                <div className="md:col-span-4">
+                <div className="col-span-6 md:col-span-4">
                   <StatsCard
                     title="Meneillään"
                     value={stats.pending}
                     subtitle={
-                      stats.pending > 0
-                        ? "Vireillään olevat rekrytoinnit"
-                        : "Ei aktiivisia hakuja"
+                      <span className="line-clamp-2 text-xs sm:text-sm">
+                        {stats.pending > 0
+                          ? "Vireillään olevat haut"
+                          : "Ei aktiivisia hakuja"}
+                      </span>
                     }
                     color="amber"
                     icon={<Clock className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("pending")}
                   />
                 </div>
-                <div className="md:col-span-4">
+                <div className="col-span-12 md:col-span-4">
                   <GhostedCard
                     value={stats.ghosted}
                     percentage={ghostedPercentage}
@@ -357,18 +353,18 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div className="md:col-span-3">
+                <div className="col-span-6 md:col-span-3">
                   <StatsCard
                     title="Tallennetut"
                     value={stats.favorites}
                     subtitle={
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 line-clamp-2 text-xs sm:text-sm">
                         <Link
                           href="/favorites"
                           className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline font-medium"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          Katso suosikit <ArrowRight className="h-3 w-3" />
+                          Katso suosikit <ArrowRight className="h-3 w-3 shrink-0" />
                         </Link>
                       </span>
                     }
@@ -377,38 +373,42 @@ export default function DashboardPage() {
                     onClick={() => setActiveStatFilter("favorites")}
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="col-span-6 md:col-span-3">
                   <StatsCard
                     title="Haastattelut"
                     value={stats.interviews}
-                    subtitle={`${interviewPercentage} % hakemuksista`}
+                    subtitle={<span className="line-clamp-2 text-xs sm:text-sm">{interviewPercentage} % hakemuksista</span>}
                     color="violet"
                     icon={<Calendar className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("interviews")}
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="col-span-6 md:col-span-3">
                   <StatsCard
                     title="Tarjoukset"
                     value={stats.offers}
                     subtitle={
-                      stats.offers > 0
-                        ? "Upea saavutus! 🎉"
-                        : "Uusia ovia avautuu pian.."
+                      <span className="line-clamp-2 text-xs sm:text-sm">
+                        {stats.offers > 0
+                          ? "Upea saavutus! 🎉"
+                          : "Ovia avautuu pian.."}
+                      </span>
                     }
                     color="green"
                     icon={<CheckCircle2 className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("offers")}
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="col-span-6 md:col-span-3">
                   <StatsCard
                     title="Päättyneet"
                     value={stats.rejected}
                     subtitle={
-                      stats.rejected === 0
-                        ? "Ei vielä hylkäyksiä!"
-                        : "Ei valitut hakemukset"
+                      <span className="line-clamp-2 text-xs sm:text-sm">
+                        {stats.rejected === 0
+                          ? "Ei vielä hylkäyksiä!"
+                          : "Ei valitut hakemukset"}
+                      </span>
                     }
                     color="red"
                     icon={<XCircle className="h-6 w-6" />}
@@ -556,7 +556,10 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-10 w-10 shrink-0 flex items-center justify-center">
-                      <CompanyLogo logo={job.company_logo} company={job.company} />
+                      <CompanyLogo
+                        logo={job.company_logo}
+                        company={job.company}
+                      />
                     </div>
 
                     <div className="min-w-0 flex-1">

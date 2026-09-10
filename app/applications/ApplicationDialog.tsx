@@ -424,7 +424,7 @@ export default function ApplicationDialog({
             ? "none"
             : "left 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-        className="!max-w-3xl !w-[95vw] md:!w-[90vw] h-auto max-h-[85vh] md:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl select-none"
+        className="!max-w-4xl !w-[95vw] md:!w-[90vw] h-auto max-h-[85vh] md:max-h-[90vh] p-0 overflow-hidden flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl select-none"
       >
         {/* Sulkunappi */}
         <div className="absolute top-4 right-4 z-20">
@@ -679,7 +679,7 @@ export default function ApplicationDialog({
                 value="description"
                 className="focus-visible:outline-none focus-visible:ring-0"
               >
-                <div className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-xs md:text-sm pt-1">
+                <div className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-base md:text-sm pt-1">
                   {app.job_description || "Ei kuvausta saatavilla."}
                 </div>
               </TabsContent>
