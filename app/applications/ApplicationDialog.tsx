@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,6 +49,31 @@ const EMPLOYMENT_TYPE_FI: Record<string, string> = {
   PER_DIEM: "Päivätyö",
   OTHER: "Muu",
 };
+
+const STATUS_OPTIONS = [
+  "Tallennettu",
+  "Haettu",
+  "Haastattelu",
+  "Hylätty",
+  "Tarjous",
+];
+
+function getStatusStyles(status: string) {
+  switch (status) {
+    case "Tallennettu":
+      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40";
+    case "Haettu":
+      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30";
+    case "Haastattelu":
+      return "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30";
+    case "Hylätty":
+      return "bg-slate-100 text-slate-700 border-slate-300 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30";
+    case "Tarjous":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40";
+    default:
+      return "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20";
+  }
+}
 
 // Yhtenäinen päivämäärän ja kellonajan muotoilu
 const formatDateTime = (dateVal?: string | Date) => {
@@ -113,6 +138,12 @@ export default function ApplicationDialog({
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Paikallinen tila hakemuksen tilalle
+  const [currentStatus, setCurrentStatus] = useState<string>("Haettu");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
+
   // Tila dynaamiselle tilahistorialle
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -149,9 +180,24 @@ export default function ApplicationDialog({
     setTranslateX(0);
   };
 
+  // Kustomoidun valikon sulkeminen ulkopuolelle klikatessa
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        statusMenuRef.current &&
+        !statusMenuRef.current.contains(event.target as Node)
+      ) {
+        setStatusMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     if (!open) {
       setTranslateX(0);
+      setStatusMenuOpen(false);
     }
   }, [open]);
   // -------------------------------
@@ -159,41 +205,90 @@ export default function ApplicationDialog({
   useEffect(() => {
     if (open && app) {
       setCurrentCvUrl(app.cv_url || null);
+      setCurrentStatus(app.status || "Haettu");
     }
   }, [open, app]);
 
-  // Haetaan historiatapahtumat tietokannasta, kun modal aukeaa
+  // Haetaan historiatapahtumat tietokannasta
+  const fetchHistory = useCallback(async () => {
+    if (!app?.id || isDemo) return;
+    setLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from("application_history")
+        .select(
+          "id, event_type, old_status, new_status, description, created_at",
+        )
+        .eq("application_id", app.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const mappedData: HistoryItem[] = (data || []).map((item) => ({
+        ...item,
+        description: item.description || "",
+      }));
+
+      setHistory(mappedData);
+    } catch (err) {
+      console.error("Virhe historian latauksessa:", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [app?.id, isDemo]);
+
   useEffect(() => {
-    async function fetchHistory() {
-      if (!open || !app?.id || isDemo) return;
-      setLoadingHistory(true);
-      try {
-        const { data, error } = await supabase
-          .from("application_history")
-          .select(
-            "id, event_type, old_status, new_status, description, created_at",
-          )
-          .eq("application_id", app.id)
-          .order("created_at", { ascending: false });
+    if (open) {
+      fetchHistory();
+    }
+  }, [open, fetchHistory]);
 
-        if (error) throw error;
+  // Tilan vaihto
+  async function handleStatusChange(newStatus: string) {
+    if (newStatus === currentStatus || updatingStatus) return;
 
-        // Muutetaan null-kuvaukset tyhjiksi merkkijonoiksi, jotta ne vastaavat HistoryItem-tyyppiä
-        const mappedData: HistoryItem[] = (data || []).map((item) => ({
-          ...item,
-          description: item.description || "",
-        }));
-
-        setHistory(mappedData);
-      } catch (err) {
-        console.error("Virhe historian latauksessa:", err);
-      } finally {
-        setLoadingHistory(false);
-      }
+    if (isDemo) {
+      toast.info("Tilan vaihtaminen ei ole käytössä demotilassa.");
+      return;
     }
 
-    fetchHistory();
-  }, [open, app?.id, isDemo]);
+    setUpdatingStatus(true);
+    const oldStatus = currentStatus;
+
+    try {
+      const { error: appError } = await supabase
+        .from("applications")
+        .update({ status: newStatus })
+        .eq("id", app.id);
+
+      if (appError) throw appError;
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await supabase.from("application_history").insert({
+          user_id: user.id,
+          application_id: app.id,
+          event_type: "status_changed",
+          old_status: oldStatus,
+          new_status: newStatus,
+        });
+      }
+
+      setCurrentStatus(newStatus);
+      toast.success(`Hakemuksen tila päivitetty: ${newStatus}`);
+
+      await fetchHistory();
+      if (onUpdate) onUpdate();
+    } catch (error: any) {
+      console.error("Virhe tilan päivityksessä:", error);
+      toast.error("Tilan päivitys epäonnistui.");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  }
 
   useEffect(() => {
     async function getSignedUrl() {
@@ -311,7 +406,7 @@ export default function ApplicationDialog({
     ? (EMPLOYMENT_TYPE_FI[app.employment_type] ?? app.employment_type)
     : null;
 
-  // Haetaan hakuajankohta historiasta: etsitään ensimmäinen tapahtuma, jossa tila muuttui muotoon "Haettu"
+  // Haetaan hakuajankohta historiasta
   const appliedEvent = history.find((h) => h.new_status === "Haettu");
   const actualAppliedDate = appliedEvent
     ? appliedEvent.created_at
@@ -367,27 +462,49 @@ export default function ApplicationDialog({
                 </div>
               </div>
 
-              {/* VÄRIKOODATTU STATUS JA LINKKI */}
+              {/* VÄRIKOODATTU KUSTOMOITU STATUS-VALIKKO JA LINKKI */}
               <div className="flex flex-wrap items-center gap-3">
-                <span
-                  className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wide border ${
-                    app.status === "Tallennettu"
-                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40"
-                      : app.status === "Haettu"
-                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30"
-                        : app.status === "Haastattelu"
-                          ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30"
-                          : app.status === "Hylätty"
-                            ? "bg-slate-100 text-slate-700 border-slate-300 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30"
-                            : app.status === "Tarjous"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40"
-                              : "bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20"
-                  }`}
-                >
-                  {app.status === "Tarjous"
-                    ? "🎉 Työtarjous saatu"
-                    : app.status || "Haettu"}
-                </span>
+                
+                {/* Custom Dropdown */}
+                <div className="relative inline-block text-left" ref={statusMenuRef}>
+                  <button
+                    onClick={() => setStatusMenuOpen(!statusMenuOpen)}
+                    disabled={updatingStatus}
+                    className={`flex items-center gap-1.5 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide border outline-none transition-all hover:brightness-95 dark:hover:brightness-110 ${getStatusStyles(currentStatus)}`}
+                  >
+                    {currentStatus === "Tarjous" ? "🎉 Työtarjous" : currentStatus}
+                    <svg
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${statusMenuOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Kustomoitu Valikko */}
+                  {statusMenuOpen && (
+                    <div className="absolute z-50 top-full left-0 mt-1.5 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                      {STATUS_OPTIONS.map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => {
+                            handleStatusChange(st);
+                            setStatusMenuOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                            currentStatus === st
+                              ? "bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100 font-semibold"
+                              : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
+                          }`}
+                        >
+                          {st === "Tarjous" ? "🎉 Työtarjous saatu" : st}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {app.job_url && (
                   <a
@@ -422,7 +539,6 @@ export default function ApplicationDialog({
                 </DialogMetaChip>
               )}
 
-              {/* TÄSMÄÄVÄ AIKA: Haettu-ajankohta luetaan historiasta tai dynaamisesta tallenteesta */}
               {actualAppliedDate && (
                 <DialogMetaChip icon={<Calendar size={14} />}>
                   Haettu {formatDateTime(actualAppliedDate)}

@@ -251,17 +251,26 @@ export async function POST(req: NextRequest) {
       } catch {}
     });
 
-    // Työmarkkinatori-varajärjestelmä (fallback OpenGraph-metatiedoista, jos JSON-LD puuttuu)
-    const title =
+    // Työtehtävä - muotoillaan alkamaan isolla alkukirjaimella
+    const rawTitle =
       jobData?.title ||
       $('meta[property="og:title"]').attr("content") ||
       $("h1").first().text().trim() ||
       $("title").text().trim();
 
-    const company =
+    const title = rawTitle
+      ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1)
+      : "";
+
+    // Yritys - muotoillaan alkamaan isolla alkukirjaimella
+    const rawCompany =
       jobData?.hiringOrganization?.name?.trim() ||
       $('meta[property="og:site_name"]').attr("content") ||
       "";
+
+    const company = rawCompany
+      ? rawCompany.charAt(0).toUpperCase() + rawCompany.slice(1)
+      : "";
 
     const logoData = jobData?.hiringOrganization?.logo;
     const companyLogo =
