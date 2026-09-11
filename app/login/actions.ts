@@ -134,6 +134,7 @@ export async function registerAction(formData: FormData) {
         full_name: fullName,
         ip_address: ip,
       },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=/dashboard`,
     },
   });
 
