@@ -31,6 +31,8 @@ import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import ImpactRatingCard from "@/components/dashboard/ImpactRatingCard";
 import ConsistencyCard from "@/components/dashboard/ConsistencyCard";
 import LoginModal from "@/components/LoginModal";
+// LISÄTTY: WelcomeModalin importointi (varmista että polku täsmää omaan tiedostorakenteeseesi)
+import WelcomeModal from "@/components/WelcomeModal";
 import {
   StatsSkeleton,
   ImpactRatingSkeleton,
@@ -109,12 +111,25 @@ export default function DashboardPage() {
   const [open, setOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isDemoClick, setIsDemoClick] = useState(false);
+  
+  // LISÄTTY: WelcomeModalin tilat
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [userName, setUserName] = useState<string>("");
 
   const [activeStatFilter, setActiveStatFilter] =
     useState<StatFilterType>(null);
 
   useEffect(() => {
     fetchDashboardStats();
+    
+    // LISÄTTY: Tarkistetaan näytetäänkö WelcomeModal
+    const hasSeenWelcome = localStorage.getItem("duunify_welcome_seen");
+    if (!hasSeenWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcomeModal(true);
+      }, 500); // Pieni viive tekee latauksesta sulavamman
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   async function fetchDashboardStats() {
@@ -128,6 +143,10 @@ export default function DashboardPage() {
       router.push("/login");
       return;
     }
+
+    // LISÄTTY: Yritetään ottaa käyttäjän nimi talteen modaalia varten
+    const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || "";
+    if (name) setUserName(name);
 
     const { data: applications, error } = await supabase
       .from("applications")
@@ -209,6 +228,12 @@ export default function DashboardPage() {
     }
     setLoading(false);
   }
+
+  // LISÄTTY: Modaalin sulkemisen käsittelijä
+  const handleCloseWelcomeModal = () => {
+    setShowWelcomeModal(false);
+    localStorage.setItem("duunify_welcome_seen", "true");
+  };
 
   const getStatModalJobs = () => {
     const filteredJobs = rawApplications.filter((app) => {
@@ -529,10 +554,18 @@ export default function DashboardPage() {
             </div>
           </section>
         </div>
+        
         <LoginModal
           isOpen={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onSuccess={() => setShowLoginModal(false)}
+        />
+        
+        {/* LISÄTTY: WelcomeModal renderöidään tässä */}
+        <WelcomeModal 
+          isOpen={showWelcomeModal} 
+          onClose={handleCloseWelcomeModal} 
+          userName={userName}
         />
       </main>
 
