@@ -148,6 +148,11 @@ export default function ApplicationDialog({
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Tila muistiinpanojen muokkaamiselle
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editedNotes, setEditedNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+
   // --- SWIPE TO CLOSE LOGIIKKA ---
   const touchStartX = useRef<number>(0);
   const touchCurrentX = useRef<number>(0);
@@ -198,6 +203,7 @@ export default function ApplicationDialog({
     if (!open) {
       setTranslateX(0);
       setStatusMenuOpen(false);
+      setIsEditingNotes(false);
     }
   }, [open]);
   // -------------------------------
@@ -206,6 +212,8 @@ export default function ApplicationDialog({
     if (open && app) {
       setCurrentCvUrl(app.cv_url || null);
       setCurrentStatus(app.status || "Haettu");
+      setEditedNotes(app.notes || "");
+      setIsEditingNotes(false);
     }
   }, [open, app]);
 
@@ -287,6 +295,37 @@ export default function ApplicationDialog({
       toast.error("Tilan päivitys epäonnistui.");
     } finally {
       setUpdatingStatus(false);
+    }
+  }
+
+  // Muistiinpanojen tallennus
+  async function handleSaveNotes() {
+    if (isDemo) {
+      toast.info("Muistiinpanojen muokkaus ei ole käytössä demotilassa.");
+      setIsEditingNotes(false);
+      return;
+    }
+
+    setSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from("applications")
+        .update({ notes: editedNotes })
+        .eq("id", app.id);
+
+      if (error) throw error;
+
+      // Päivitetään paikallinen app-objekti heijastamaan muutosta
+      app.notes = editedNotes;
+
+      toast.success("Muistiinpanot tallennettu!");
+      setIsEditingNotes(false);
+      if (onUpdate) onUpdate();
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Muistiinpanojen tallennus epäonnistui.");
+    } finally {
+      setSavingNotes(false);
     }
   }
 
@@ -639,17 +678,68 @@ export default function ApplicationDialog({
             </div>
 
             {/* MUISTIINPANOT */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-sm flex items-center gap-2 text-slate-900 dark:text-slate-50">
-                <FileText size={16} className="text-slate-400" /> Muistiinpanot
-              </h3>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800 text-sm h-24 overflow-y-auto">
-                {app.notes || (
-                  <span className="italic text-slate-400 dark:text-slate-500">
-                    Ei muistiinpanoja
-                  </span>
+            <div className="space-y-3 flex flex-col">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm flex items-center gap-2 text-slate-900 dark:text-slate-50">
+                  <FileText size={16} className="text-slate-400" /> Muistiinpanot
+                </h3>
+                {!isEditingNotes ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingNotes(true)}
+                    className="h-6 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 px-2"
+                  >
+                    Muokkaa
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditedNotes(app.notes || "");
+                        setIsEditingNotes(false);
+                      }}
+                      className="h-6 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 px-2"
+                    >
+                      Peruuta
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes}
+                      className="h-6 text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2"
+                    >
+                      {savingNotes ? "Tallentaa..." : "Tallenna"}
+                    </Button>
+                  </div>
                 )}
               </div>
+
+              {isEditingNotes ? (
+                <textarea
+                  value={editedNotes}
+                  onChange={(e) => setEditedNotes(e.target.value)}
+                  className="w-full h-24 p-3 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"
+                  placeholder="Kirjoita muistiinpanoja hakemuksesta..."
+                  autoFocus
+                />
+              ) : (
+                <div 
+                  className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800 text-sm h-24 overflow-y-auto cursor-pointer hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
+                  onClick={() => setIsEditingNotes(true)}
+                >
+                  {app.notes || editedNotes ? (
+                    <span className="whitespace-pre-wrap">{editedNotes || app.notes}</span>
+                  ) : (
+                    <span className="italic text-slate-400 dark:text-slate-500">
+                      Ei muistiinpanoja. Klikkaa tästä lisätäksesi.
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

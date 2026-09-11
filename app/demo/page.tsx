@@ -79,7 +79,7 @@ export default function DemoDashboardPage() {
   // ALUSTETAAN TILASTOT JA PROSENTIT HETI ALUSSA JÄRJESTYKSESSÄ[cite: 5]
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
-  
+
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
 
@@ -235,7 +235,7 @@ export default function DemoDashboardPage() {
                 onClick={() => setActiveStatFilter("total")}
               />
             </div>
-            
+
             <div className="col-span-6 md:col-span-4">
               <StatsCard
                 title="Vireillä olevat"
@@ -356,6 +356,10 @@ export default function DemoDashboardPage() {
               </div>
               <div className="lg:col-span-4 mb-10">
                 <UpcomingDeadlines
+                  onOpenApplication={(app) => {
+                    setSelectedApplication(app);
+                    setOpen(true);
+                  }}
                   demoApps={
                     DEMO_APPLICATIONS.filter((a) => a.valid_through) as any
                   }

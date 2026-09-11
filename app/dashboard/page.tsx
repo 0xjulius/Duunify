@@ -211,7 +211,7 @@ export default function DashboardPage() {
   }
 
   const getStatModalJobs = () => {
-    return rawApplications.filter((app) => {
+    const filteredJobs = rawApplications.filter((app) => {
       const s = app.status?.toLowerCase().trim() || "";
       const refDate = app.valid_through || app.created_at;
       const isGhosted = isOlderThan30Days(refDate);
@@ -246,6 +246,13 @@ export default function DashboardPage() {
         default:
           return false;
       }
+    });
+
+    // Lajitellaan tulokset: uusin (created_at) ensin
+    return filteredJobs.sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
     });
   };
 
@@ -306,16 +313,30 @@ export default function DashboardPage() {
         <DashboardHeader />
 
         <div className="flex flex-col gap-6">
-         <section className="grid gap-6 grid-cols-12">
+          <section className="grid gap-6 grid-cols-12">
             {loading ? (
               <>
-                <div className="col-span-6 md:col-span-4"><StatsSkeleton /></div>
-                <div className="col-span-6 md:col-span-4"><StatsSkeleton /></div>
-                <div className="col-span-12 md:col-span-4"><StatsSkeleton /></div>
-                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
-                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
-                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
-                <div className="col-span-6 md:col-span-3"><StatsSkeleton /></div>
+                <div className="col-span-6 md:col-span-4">
+                  <StatsSkeleton />
+                </div>
+                <div className="col-span-6 md:col-span-4">
+                  <StatsSkeleton />
+                </div>
+                <div className="col-span-12 md:col-span-4">
+                  <StatsSkeleton />
+                </div>
+                <div className="col-span-6 md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+                <div className="col-span-6 md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+                <div className="col-span-6 md:col-span-3">
+                  <StatsSkeleton />
+                </div>
+                <div className="col-span-6 md:col-span-3">
+                  <StatsSkeleton />
+                </div>
               </>
             ) : (
               <>
@@ -323,7 +344,11 @@ export default function DashboardPage() {
                   <StatsCard
                     title="Hakemukset"
                     value={stats.total}
-                    subtitle={<span className="line-clamp-2 text-xs sm:text-sm">hakemuksia jätetty</span>}
+                    subtitle={
+                      <span className="line-clamp-2 text-xs sm:text-sm">
+                        hakemuksia jätetty
+                      </span>
+                    }
                     color="blue"
                     icon={<Briefcase className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("total")}
@@ -364,7 +389,8 @@ export default function DashboardPage() {
                           className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline font-medium"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          Katso suosikit <ArrowRight className="h-3 w-3 shrink-0" />
+                          Katso suosikit{" "}
+                          <ArrowRight className="h-3 w-3 shrink-0" />
                         </Link>
                       </span>
                     }
@@ -377,7 +403,11 @@ export default function DashboardPage() {
                   <StatsCard
                     title="Haastattelut"
                     value={stats.interviews}
-                    subtitle={<span className="line-clamp-2 text-xs sm:text-sm">{interviewPercentage} % hakemuksista</span>}
+                    subtitle={
+                      <span className="line-clamp-2 text-xs sm:text-sm">
+                        {interviewPercentage} % hakemuksista
+                      </span>
+                    }
                     color="violet"
                     icon={<Calendar className="h-6 w-6" />}
                     onClick={() => setActiveStatFilter("interviews")}
@@ -488,7 +518,12 @@ export default function DashboardPage() {
                 {loading ? (
                   <ChartSkeleton className="h-[500px]" />
                 ) : (
-                  <UpcomingDeadlines />
+                  <UpcomingDeadlines
+                    onOpenApplication={(app) => {
+                      setSelectedApplication(app);
+                      setOpen(true);
+                    }}
+                  />
                 )}
               </div>
             </div>

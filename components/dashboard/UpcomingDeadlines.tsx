@@ -2,23 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Clock, Building2, AlertCircle } from "lucide-react";
+import { Clock, AlertCircle } from "lucide-react";
+import { CompanyLogo } from "@/components/applications/CompanyLogo";
+import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 
+// Laajennettu tyyppi, jotta modaali saa kaiken tarvitsemansa datan
 type DeadlineApp = {
   id: string;
   company: string;
   job_title: string;
   valid_through: string;
+  company_logo?: string | null;
+  [key: string]: any;
 };
 
 export default function UpcomingDeadlines({
+  onOpenApplication,
   demoApps,
 }: {
+  onOpenApplication: (app: DeadlineApp, isDemo?: boolean) => void;
   demoApps?: DeadlineApp[];
 }) {
   const [apps, setApps] = useState<DeadlineApp[]>(demoApps ? demoApps.slice(0, 4) : []);
   const [loading, setLoading] = useState(!demoApps);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const isDemoMode = !!demoApps;
 
   useEffect(() => {
     if (demoApps) return;
@@ -28,9 +36,10 @@ export default function UpcomingDeadlines({
         setErrorMsg(null);
         const today = new Date().toISOString().split("T")[0];
 
+        // Haetaan kaikki kentät (*), jotta avautuva modaali saa täyden datan
         const { data, error } = await supabase
           .from("applications")
-          .select("id, company, job_title, valid_through")
+          .select("*")
           .not("valid_through", "is", null)
           .gte("valid_through", today)
           .order("valid_through", { ascending: true })
@@ -101,13 +110,18 @@ export default function UpcomingDeadlines({
             </div>
           ) : (
             apps.map((app) => (
-              <div
+              <button
                 key={app.id}
-                className="flex items-center justify-between py-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0 group"
+                onClick={() => onOpenApplication(app, isDemoMode)}
+                className="w-full flex items-center justify-between py-2.5 border-b border-slate-50 dark:border-slate-800 last:border-0 group transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-lg -mx-2 px-2 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:bg-amber-50 dark:group-hover:bg-amber-500/10 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
-                    <Building2 size={16} />
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors overflow-hidden">
+                    {isDemoMode ? (
+                      <DemoCompanyLogo logo={app.company_logo} company={app.company} />
+                    ) : (
+                      <CompanyLogo logo={app.company_logo} company={app.company} />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate leading-tight">
@@ -119,13 +133,13 @@ export default function UpcomingDeadlines({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 flex-shrink-0 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 px-2 py-1 rounded-lg">
+                <div className="flex items-center gap-1.5 flex-shrink-0 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 px-2 py-1 rounded-lg transition-colors group-hover:bg-amber-100 dark:group-hover:bg-amber-500/20">
                   <Clock size={12} />
                   <span className="text-xs font-bold tracking-tight">
                     {formatDate(app.valid_through)}
                   </span>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
