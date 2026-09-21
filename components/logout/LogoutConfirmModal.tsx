@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { LogOut, X } from "lucide-react";
+import { LogOut } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function LogoutConfirmModal({
   isOpen,
@@ -17,8 +25,6 @@ export default function LogoutConfirmModal({
   const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
 
-  if (!isOpen) return null;
-
   async function handleConfirm() {
     if (signingOut) return;
     setSigningOut(true);
@@ -31,62 +37,47 @@ export default function LogoutConfirmModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(13, 11, 38, 0.5)", backdropFilter: "blur(4px)" }}
-      onClick={onClose}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;500;600;700&display=swap');
-        .duunify-modal { font-family: 'Inter', sans-serif; }
-        .duunify-display { font-family: 'Space Grotesk', sans-serif; }
-      `}</style>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-sm rounded-[24px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-7 shadow-2xl">
+        <DialogHeader className="flex flex-col items-start gap-0 text-left">
+          {/* Ikoni */}
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center mb-4 shadow-sm"
+            style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+          >
+            <LogOut size={20} className="text-white" />
+          </div>
 
-      <div
-        className="duunify-modal relative w-full max-w-sm bg-white rounded-[24px] shadow-2xl p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
-        >
-          <X size={18} />
-        </button>
+          <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            Kirjaudutaanko ulos?
+          </DialogTitle>
 
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
-          style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
-        >
-          <LogOut size={20} className="text-white" />
-        </div>
+          <DialogDescription className="text-slate-500 dark:text-slate-400 text-[14px] mt-1.5 leading-relaxed">
+            {displayName
+              ? `Olet kirjautuneena sisään käyttäjänä ${displayName}.`
+              : "Istuntosi suljetaan tällä laitteella."}
+          </DialogDescription>
+        </DialogHeader>
 
-        <h2 className="duunify-display text-lg font-bold text-slate-900">
-          Kirjaudutaanko ulos?
-        </h2>
-        <p className="text-slate-500 text-[14px] mt-1.5 leading-relaxed">
-          {displayName
-            ? `Olet kirjautuneena sisään käyttäjänä ${displayName}.`
-            : "Istuntosi suljetaan tällä laitteella."}
-        </p>
-
-        <div className="mt-6 flex gap-2.5">
+        {/* Toimintapainikkeet */}
+        <div className="mt-4 flex gap-2.5">
           <button
             onClick={onClose}
             disabled={signingOut}
-            className="flex-1 h-11 rounded-xl border border-slate-200 hover:bg-slate-50 transition font-semibold text-[14px] text-slate-700 disabled:opacity-60"
+            className="flex-1 h-11 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 transition font-semibold text-[14px] text-slate-700 dark:text-slate-300 disabled:opacity-60 cursor-pointer"
           >
             Peruuta
           </button>
           <button
             onClick={handleConfirm}
             disabled={signingOut}
-            className="flex-1 h-11 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.98] disabled:opacity-60"
+            className="flex-1 h-11 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.98] disabled:opacity-60 cursor-pointer shadow-sm"
             style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
           >
             {signingOut ? "Hetki..." : "Kirjaudu ulos"}
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

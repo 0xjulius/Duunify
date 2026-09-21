@@ -9,6 +9,7 @@ import Link from "next/link";
 import StatsCard from "@/components/dashboard/StatsCard";
 import GhostedCard from "@/components/dashboard/GhostedCard";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header"; // LISÄTTY: Header-komponentti
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
 import { CompanyLogo } from "@/components/applications/CompanyLogo";
 import {
@@ -31,7 +32,6 @@ import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import ImpactRatingCard from "@/components/dashboard/ImpactRatingCard";
 import ConsistencyCard from "@/components/dashboard/ConsistencyCard";
 import LoginModal from "@/components/LoginModal";
-// LISÄTTY: WelcomeModalin importointi (varmista että polku täsmää omaan tiedostorakenteeseesi)
 import WelcomeModal from "@/components/WelcomeModal";
 import {
   StatsSkeleton,
@@ -79,7 +79,6 @@ const formatDate = (dateString?: string) => {
   }
 };
 
-// Apufunktio: Tarkistaa onko päivämäärästä kulunut yli 30 päivää
 const isOlderThan30Days = (dateStr?: string) => {
   if (!dateStr) return false;
   const targetDate = new Date(dateStr);
@@ -112,7 +111,6 @@ export default function DashboardPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isDemoClick, setIsDemoClick] = useState(false);
   
-  // LISÄTTY: WelcomeModalin tilat
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [userName, setUserName] = useState<string>("");
 
@@ -122,12 +120,11 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchDashboardStats();
     
-    // LISÄTTY: Tarkistetaan näytetäänkö WelcomeModal
     const hasSeenWelcome = localStorage.getItem("duunify_welcome_seen");
     if (!hasSeenWelcome) {
       const timer = setTimeout(() => {
         setShowWelcomeModal(true);
-      }, 500); // Pieni viive tekee latauksesta sulavamman
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -144,7 +141,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // LISÄTTY: Yritetään ottaa käyttäjän nimi talteen modaalia varten
     const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || "";
     if (name) setUserName(name);
 
@@ -175,7 +171,6 @@ export default function DashboardPage() {
           } else if (["hylätty", "hylätyt", "rejected"].includes(s)) {
             acc.rejected++;
           } else {
-            // Jos hakemus on avoin/meneillään, tarkistetaan onko se yli 30 pvä vanha
             const refDate = app.valid_through || app.created_at;
             if (isOlderThan30Days(refDate)) {
               acc.ghosted++;
@@ -229,7 +224,6 @@ export default function DashboardPage() {
     setLoading(false);
   }
 
-  // LISÄTTY: Modaalin sulkemisen käsittelijä
   const handleCloseWelcomeModal = () => {
     setShowWelcomeModal(false);
     localStorage.setItem("duunify_welcome_seen", "true");
@@ -273,7 +267,6 @@ export default function DashboardPage() {
       }
     });
 
-    // Lajitellaan tulokset: uusin (created_at) ensin
     return filteredJobs.sort((a, b) => {
       const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
       const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -328,246 +321,251 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-row min-h-screen bg-slate-100 dark:bg-[#0f1117] overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-[#141625] dark:via-[#151320] dark:to-[#101420]">
       <Sidebar />
-      <main className="flex-1 flex flex-col p-4 pb-28 md:p-8 md:pb-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-10">
-        <ApplicationDialog
-          app={selectedApplication}
-          open={open}
-          onOpenChange={setOpen}
-        />
 
-        <DashboardHeader />
+      {/* Sijoitetaan Flex-sarake oikealle puoliskolle sisältämään Headerin ja sivun sisällön */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header />
 
-        <div className="flex flex-col gap-6">
-          <section className="grid gap-6 grid-cols-12">
-            {loading ? (
-              <>
-                <div className="col-span-6 md:col-span-4">
-                  <StatsSkeleton />
-                </div>
-                <div className="col-span-6 md:col-span-4">
-                  <StatsSkeleton />
-                </div>
-                <div className="col-span-12 md:col-span-4">
-                  <StatsSkeleton />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsSkeleton />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="col-span-6 md:col-span-4">
-                  <StatsCard
-                    title="Hakemukset"
-                    value={stats.total}
-                    subtitle={
-                      <span className="line-clamp-2 text-xs sm:text-sm">
-                        hakemuksia jätetty
-                      </span>
-                    }
-                    color="blue"
-                    icon={<Briefcase className="h-6 w-6" />}
-                    onClick={() => setActiveStatFilter("total")}
-                  />
-                </div>
-                <div className="col-span-6 md:col-span-4">
-                  <StatsCard
-                    title="Meneillään"
-                    value={stats.pending}
-                    subtitle={
-                      <span className="line-clamp-2 text-xs sm:text-sm">
-                        {stats.pending > 0
-                          ? "Vireillään olevat haut"
-                          : "Ei aktiivisia hakuja"}
-                      </span>
-                    }
-                    color="amber"
-                    icon={<Clock className="h-6 w-6" />}
-                    onClick={() => setActiveStatFilter("pending")}
-                  />
-                </div>
-                <div className="col-span-12 md:col-span-4">
-                  <GhostedCard
-                    value={stats.ghosted}
-                    percentage={ghostedPercentage}
-                    onClick={() => setActiveStatFilter("ghosted")}
-                  />
-                </div>
+        <main className="flex-1 flex flex-col p-4 pb-28 md:p-8 md:pb-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-10">
+          <ApplicationDialog
+            app={selectedApplication}
+            open={open}
+            onOpenChange={setOpen}
+          />
 
-                <div className="col-span-6 md:col-span-3">
-                  <StatsCard
-                    title="Tallennetut"
-                    value={stats.favorites}
-                    subtitle={
-                      <span className="flex items-center gap-1 line-clamp-2 text-xs sm:text-sm">
-                        <Link
-                          href="/favorites"
-                          className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline font-medium"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Katso suosikit{" "}
-                          <ArrowRight className="h-3 w-3 shrink-0" />
-                        </Link>
-                      </span>
-                    }
-                    color="amber"
-                    icon={<Star className="h-6 w-6" />}
-                    onClick={() => setActiveStatFilter("favorites")}
-                  />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsCard
-                    title="Haastattelut"
-                    value={stats.interviews}
-                    subtitle={
-                      <span className="line-clamp-2 text-xs sm:text-sm">
-                        {interviewPercentage} % hakemuksista
-                      </span>
-                    }
-                    color="violet"
-                    icon={<Calendar className="h-6 w-6" />}
-                    onClick={() => setActiveStatFilter("interviews")}
-                  />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsCard
-                    title="Tarjoukset"
-                    value={stats.offers}
-                    subtitle={
-                      <span className="line-clamp-2 text-xs sm:text-sm">
-                        {stats.offers > 0
-                          ? "Upea saavutus! 🎉"
-                          : "Ovia avautuu pian.."}
-                      </span>
-                    }
-                    color="green"
-                    icon={<CheckCircle2 className="h-6 w-6" />}
-                    onClick={() => setActiveStatFilter("offers")}
-                  />
-                </div>
-                <div className="col-span-6 md:col-span-3">
-                  <StatsCard
-                    title="Päättyneet"
-                    value={stats.rejected}
-                    subtitle={
-                      <span className="line-clamp-2 text-xs sm:text-sm">
-                        {stats.rejected === 0
-                          ? "Ei vielä hylkäyksiä!"
-                          : "Ei valitut hakemukset"}
-                      </span>
-                    }
-                    color="red"
-                    icon={<XCircle className="h-6 w-6" />}
-                    onClick={() => setActiveStatFilter("rejected")}
-                  />
-                </div>
-              </>
-            )}
-          </section>
+          <DashboardHeader />
 
-          <section className="flex flex-col gap-6 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-3 flex flex-col gap-6">
-                {loading ? (
-                  <>
-                    <ImpactRatingSkeleton />
-                    <ImpactRatingSkeleton />
-                  </>
-                ) : (
-                  <>
-                    <ImpactRatingCard
-                      pending={stats.pending || 0}
-                      rejected={stats.rejected || 0}
-                      favorites={stats.favorites || 0}
+          <div className="flex flex-col gap-6">
+            <section className="grid gap-6 grid-cols-12">
+              {loading ? (
+                <>
+                  <div className="col-span-6 md:col-span-4">
+                    <StatsSkeleton />
+                  </div>
+                  <div className="col-span-6 md:col-span-4">
+                    <StatsSkeleton />
+                  </div>
+                  <div className="col-span-12 md:col-span-4">
+                    <StatsSkeleton />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsSkeleton />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsSkeleton />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsSkeleton />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsSkeleton />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="col-span-6 md:col-span-4">
+                    <StatsCard
+                      title="Hakemukset"
+                      value={stats.total}
+                      subtitle={
+                        <span className="line-clamp-2 text-xs sm:text-sm">
+                          hakemuksia jätetty
+                        </span>
+                      }
+                      color="blue"
+                      icon={<Briefcase className="h-6 w-6" />}
+                      onClick={() => setActiveStatFilter("total")}
                     />
-                    <ConsistencyCard percentage={stats.consistency || 0} />
-                  </>
-                )}
+                  </div>
+                  <div className="col-span-6 md:col-span-4">
+                    <StatsCard
+                      title="Meneillään"
+                      value={stats.pending}
+                      subtitle={
+                        <span className="line-clamp-2 text-xs sm:text-sm">
+                          {stats.pending > 0
+                            ? "Vireillään olevat haut"
+                            : "Ei aktiivisia hakuja"}
+                        </span>
+                      }
+                      color="amber"
+                      icon={<Clock className="h-6 w-6" />}
+                      onClick={() => setActiveStatFilter("pending")}
+                    />
+                  </div>
+                  <div className="col-span-12 md:col-span-4">
+                    <GhostedCard
+                      value={stats.ghosted}
+                      percentage={ghostedPercentage}
+                      onClick={() => setActiveStatFilter("ghosted")}
+                    />
+                  </div>
+
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsCard
+                      title="Tallennetut"
+                      value={stats.favorites}
+                      subtitle={
+                        <span className="flex items-center gap-1 line-clamp-2 text-xs sm:text-sm">
+                          <Link
+                            href="/favorites"
+                            className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline font-medium"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Katso suosikit{" "}
+                            <ArrowRight className="h-3 w-3 shrink-0" />
+                          </Link>
+                        </span>
+                      }
+                      color="amber"
+                      icon={<Star className="h-6 w-6" />}
+                      onClick={() => setActiveStatFilter("favorites")}
+                    />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsCard
+                      title="Haastattelut"
+                      value={stats.interviews}
+                      subtitle={
+                        <span className="line-clamp-2 text-xs sm:text-sm">
+                          {interviewPercentage} % hakemuksista
+                        </span>
+                      }
+                      color="violet"
+                      icon={<Calendar className="h-6 w-6" />}
+                      onClick={() => setActiveStatFilter("interviews")}
+                    />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsCard
+                      title="Tarjoukset"
+                      value={stats.offers}
+                      subtitle={
+                        <span className="line-clamp-2 text-xs sm:text-sm">
+                          {stats.offers > 0
+                            ? "Upea saavutus! 🎉"
+                            : "Ovia avautuu pian.."}
+                        </span>
+                      }
+                      color="green"
+                      icon={<CheckCircle2 className="h-6 w-6" />}
+                      onClick={() => setActiveStatFilter("offers")}
+                    />
+                  </div>
+                  <div className="col-span-6 md:col-span-3">
+                    <StatsCard
+                      title="Päättyneet"
+                      value={stats.rejected}
+                      subtitle={
+                        <span className="line-clamp-2 text-xs sm:text-sm">
+                          {stats.rejected === 0
+                            ? "Ei vielä hylkäyksiä!"
+                            : "Ei valitut hakemukset"}
+                        </span>
+                      }
+                      color="red"
+                      icon={<XCircle className="h-6 w-6" />}
+                      onClick={() => setActiveStatFilter("rejected")}
+                    />
+                  </div>
+                </>
+              )}
+            </section>
+
+            <section className="flex flex-col gap-6 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="md:col-span-3 flex flex-col gap-6">
+                  {loading ? (
+                    <>
+                      <ImpactRatingSkeleton />
+                      <ImpactRatingSkeleton />
+                    </>
+                  ) : (
+                    <>
+                      <ImpactRatingCard
+                        pending={stats.pending || 0}
+                        rejected={stats.rejected || 0}
+                        favorites={stats.favorites || 0}
+                      />
+                      <ConsistencyCard percentage={stats.consistency || 0} />
+                    </>
+                  )}
+                </div>
+
+                <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {loading ? (
+                    <>
+                      <ChartSkeleton className="h-[300px]" />
+                      <ChartSkeleton className="h-[300px]" />
+                    </>
+                  ) : (
+                    <>
+                      <LocationsChart />
+                      <ApplicationsChart />
+                    </>
+                  )}
+                </div>
               </div>
 
-              <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {loading ? (
-                  <>
-                    <ChartSkeleton className="h-[300px]" />
-                    <ChartSkeleton className="h-[300px]" />
-                  </>
-                ) : (
-                  <>
-                    <LocationsChart />
-                    <ApplicationsChart />
-                  </>
-                )}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8">
+                  {loading ? (
+                    <ChartSkeleton className="h-[400px]" />
+                  ) : (
+                    <ApplicationTrendChart />
+                  )}
+                </div>
+                <div className="lg:col-span-4">
+                  {loading ? (
+                    <ChartSkeleton className="h-[400px]" />
+                  ) : (
+                    <ActivityHeatmap />
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8">
-                {loading ? (
-                  <ChartSkeleton className="h-[400px]" />
-                ) : (
-                  <ApplicationTrendChart />
-                )}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-16">
+                <div className="lg:col-span-8">
+                  {loading ? (
+                    <ChartSkeleton className="h-[500px]" />
+                  ) : (
+                    <RecentApplications
+                      onOpenApplication={(app) => {
+                        setSelectedApplication(app);
+                        setOpen(true);
+                      }}
+                    />
+                  )}
+                </div>
+                <div className="lg:col-span-4">
+                  {loading ? (
+                    <ChartSkeleton className="h-[500px]" />
+                  ) : (
+                    <UpcomingDeadlines
+                      onOpenApplication={(app) => {
+                        setSelectedApplication(app);
+                        setOpen(true);
+                      }}
+                    />
+                  )}
+                </div>
               </div>
-              <div className="lg:col-span-4">
-                {loading ? (
-                  <ChartSkeleton className="h-[400px]" />
-                ) : (
-                  <ActivityHeatmap />
-                )}
-              </div>
-            </div>
+            </section>
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-16">
-              <div className="lg:col-span-8">
-                {loading ? (
-                  <ChartSkeleton className="h-[500px]" />
-                ) : (
-                  <RecentApplications
-                    onOpenApplication={(app) => {
-                      setSelectedApplication(app);
-                      setOpen(true);
-                    }}
-                  />
-                )}
-              </div>
-              <div className="lg:col-span-4">
-                {loading ? (
-                  <ChartSkeleton className="h-[500px]" />
-                ) : (
-                  <UpcomingDeadlines
-                    onOpenApplication={(app) => {
-                      setSelectedApplication(app);
-                      setOpen(true);
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          </section>
-        </div>
-        
-        <LoginModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={() => setShowLoginModal(false)}
-        />
-        
-        {/* LISÄTTY: WelcomeModal renderöidään tässä */}
-        <WelcomeModal 
-          isOpen={showWelcomeModal} 
-          onClose={handleCloseWelcomeModal} 
-          userName={userName}
-        />
-      </main>
+          <LoginModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+            onSuccess={() => setShowLoginModal(false)}
+          />
+
+          <WelcomeModal 
+            isOpen={showWelcomeModal} 
+            onClose={handleCloseWelcomeModal} 
+            userName={userName}
+          />
+        </main>
+      </div>
 
       {/* INTERAKTIIVINEN STATS MODAL METRIIKOILLE */}
       <div

@@ -30,13 +30,12 @@ type UserDocument = {
   updated: string;
 };
 
-// Apufunktio tiedostonimen siivoamiseen (estää Supabasen "Invalid key" -virheet)
 function sanitizeFileName(fileName: string): string {
   return fileName
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Poistaa skandit (ä -> a, ö -> o)
-    .replace(/\s+/g, "_") // Korvaa välilyönnit alaviivoilla
-    .replace(/[^a-zA-Z0-9._-]/g, ""); // Poistaa muut erikoismerkit
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9._-]/g, "");
 }
 
 export default function SettingsClient({
@@ -72,43 +71,72 @@ export default function SettingsClient({
   const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(null);
   const [viewingType, setViewingType] = useState<"cv" | "letter" | null>(null);
 
+  // Ilmoitusasetusten tilat
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [savingNotifs, setSavingNotifs] = useState(false);
+
+  // Yleiset tilat
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [verifyStatus, setVerifyStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [verifyStatus, setVerifyStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  // Haetaan olemassa olevat asiakirjat profiilista sivun latautuessa
+  // Haetaan asiakirjat ja ilmoitusasetukset profiilista sivun latautuessa
   useEffect(() => {
-    async function loadDocuments() {
+    async function loadProfileData() {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("cv_filename, cv_updated_at, letter_filename, letter_updated_at")
+        .select(
+          "cv_filename, cv_updated_at, letter_filename, letter_updated_at, notifications_enabled, email_notifications"
+        )
         .eq("id", userId)
         .maybeSingle();
 
-      if (profile?.cv_filename) {
-        setCvDoc({
-          name: profile.cv_filename,
-          updated: profile.cv_updated_at
-            ? `Päivitetty ${new Date(profile.cv_updated_at).toLocaleDateString("fi-FI")}`
-            : "Aktiivinen",
-        });
-      }
+      if (profile) {
+        if (
+          profile.notifications_enabled !== undefined &&
+          profile.notifications_enabled !== null
+        ) {
+          setNotificationsEnabled(profile.notifications_enabled);
+        }
+        if (
+          profile.email_notifications !== undefined &&
+          profile.email_notifications !== null
+        ) {
+          setEmailNotifications(profile.email_notifications);
+        }
 
-      if (profile?.letter_filename) {
-        setCoverLetterDoc({
-          name: profile.letter_filename,
-          updated: profile.letter_updated_at
-            ? `Päivitetty ${new Date(profile.letter_updated_at).toLocaleDateString("fi-FI")}`
-            : "Aktiivinen",
-        });
+        if (profile.cv_filename) {
+          setCvDoc({
+            name: profile.cv_filename,
+            updated: profile.cv_updated_at
+              ? `Päivitetty ${new Date(profile.cv_updated_at).toLocaleDateString("fi-FI")}`
+              : "Aktiivinen",
+          });
+        }
+
+        if (profile.letter_filename) {
+          setCoverLetterDoc({
+            name: profile.letter_filename,
+            updated: profile.letter_updated_at
+              ? `Päivitetty ${new Date(profile.letter_updated_at).toLocaleDateString("fi-FI")}`
+              : "Aktiivinen",
+          });
+        }
       }
     }
 
     if (userId) {
-      loadDocuments();
+      loadProfileData();
     }
   }, [userId]);
 
@@ -120,7 +148,22 @@ export default function SettingsClient({
     });
   }
 
-  // Tiedoston katselufunktio (avaa allekirjoitetun linkin uuteen välilehteen)
+  // Ilmoitusasetusten päivitys tietokantaan
+  const handleToggleNotification = async (
+    key: "notifications_enabled" | "email_notifications",
+    newValue: boolean
+  ) => {
+    if (key === "notifications_enabled") setNotificationsEnabled(newValue);
+    if (key === "email_notifications") setEmailNotifications(newValue);
+
+    setSavingNotifs(true);
+    await supabase
+      .from("profiles")
+      .update({ [key]: newValue })
+      .eq("id", userId);
+    setSavingNotifs(false);
+  };
+
   const handleFileView = async (type: "cv" | "letter") => {
     const doc = type === "cv" ? cvDoc : coverLetterDoc;
     if (!doc) return;
@@ -130,7 +173,7 @@ export default function SettingsClient({
       const storagePath = `${userId}/${type}_${doc.name}`;
       const { data, error } = await supabase.storage
         .from("documents")
-        .createSignedUrl(storagePath, 60); // Linkki voimassa 60 sekuntia
+        .createSignedUrl(storagePath, 60);
 
       if (error || !data?.signedUrl) {
         throw error || new Error("Linkin luonti epäonnistui");
@@ -145,7 +188,6 @@ export default function SettingsClient({
     }
   };
 
-  // Tiedoston latausfunktio (maksimikoko 250 KB)
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "cv" | "letter"
@@ -153,10 +195,12 @@ export default function SettingsClient({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const MAX_FILE_SIZE = 250 * 1024; // 250 KB
+    const MAX_FILE_SIZE = 250 * 1024;
 
     if (file.size > MAX_FILE_SIZE) {
-      alert(`Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`);
+      alert(
+        `Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`
+      );
       e.target.value = "";
       return;
     }
@@ -168,7 +212,6 @@ export default function SettingsClient({
       const safeName = sanitizeFileName(file.name);
       const storagePath = `${userId}/${type}_${safeName}`;
 
-      // 1. Ladataan puhdistettu tiedosto Supabase Storageen
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(storagePath, file, { upsert: true });
@@ -179,7 +222,6 @@ export default function SettingsClient({
 
       const now = new Date().toISOString();
 
-      // 2. Päivitetään tiedot profiles-tauluun
       const updates =
         type === "cv"
           ? { cv_filename: safeName, cv_updated_at: now }
@@ -192,7 +234,6 @@ export default function SettingsClient({
 
       if (profileError) throw profileError;
 
-      // 3. Päivitetään paikallinen tila
       const updatedDoc = {
         name: safeName,
         updated: `Päivitetty ${new Date().toLocaleDateString("fi-FI")}`,
@@ -212,23 +253,22 @@ export default function SettingsClient({
     }
   };
 
-  // Tiedoston poistofunktio
   const handleFileDelete = async (type: "cv" | "letter") => {
     const docToDelete = type === "cv" ? cvDoc : coverLetterDoc;
     if (!docToDelete) return;
 
-    if (!confirm(`Haluatko varmasti poistaa tiedoston "${docToDelete.name}"?`)) {
+    if (
+      !confirm(`Haluatko varmasti poistaa tiedoston "${docToDelete.name}"?`)
+    ) {
       return;
     }
 
     setDeletingType(type);
 
     try {
-      // 1. Poistetaan tiedosto Storagesta
       const storagePath = `${userId}/${type}_${docToDelete.name}`;
       await supabase.storage.from("documents").remove([storagePath]);
 
-      // 2. Tyhjennetään profiilimerkinnät tietokannasta
       const updates =
         type === "cv"
           ? { cv_filename: null, cv_updated_at: null }
@@ -241,7 +281,6 @@ export default function SettingsClient({
 
       if (profileError) throw profileError;
 
-      // 3. Nollataan paikallinen tila
       if (type === "cv") setCvDoc(null);
       else setCoverLetterDoc(null);
 
@@ -260,17 +299,25 @@ export default function SettingsClient({
 
     const { error } = await supabase.auth.updateUser(
       { email: email },
-      { emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard` }
+      {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+      }
     );
 
     setVerifying(false);
 
     if (error) {
-      setVerifyStatus({ type: "error", message: `Lähetys epäonnistui: ${error.message}` });
+      setVerifyStatus({
+        type: "error",
+        message: `Lähetys epäonnistui: ${error.message}`,
+      });
       return;
     }
 
-    setVerifyStatus({ type: "success", message: "Vahvistuslinkki lähetetty sähköpostiisi!" });
+    setVerifyStatus({
+      type: "success",
+      message: "Vahvistuslinkki lähetetty sähköpostiisi!",
+    });
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -291,7 +338,10 @@ export default function SettingsClient({
     });
 
     if (authError) {
-      setStatus({ type: "error", message: `Virhe Auth-tiedoissa: ${authError.message}` });
+      setStatus({
+        type: "error",
+        message: `Virhe Auth-tiedoissa: ${authError.message}`,
+      });
       setLoading(false);
       return;
     }
@@ -306,12 +356,38 @@ export default function SettingsClient({
       .eq("id", userId);
 
     if (profileError) {
-      setStatus({ type: "error", message: `Virhe profiilin tallennuksessa: ${profileError.message}` });
+      setStatus({
+        type: "error",
+        message: `Virhe profiilin tallennuksessa: ${profileError.message}`,
+      });
       setLoading(false);
       return;
     }
 
-    setStatus({ type: "success", message: "Muutokset tallennettu onnistuneesti!" });
+    // Tunnistetaan mitä kenttiä muutettiin
+    const changedFields: string[] = [];
+    if (trimmedFullName !== initialFullName) changedFields.push("nimi");
+    if (trimmedPhone !== (initialPhone || "")) changedFields.push("puhelinnumero");
+    if (trimmedLocation !== (initialLocation || "")) changedFields.push("sijainti");
+
+    // Rakennetaan viesti sen mukaan, mitä muutettiin
+    const messageText =
+      changedFields.length > 0
+        ? `Päivitetyt tiedot: ${changedFields.join(", ")}.`
+        : "Profiilitietosi tallennettiin onnistuneesti.";
+
+    // Luodaan reaaliaikainen ilmoitus tietokantaan
+    await supabase.from("notifications").insert({
+      user_id: userId,
+      title: "Profiili päivitetty",
+      message: messageText,
+      type: "success",
+    });
+
+    setStatus({
+      type: "success",
+      message: "Muutokset tallennettu onnistuneesti!",
+    });
     setLoading(false);
     router.refresh();
   };
@@ -326,7 +402,9 @@ export default function SettingsClient({
       <main className="flex-1 p-4 md:p-8">
         <div className="max-w-5xl mx-auto">
           <header className="mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Asetukset</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Asetukset
+            </h1>
             <p className="text-slate-500 dark:text-slate-400">
               Hallitse tiliäsi ja muokkaa asetuksiasi.
             </p>
@@ -359,7 +437,9 @@ export default function SettingsClient({
                 }}
                 className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
               >
-                <h2 className="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100">Profiilitiedot</h2>
+                <h2 className="font-bold text-lg mb-1 text-slate-900 dark:text-slate-100">
+                  Profiilitiedot
+                </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                   Muokkaa yhteystietojasi ja profiilikuvaasi.
                 </p>
@@ -373,7 +453,10 @@ export default function SettingsClient({
                     <form onSubmit={handleSaveProfile} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="settings-name" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">
+                          <label
+                            htmlFor="settings-name"
+                            className="block text-xs text-slate-400 dark:text-slate-500 mb-1"
+                          >
                             Nimi
                           </label>
                           <input
@@ -419,7 +502,10 @@ export default function SettingsClient({
                               >
                                 {verifying ? (
                                   <>
-                                    <Loader2 size={12} className="animate-spin" />
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
                                     Lähetetään linkkiä...
                                   </>
                                 ) : (
@@ -428,9 +514,13 @@ export default function SettingsClient({
                               </button>
 
                               {verifyStatus && (
-                                <p className={`text-[11px] mt-1 font-medium ${
-                                  verifyStatus.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                }`}>
+                                <p
+                                  className={`text-[11px] mt-1 font-medium ${
+                                    verifyStatus.type === "success"
+                                      ? "text-green-600 dark:text-green-400"
+                                      : "text-red-600 dark:text-red-400"
+                                  }`}
+                                >
                                   {verifyStatus.message}
                                 </p>
                               )}
@@ -438,7 +528,10 @@ export default function SettingsClient({
                           )}
                         </div>
                         <div>
-                          <label htmlFor="settings-phone" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">
+                          <label
+                            htmlFor="settings-phone"
+                            className="block text-xs text-slate-400 dark:text-slate-500 mb-1"
+                          >
                             Puhelinnumero
                           </label>
                           <input
@@ -452,7 +545,10 @@ export default function SettingsClient({
                           />
                         </div>
                         <div>
-                          <label htmlFor="settings-location" className="block text-xs text-slate-400 dark:text-slate-500 mb-1">
+                          <label
+                            htmlFor="settings-location"
+                            className="block text-xs text-slate-400 dark:text-slate-500 mb-1"
+                          >
                             Sijainti
                           </label>
                           <input
@@ -513,7 +609,8 @@ export default function SettingsClient({
                   Omat asiakirjat
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                  Lataa ansioluettelosi (CV) ja yleinen saatekirjepohjasi tekoälyavustajaa varten. Maks. koko 250 KB / tiedosto.
+                  Lataa ansioluettelosi (CV) ja yleinen saatekirjepohjasi
+                  tekoälyavustajaa varten. Maks. koko 250 KB / tiedosto.
                 </p>
 
                 <div className="space-y-4">
@@ -522,7 +619,10 @@ export default function SettingsClient({
                     <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                       <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0">
                         {uploadingCv || deletingType === "cv" ? (
-                          <Loader2 size={18} className="animate-spin text-indigo-600" />
+                          <Loader2
+                            size={18}
+                            className="animate-spin text-indigo-600"
+                          />
                         ) : (
                           <FileText size={18} className="text-slate-500" />
                         )}
@@ -533,7 +633,8 @@ export default function SettingsClient({
                           {cvDoc?.name || "Ei ladattua CV:tä"}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          {cvDoc?.updated || "Lataa CV (.pdf, .doc, .docx, .txt)"}
+                          {cvDoc?.updated ||
+                            "Lataa CV (.pdf, .doc, .docx, .txt)"}
                         </p>
                       </div>
 
@@ -602,7 +703,10 @@ export default function SettingsClient({
                     <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                       <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0">
                         {uploadingLetter || deletingType === "letter" ? (
-                          <Loader2 size={18} className="animate-spin text-indigo-600" />
+                          <Loader2
+                            size={18}
+                            className="animate-spin text-indigo-600"
+                          />
                         ) : (
                           <FileText size={18} className="text-slate-500" />
                         )}
@@ -613,7 +717,8 @@ export default function SettingsClient({
                           {coverLetterDoc?.name || "Ei ladattua pohjaa"}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          {coverLetterDoc?.updated || "Lataa saatekirjepohja (.pdf, .doc, .docx, .txt)"}
+                          {coverLetterDoc?.updated ||
+                            "Lataa saatekirjepohja (.pdf, .doc, .docx, .txt)"}
                         </p>
                       </div>
 
@@ -651,7 +756,9 @@ export default function SettingsClient({
                             accept=".pdf,.doc,.docx,.txt"
                             className="hidden"
                             onChange={(e) => handleFileUpload(e, "letter")}
-                            disabled={uploadingLetter || deletingType === "letter"}
+                            disabled={
+                              uploadingLetter || deletingType === "letter"
+                            }
                           />
                         </label>
 
@@ -704,39 +811,94 @@ export default function SettingsClient({
                 }}
                 className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100">Ilmoitukset</h2>
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full">
-                    Tulossa pian
-                  </span>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100">
+                    Ilmoitukset
+                  </h2>
+                  {savingNotifs && (
+                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <Loader2 size={12} className="animate-spin" />{" "}
+                      Tallennetaan...
+                    </span>
+                  )}
                 </div>
-                <div className="space-y-4 opacity-50 pointer-events-none">
-                  {[
-                    "Sähköposti-ilmoitukset",
-                    "Määräaikojen muistutukset",
-                    "Viikoittainen yhteenveto",
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center py-2"
-                    >
-                      <p className="text-sm text-slate-700 dark:text-slate-300">{item}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                  Valitse, mitä ilmoituksia haluat vastaanottaa sovelluksessa ja
+                  sähköpostitse.
+                </p>
 
-                      <div
-                        className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 ${
-                          i < 2
-                            ? "bg-indigo-600 dark:bg-indigo-500"
-                            : "bg-slate-300 dark:bg-slate-700"
-                        }`}
-                      >
-                        <div
-                          className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-sm transition-transform duration-200 ${
-                            i < 2 ? "translate-x-5" : "translate-x-0"
-                          }`}
-                        />
-                      </div>
+                <div className="space-y-4">
+                  {/* Sovelluksen sisäiset ilmoitukset */}
+                  <div className="flex justify-between items-center py-2">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        Sovelluksen sisäiset ilmoitukset
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Näytä ilmoitukset yläpalkin kellossa (esim.
+                        haastattelukutsut ja tekoälytehtävät).
+                      </p>
                     </div>
-                  ))}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleToggleNotification(
+                          "notifications_enabled",
+                          !notificationsEnabled
+                        )
+                      }
+                      className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 cursor-pointer ${
+                        notificationsEnabled
+                          ? "bg-indigo-600 dark:bg-indigo-500"
+                          : "bg-slate-300 dark:bg-slate-700"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-sm transition-transform duration-200 ${
+                          notificationsEnabled
+                            ? "translate-x-5"
+                            : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <hr className="border-slate-100 dark:border-slate-800" />
+
+                  {/* Sähköposti-ilmoitukset */}
+                  <div className="flex justify-between items-center py-2">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        Sähköposti-ilmoitukset
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Lähetä tärkeistä päivityksistä ja muistutuksista viesti
+                        sähköpostiin.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleToggleNotification(
+                          "email_notifications",
+                          !emailNotifications
+                        )
+                      }
+                      className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 cursor-pointer ${
+                        emailNotifications
+                          ? "bg-indigo-600 dark:bg-indigo-500"
+                          : "bg-slate-300 dark:bg-slate-700"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-sm transition-transform duration-200 ${
+                          emailNotifications ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </section>
             </div>
