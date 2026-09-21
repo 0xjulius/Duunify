@@ -10,9 +10,10 @@ import { toast } from "sonner";
 
 import AddApplicationForm from "@/app/applications/AddApplicationForm";
 import ApplicationCard from "@/app/applications/ApplicationCard";
+import ApplicationRow from "@/components/applications/ApplicationRow";
 import ApplicationStats from "@/components/applications/ApplicationStats";
 import Sidebar from "@/components/Sidebar";
-import { Briefcase, Filter } from "lucide-react";
+import { Briefcase, Filter, LayoutGrid, List as ListIcon } from "lucide-react";
 
 type Application = {
   id: string;
@@ -33,6 +34,9 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  
+  // Näkymän valinta ('grid' tai 'list')
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   async function fetchApplications() {
     setLoading(true);
@@ -116,66 +120,96 @@ export default function Home() {
           {/* TILASTOT */}
           <ApplicationStats applications={applications} loading={loading} />
           
-          {/* SEARCH + FILTER + BUTTON */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            {/* Hakukenttä */}
-            <div className="relative flex-1">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
+          {/* SEARCH + FILTER + VIEW TOGGLE + BUTTON */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
+              {/* Hakukenttä */}
+              <div className="relative flex-1">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Hae yritystä tai tehtävää..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 pl-12 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                />
+              </div>
+
+              {/* Status-suodatin */}
+              <div className="relative min-w-[180px]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
+                  <Filter className="h-4 w-4" />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 pl-11 pr-8 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100 cursor-pointer appearance-none"
                 >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
+                  <option value="all">Suodata</option>
+                  <option value="haettu">Haettu</option>
+                  <option value="haastattelu">Haastattelu</option>
+                  <option value="tarjous">Tarjous</option>
+                  <option value="hylätty">Hylätty</option>
+                  <option value="tallennettu">Tallennettu</option>
+                </select>
               </div>
-              <input
-                type="text"
-                placeholder="Hae yritystä tai tehtävää..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 pl-12 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
-              />
             </div>
 
-            {/* Status-suodatin */}
-            <div className="relative min-w-[180px]">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
-                <Filter className="h-4 w-4" />
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              {/* NÄKYMÄN VAIHTOPAINIKKEET */}
+              <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-2xl shadow-sm">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  aria-label="Korttinäkymä"
+                  className={`p-3 rounded-xl transition-all ${
+                    viewMode === "grid"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <LayoutGrid className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  aria-label="Rivinäkymä"
+                  className={`p-3 rounded-xl transition-all ${
+                    viewMode === "list"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <ListIcon className="h-5 w-5" />
+                </button>
               </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 pl-11 pr-8 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100 cursor-pointer appearance-none"
+
+              {/* Lisää-painike */}
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className={`px-22 sm:px-8 py-4 rounded-2xl font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm ${
+                  showForm
+                    ? "bg-red-500 text-white hover:bg-red-600 dark:bg-red-500/20 dark:text-red-400 dark:border dark:border-red-500/30 dark:hover:bg-red-500/30"
+                    : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
+                }`}
               >
-                <option value="all">Suodata</option>
-                <option value="haettu">Haettu</option>
-                <option value="haastattelu">Haastattelu</option>
-                <option value="tarjous">Tarjous</option>
-                <option value="hylätty">Hylätty</option>
-                <option value="tallennettu">Tallennettu</option>
-              </select>
+                {showForm ? "✕ Sulje" : "+ Lisää työpaikka"}
+              </button>
             </div>
-
-            {/* Lisää-painike */}
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className={`px-6 py-4 rounded-2xl font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                showForm
-                  ? "bg-red-500 text-white hover:bg-red-600 dark:bg-red-500/20 dark:text-red-400 dark:border dark:border-red-500/30 dark:hover:bg-red-500/30"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
-              }`}
-            >
-              {showForm ? "✕ Sulje" : "+ Lisää työpaikka"}
-            </button>
           </div>
 
-        {/* FORM */}
+          {/* FORM */}
           {showForm && (
             <div className="mb-10 animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 ease-out fill-mode-both">
               <AddApplicationForm
@@ -187,56 +221,81 @@ export default function Home() {
             </div>
           )}
 
-          {/* APPLICATIONS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-            {loading ? (
-              [...Array(6)].map((_, i) => (
+          {/* APPLICATIONS VIEW (GRID tai LIST) */}
+          {loading ? (
+            <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6" : "space-y-4"}>
+              {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
                   className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-sm animate-pulse flex flex-col gap-4"
                 >
                   <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-lg" />
                   <div className="h-4 w-1/2 bg-slate-100 dark:bg-slate-800/60 rounded-lg" />
-                  <div className="mt-4 h-20 w-full bg-slate-100 dark:bg-slate-800/60 rounded-2xl" />
-                  <div className="flex gap-2 mt-auto">
-                    <div className="h-8 w-20 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                    <div className="h-8 w-20 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                  </div>
                 </div>
-              ))
-            ) : filtered.length > 0 ? (
-              filtered.map((app) => (
-                <ApplicationCard
-                  key={app.id}
-                  app={app}
-                  onChange={fetchApplications}
-                />
-              ))
+              ))}
+            </div>
+          ) : filtered.length > 0 ? (
+            viewMode === "grid" ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+                {filtered.map((app) => (
+                  <ApplicationCard
+                    key={app.id}
+                    app={app}
+                    onChange={fetchApplications}
+                  />
+                ))}
+              </div>
             ) : (
-              <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700">
-                <div className="col-span-full">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                    {search || statusFilter !== "all"
-                      ? "Ei hakemuksia valituilla ehdoilla"
-                      : "Ei hakemuksia vielä"}
-                  </h2>
-                  <p className="text-slate-500 dark:text-slate-400 mb-6">
-                    {search || statusFilter !== "all"
-                      ? "Kokeile muuttaa hakusanaa tai suodatinta."
-                      : "Aloita lisäämällä ensimmäinen hakemuksesi."}
-                  </p>
-                  {!search && statusFilter === "all" && (
-                    <button
-                      onClick={() => setShowForm(true)}
-                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl font-medium"
-                    >
-                      + Lisää ensimmäinen hakemus
-                    </button>
-                  )}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="hidden xl:table-header-group">
+                      <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <th className="p-4 pl-6">Tehtävä & Yritys</th>
+                        <th className="p-4">Tila</th>
+                        <th className="p-4">Sijainti</th>
+                        <th className="p-4">Päivämäärä</th>
+                        <th className="p-4 pr-6 text-right">Toiminnot</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                      {filtered.map((app) => (
+                        <ApplicationRow
+                          key={app.id}
+                          app={app}
+                          onDelete={deleteApplication}
+                          onChange={fetchApplications}
+                          onClick={() => {
+                          }}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            )}
-          </div>
+            )
+          ) : (
+            <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
+                {search || statusFilter !== "all"
+                  ? "Ei hakemuksia valituilla ehdoilla"
+                  : "Ei hakemuksia vielä"}
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 mb-6">
+                {search || statusFilter !== "all"
+                  ? "Kokeile muuttaa hakusanaa tai suodatinta."
+                  : "Aloita lisäämällä ensimmäinen hakemuksesi."}
+              </p>
+              {!search && statusFilter === "all" && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl font-medium"
+                >
+                  + Lisää ensimmäinen hakemus
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </main>
