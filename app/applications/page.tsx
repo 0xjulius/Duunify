@@ -1,7 +1,7 @@
 "use client";
 
 // 1. Tämä pakottaa middlewaren tarkistamaan sivun joka kerta
-export const dynamic = "force-dynamic"; 
+export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,15 @@ import ApplicationRow from "@/components/applications/ApplicationRow";
 import ApplicationStats from "@/components/applications/ApplicationStats";
 import Sidebar from "@/components/Sidebar";
 import { Briefcase, Filter, LayoutGrid, List as ListIcon } from "lucide-react";
+
+// Shadcn UI Select -tuonnit
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Application = {
   id: string;
@@ -28,20 +37,22 @@ type Application = {
 };
 
 export default function Home() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-  
+
   // Näkymän valinta ('grid' tai 'list')
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   async function fetchApplications() {
     setLoading(true);
-    
-    const { data: { session } } = await supabase.auth.getSession();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) {
       router.push("/login");
       return;
@@ -68,7 +79,9 @@ export default function Home() {
   }, [router]);
 
   async function deleteApplication(id: string) {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) return;
 
     await supabase
@@ -112,14 +125,15 @@ export default function Home() {
               </div>
 
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 ml-5 md:ml-[37px]">
-                Täällä voit lisätä, hakea, tallentaa, poistaa tai muuttaa työhakemuksiesi, tai ilmoitusten tilaa. 
+                Täällä voit lisätä, hakea, tallentaa, poistaa tai muuttaa
+                työhakemuksiesi, tai ilmoitusten tilaa.
               </p>
             </div>
           </div>
 
           {/* TILASTOT */}
           <ApplicationStats applications={applications} loading={loading} />
-          
+
           {/* SEARCH + FILTER + VIEW TOGGLE + BUTTON */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center">
             <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
@@ -149,22 +163,24 @@ export default function Home() {
               </div>
 
               {/* Status-suodatin */}
-              <div className="relative min-w-[180px]">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <Filter className="h-4 w-4" />
-                </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 pl-11 pr-8 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-slate-100 cursor-pointer appearance-none"
-                >
-                  <option value="all">Suodata</option>
-                  <option value="haettu">Haettu</option>
-                  <option value="haastattelu">Haastattelu</option>
-                  <option value="tarjous">Tarjous</option>
-                  <option value="hylätty">Hylätty</option>
-                  <option value="tallennettu">Tallennettu</option>
-                </select>
+              <div className="w-full sm:w-[220px]">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="!h-[58px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500">
+                    <div className="flex items-center gap-2 truncate">
+                      <Filter className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
+                      <SelectValue placeholder="Suodata tila..." />
+                    </div>
+                  </SelectTrigger>
+
+                  <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 dark:text-slate-100">
+                    <SelectItem value="all">Kaikki tilat</SelectItem>
+                    <SelectItem value="haettu">Haettu</SelectItem>
+                    <SelectItem value="haastattelu">Haastattelu</SelectItem>
+                    <SelectItem value="tarjous">Tarjous</SelectItem>
+                    <SelectItem value="hylätty">Hylätty</SelectItem>
+                    <SelectItem value="tallennettu">Tallennettu</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -223,7 +239,13 @@ export default function Home() {
 
           {/* APPLICATIONS VIEW (GRID tai LIST) */}
           {loading ? (
-            <div className={viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6" : "space-y-4"}>
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6"
+                  : "space-y-4"
+              }
+            >
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
@@ -265,8 +287,7 @@ export default function Home() {
                           app={app}
                           onDelete={deleteApplication}
                           onChange={fetchApplications}
-                          onClick={() => {
-                          }}
+                          onClick={() => {}}
                         />
                       ))}
                     </tbody>
