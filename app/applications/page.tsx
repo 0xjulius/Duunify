@@ -13,6 +13,7 @@ import ApplicationCard from "@/app/applications/ApplicationCard";
 import ApplicationRow from "@/components/applications/ApplicationRow";
 import ApplicationStats from "@/components/applications/ApplicationStats";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { Briefcase, Filter, LayoutGrid, List as ListIcon } from "lucide-react";
 
 // Shadcn UI Select -tuonnit
@@ -110,10 +111,14 @@ export default function Home() {
     <main className="min-h-screen flex bg-slate-100 dark:bg-[#12141c]">
       <Sidebar />
 
-      <div className="flex-1 overflow-auto">
-        <div className="p-8 max-w-400 mx-auto gap-10 ">
+      {/* Oikea puoli: hoidetaan vieritys tässä elementissä niin Header rullaa pois */}
+      <div className="flex-1 h-screen overflow-y-auto min-w-0">
+        <Header />
+
+        {/* KORJAUS 1: p-8 muutettu responsiivisemmaksi (p-3 sm:p-5 md:p-8) ja gap pienemmäksi mobiilissa */}
+        <div className="p-3 sm:p-5 md:p-8 max-w-[1600px] mx-auto flex flex-col gap-6 md:gap-10">
           {/* HEADER */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <div className="flex items-center gap-3">
                 <div className="bg-gradient-to-br from-indigo-200 to-violet-600 dark:from-indigo-500/20 dark:to-violet-600/20 p-3 rounded-xl">
@@ -124,7 +129,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 ml-5 md:ml-[37px]">
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-3 ml-2 sm:ml-5 md:ml-[37px]">
                 Täällä voit lisätä, hakea, tallentaa, poistaa tai muuttaa
                 työhakemuksiesi, tai ilmoitusten tilaa.
               </p>
@@ -135,7 +140,7 @@ export default function Home() {
           <ApplicationStats applications={applications} loading={loading} />
 
           {/* SEARCH + FILTER + VIEW TOGGLE + BUTTON */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
             <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
               {/* Hakukenttä */}
               <div className="relative flex-1">
@@ -184,7 +189,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
               {/* NÄKYMÄN VAIHTOPAINIKKEET */}
               <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-2xl shadow-sm">
                 <button
@@ -211,10 +216,10 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Lisää-painike */}
+              {/* Lisää-painike - KORJAUS: px-22 typografia muutettu täyden leveyden tueksi */}
               <button
                 onClick={() => setShowForm(!showForm)}
-                className={`px-22 sm:px-8 py-4 rounded-2xl font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm ${
+                className={`w-full sm:w-auto px-6 py-4 rounded-2xl font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm ${
                   showForm
                     ? "bg-red-500 text-white hover:bg-red-600 dark:bg-red-500/20 dark:text-red-400 dark:border dark:border-red-500/30 dark:hover:bg-red-500/30"
                     : "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
@@ -227,7 +232,7 @@ export default function Home() {
 
           {/* FORM */}
           {showForm && (
-            <div className="mb-10 animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 ease-out fill-mode-both">
+            <div className="animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300 ease-out fill-mode-both">
               <AddApplicationForm
                 onSuccess={() => {
                   fetchApplications();
@@ -270,7 +275,8 @@ export default function Home() {
             ) : (
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  {/* KORJAUS 2: table-fixed xl:table-auto pakottaa taulukon mobiilissa pysymään näytön rajoissa */}
+                  <table className="w-full text-left border-collapse table-fixed xl:table-auto">
                     <thead className="hidden xl:table-header-group">
                       <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <th className="p-4 pl-6">Tehtävä & Yritys</th>

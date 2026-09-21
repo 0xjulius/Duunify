@@ -208,7 +208,18 @@ export default function NotificationsDropdown() {
                     {item.title}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
-                    {item.message}
+                    {item.message.split(/("[^"]*")/).map((part, index) =>
+                      part.startsWith('"') && part.endsWith('"') ? (
+                        <span
+                          key={index}
+                          className="font-semibold text-slate-800 dark:text-slate-200"
+                        >
+                          {part}
+                        </span>
+                      ) : (
+                        part
+                      ),
+                    )}
                   </p>
                 </div>
 

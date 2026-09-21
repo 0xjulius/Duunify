@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   // 2. Luodaan admin-oikeuksin varustettu Supabase-asiakas taustatehtävää varten
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
   const today = new Date();
@@ -65,13 +65,12 @@ export async function GET(request: Request) {
     const deadlineDate = new Date(app.valid_through);
     deadlineDate.setHours(0, 0, 0, 0);
     const daysLeft = Math.ceil(
-      (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
     );
 
-    const messageText = `Tallentamasi työpaikan "${app.company} - ${
-      app.job_title
-    }" hakuaika päättyy ${
-      daysLeft === 0 ? "tänään" : `${daysLeft} pv kuluttua`
+    // Korvataan viestin luonti cron-reitissä tällä muotoilulla:
+    const messageText = `Työpaikan "${app.company} – ${app.job_title}" hakuaika päättyy ${
+      daysLeft === 0 ? "tänään" : `${daysLeft} päivän kuluttua`
     }.`;
 
     // Tarkistetaan duplikaatit
@@ -99,10 +98,7 @@ export async function GET(request: Request) {
       .insert(newNotifications);
 
     if (insertError) {
-      return NextResponse.json(
-        { error: insertError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
   }
 
