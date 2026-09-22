@@ -107,7 +107,7 @@ export default function RecentApplications({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col h-[340px] animate-pulse">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm flex flex-col min-h-[340px] animate-pulse">
         <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-6" />
         {Array.from({ length: 4 }).map((_, i) => (
           <div
@@ -124,7 +124,7 @@ export default function RecentApplications({
 
   if (errorMsg) {
     return (
-      <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-500/5 p-6 shadow-sm flex flex-col h-[340px] justify-between text-red-800 dark:text-red-300">
+      <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-500/5 p-4 sm:p-6 shadow-sm flex flex-col min-h-[340px] justify-between text-red-800 dark:text-red-300">
         <div className="flex flex-col items-center justify-center flex-1 text-center gap-2">
           <AlertCircle className="text-red-500 dark:text-red-400" size={32} />
           <h3 className="font-bold text-sm text-red-950 dark:text-red-200">
@@ -139,13 +139,14 @@ export default function RecentApplications({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col h-[340px] justify-between">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm flex flex-col min-h-[340px] justify-between">
       <div className="flex flex-col">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
+        {/* Header flex-col / flex-row korjaus */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-50">
             Viimeisimmät aktiviteetit
           </h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <div className="relative flex items-center">
               <Filter size={12} className="absolute left-2 text-slate-400 pointer-events-none" />
               <select
@@ -164,11 +165,11 @@ export default function RecentApplications({
             <DownloadButton data={filteredApps} fileName="tyohakemukset" />
           </div>
         </div>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 sm:mt-0.5">
           {selectedStatus === "all" ? "Viimeisimmät aktiviteettisi." : `Suodatettu: ${selectedStatus}`}
         </p>
 
-        <div className="mt-1 flex flex-col">
+        <div className="mt-2 flex flex-col">
           {filteredApps.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-12">
               <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">
@@ -180,9 +181,9 @@ export default function RecentApplications({
               <button
                 key={app.id}
                 onClick={() => onOpenApplication(app, isDemoMode)}
-                className="w-full flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-800 last:border-0 group transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-lg -mx-2 px-2 text-left"
+                className="w-full flex items-center justify-between py-2.5 sm:py-3 border-b border-slate-100 dark:border-slate-800 last:border-0 group transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-lg -mx-1 sm:-mx-2 px-1 sm:px-2 text-left gap-2"
               >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                   <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors overflow-hidden">
                     {isDemoMode ? (
                       <DemoCompanyLogo logo={app.company_logo} company={app.company} />
@@ -191,12 +192,13 @@ export default function RecentApplications({
                     )}
                   </div>
 
-                  <div className="min-w-0 truncate">
-                    <div className="flex items-baseline gap-2">
-                      <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  <div className="min-w-0 flex-1">
+                    {/* Tekstien ja aikaleiman responsiivinen asettelu */}
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2 min-w-0">
+                      <h4 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                         {app.company || "Tuntematon yritys"}
                       </h4>
-                      <span className="text-[10px] text-slate-400 dark:text-orange-300 font-medium whitespace-nowrap">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-400 font-normal sm:font-medium whitespace-nowrap">
                         {formatActivityTime(app.created_at)}
                       </span>
                     </div>
@@ -207,7 +209,7 @@ export default function RecentApplications({
                 </div>
 
                 <span
-                  className={`ml-4 text-[11px] font-bold px-2 py-0.5 rounded-lg border capitalize flex-shrink-0 tracking-tight ${getStatusBadgeClass(app.status)}`}
+                  className={`ml-2 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-lg border capitalize flex-shrink-0 tracking-tight ${getStatusBadgeClass(app.status)}`}
                 >
                   {app.status || "Haettu"}
                 </span>
