@@ -2,12 +2,14 @@
 
 import React, { useState, useRef } from "react";
 import { FileText, X, FileUp, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface AddAttachmentProps {
   notes: string;
   setNotes: (notes: string) => void;
   file: File | null;
   setFile: (file: File | null) => void;
+  isDemo?: boolean;
 }
 
 // Asetetaan rajaksi tasan 250 KB tavuina
@@ -18,6 +20,7 @@ export default function AddAttachment({
   setNotes,
   file,
   setFile,
+  isDemo = false,
 }: AddAttachmentProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +39,10 @@ export default function AddAttachment({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isDemo) {
+      toast.info("Liitteiden lataaminen ei ole käytössä demoversiossa.");
+      return;
+    }
     if (e.target.files && e.target.files[0]) {
       validateAndSetFile(e.target.files[0]);
     }
@@ -44,6 +51,8 @@ export default function AddAttachment({
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isDemo) return;
+
     if (e.type === "dragenter" || e.type === "dragover") {
       setIsDragActive(true);
     } else if (e.type === "dragleave") {
@@ -56,16 +65,29 @@ export default function AddAttachment({
     e.stopPropagation();
     setIsDragActive(false);
 
+    if (isDemo) {
+      toast.info("Liitteiden lataaminen ei ole käytössä demoversiossa.");
+      return;
+    }
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       validateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
   const triggerFileInput = () => {
+    if (isDemo) {
+      toast.info("Liitteiden lataaminen ei ole käytössä demoversiossa.");
+      return;
+    }
     fileInputRef.current?.click();
   };
 
   const removeFile = () => {
+    if (isDemo) {
+      toast.info("Liitteiden poistaminen ei ole käytössä demoversiossa.");
+      return;
+    }
     setFile(null);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -93,6 +115,7 @@ export default function AddAttachment({
           ref={fileInputRef}
           onChange={handleFileChange}
           accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+          disabled={isDemo}
           className="hidden"
         />
 
@@ -103,7 +126,9 @@ export default function AddAttachment({
             onDragLeave={handleDrag}
             onDrop={handleDrop}
             onClick={triggerFileInput}
-            className={`w-full rounded-2xl border-2 border-dashed p-6 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
+            className={`w-full rounded-2xl border-2 border-dashed p-6 flex flex-col items-center justify-center gap-3 transition-all ${
+              isDemo ? "cursor-not-allowed opacity-80" : "cursor-pointer"
+            } ${
               isDragActive
                 ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20"
                 : error 

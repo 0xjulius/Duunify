@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import DemoSidebar from "@/components/demo/DemoSidebar";
+import DemoHeader from "@/components/demo/DemoHeader";
 import DemoBanner from "@/components/demo/DemoBanner";
+import PageHeader from "@/components/PageHeader";
 import HistoryClient from "@/components/history/HistoryClient";
+import { History } from "lucide-react";
 
 function daysAgoISO(offsetDays: number, hour = 9, minute = 0): string {
   const d = new Date();
@@ -93,13 +96,30 @@ export default function DemoHistoryPage() {
   const [items] = useState(() => buildDemoHistory());
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 dark:bg-slate-950 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <DemoSidebar />
 
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        <main className="flex-1 p-6 md:p-8">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Yläpalkki reunasta reunaan */}
+        <DemoHeader
+          userName="Maija Meikäläinen"
+          userEmail="maija.meikalainen@demo.fi"
+        />
+
+        <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-6 pb-24 lg:pb-10">
           <DemoBanner />
-          <div className="mt-6">
+
+          {/* PageHeader-komponentti */}
+          <div className="pb-2 border-b border-slate-200/60 dark:border-slate-800">
+            <PageHeader
+              title="Aktiviteettihistoria"
+              description="Katso aikajanalta kaikki hakemuksiisi tehdyt muutokset ja tapahtumat."
+              icon={History}
+              isDemo={true}
+            />
+          </div>
+
+          <div className="mt-2">
             <HistoryClient items={items} />
           </div>
         </main>

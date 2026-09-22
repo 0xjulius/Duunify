@@ -3,6 +3,7 @@ import ApplicationSheet from "@/app/applications/ApplicationDialog";
 import { CompanyLogo } from "@/components/applications/CompanyLogo";
 import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 import { useState } from "react";
+import { toast } from "sonner";
 
 // Shadcn UI komponentit poistomodaalia varten
 import {
@@ -44,6 +45,7 @@ export default function ApplicationRow({
   app,
   onDelete,
   onChange,
+  onClick,
   isDemo = false,
 }: ApplicationRowProps) {
   const [open, setOpen] = useState(false);
@@ -69,7 +71,19 @@ export default function ApplicationRow({
   };
 
   const openApplication = () => {
+    if (onClick) {
+      onClick();
+    }
     setOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setShowDeleteModal(false);
+    if (isDemo) {
+      toast.info("Hakemuksen poistaminen ei ole käytössä demoversiossa.");
+      return;
+    }
+    onDelete(app.id);
   };
 
   const statusBadge = getStatusBadge(app.status);
@@ -154,7 +168,10 @@ export default function ApplicationRow({
 
             <button
               type="button"
-              onClick={() => setShowDeleteModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteModal(true);
+              }}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/20 dark:hover:text-red-400 transition"
               title="Poista hakemus"
               aria-label="Poista hakemus"
@@ -238,7 +255,10 @@ export default function ApplicationRow({
 
                 <button
                   type="button"
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteModal(true);
+                  }}
                   className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/20 dark:hover:text-red-400 transition"
                   title="Poista hakemus"
                   aria-label="Poista hakemus"
@@ -252,7 +272,7 @@ export default function ApplicationRow({
       </tr>
 
       {/* =========================================================
-          SHADCN DIALOG - VAHVISTUSMODAL POISTOLLE (PÄIVITETTY TYYLI)
+          SHADCN DIALOG - VAHVISTUSMODAL POISTOLLE
           ========================================================= */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
@@ -282,10 +302,7 @@ export default function ApplicationRow({
             </Button>
             <Button
               type="button"
-              onClick={() => {
-                onDelete(app.id);
-                setShowDeleteModal(false);
-              }}
+              onClick={handleDeleteConfirm}
               className="w-full rounded-2xl h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm"
             >
               Poista
@@ -295,7 +312,12 @@ export default function ApplicationRow({
       </Dialog>
 
       {/* Hakemuksen detail-dialog */}
-      <ApplicationSheet open={open} onOpenChange={setOpen} app={app} />
+      <ApplicationSheet
+        open={open}
+        onOpenChange={setOpen}
+        app={app}
+        isDemo={isDemo}
+      />
     </>
   );
 }

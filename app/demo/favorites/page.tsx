@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import DemoSidebar from "@/components/demo/DemoSidebar";
+import DemoHeader from "@/components/demo/DemoHeader";
+import DemoBanner from "@/components/demo/DemoBanner";
+import PageHeader from "@/components/PageHeader";
 import { CompanyLogo } from "@/components/applications/CompanyLogo";
 import {
   Bookmark,
@@ -120,27 +123,27 @@ export default function DemoFavoritesPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col lg:flex-row bg-slate-50 dark:bg-slate-950 transition-colors duration-300 text-slate-900 dark:text-slate-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 dark:bg-slate-950 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <DemoSidebar />
 
-      <div className="flex-1 overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1500px] mx-auto flex flex-col gap-6">
-          {/* HEADER */}
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-3">
-                <span className="bg-gradient-to-br from-indigo-500 to-violet-600 p-2.5 sm:p-3 rounded-xl shrink-0">
-                  <Bookmark className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                </span>
-                Tallennetut työpaikat{" "}
-                <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md font-normal">
-                  Demo
-                </span>
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1.5 text-xs sm:text-sm">
-                Työpaikat, jotka haluat laittaa talteen.
-              </p>
-            </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Yläpalkki sijoitettuna sisältöalueen yläosaan reunasta reunaan */}
+        <DemoHeader
+          userName="Maija Meikäläinen"
+          userEmail="maija.meikalainen@demo.fi"
+        />
+
+        <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-6 pb-24 lg:pb-10 text-slate-900 dark:text-slate-50">
+          <DemoBanner />
+
+          {/* HEADER PAGEHEADER-KOMPONENTILLA */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
+            <PageHeader
+              title="Tallennetut työpaikat"
+              description="Työpaikat, jotka haluat laittaa talteen."
+              icon={Bookmark}
+              isDemo={true}
+            />
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
               {/* Hakupalkki */}
@@ -160,7 +163,7 @@ export default function DemoFavoritesPage() {
 
               <button
                 onClick={() => setShowForm((prev) => !prev)}
-                className="bg-indigo-600 dark:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm"
+                className="bg-indigo-600 dark:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm cursor-pointer"
               >
                 {showForm ? "Sulje lomake" : "+ Tallenna työpaikka"}
               </button>
@@ -172,7 +175,7 @@ export default function DemoFavoritesPage() {
             <div className="relative border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 p-6 shadow-md">
               <button
                 onClick={() => setShowForm(false)}
-                className="absolute top-4 right-4 z-10 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition"
+                className="absolute top-4 right-4 z-10 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer"
                 aria-label="Sulje lomake"
               >
                 <X size={18} />
@@ -190,7 +193,7 @@ export default function DemoFavoritesPage() {
                 />
                 <button
                   type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm cursor-pointer"
                 >
                   Hae tiedot ja tallenna
                 </button>
@@ -202,7 +205,7 @@ export default function DemoFavoritesPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <button
               onClick={() => setActiveStatFilter("tallennetut")}
-              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all text-left hover:border-indigo-500 dark:hover:border-indigo-400 group relative overflow-hidden"
+              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-all text-left hover:border-indigo-500 dark:hover:border-indigo-400 group relative overflow-hidden cursor-pointer"
             >
               <h3 className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 Tallennetut paikat
@@ -221,7 +224,7 @@ export default function DemoFavoritesPage() {
 
             <button
               onClick={() => setActiveStatFilter("uudet")}
-              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all text-left hover:border-emerald-500 dark:hover:border-emerald-400 group relative overflow-hidden"
+              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-all text-left hover:border-emerald-500 dark:hover:border-emerald-400 group relative overflow-hidden cursor-pointer"
             >
               <h3 className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                 Uudet tällä viikolla
@@ -240,7 +243,7 @@ export default function DemoFavoritesPage() {
 
             <button
               onClick={() => setActiveStatFilter("paattyvat")}
-              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all text-left hover:border-amber-500 dark:hover:border-amber-400 group relative overflow-hidden"
+              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-all text-left hover:border-amber-500 dark:hover:border-amber-400 group relative overflow-hidden cursor-pointer"
             >
               <h3 className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                 Päättyy pian
@@ -259,7 +262,7 @@ export default function DemoFavoritesPage() {
 
             <button
               onClick={() => setActiveStatFilter("arkistoidut")}
-              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all text-left hover:border-rose-500 dark:hover:border-rose-400 group relative overflow-hidden"
+              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm transition-all text-left hover:border-rose-500 dark:hover:border-rose-400 group relative overflow-hidden cursor-pointer"
             >
               <h3 className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                 Arkistoidut
@@ -286,7 +289,7 @@ export default function DemoFavoritesPage() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors ${
+                    className={`px-4 py-2 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-colors cursor-pointer ${
                       activeTab === tab
                         ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
                         : "bg-white border border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -297,7 +300,7 @@ export default function DemoFavoritesPage() {
                 ))}
               </div>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm transition-colors">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm transition-colors">
                 {filteredActiveJobs.length === 0 ? (
                   <div className="p-12 text-center text-slate-400 dark:text-slate-500 text-sm">
                     Ei aktiivisia työpaikkoja tässä näkymässä.
@@ -359,7 +362,7 @@ export default function DemoFavoritesPage() {
                 <Trash2 size={16} /> Arkistoidut / Roskakori
               </h3>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm transition-colors min-h-[120px] max-h-[350px] overflow-y-auto">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 divide-y divide-slate-100 dark:divide-slate-800/60 overflow-hidden shadow-sm transition-colors min-h-[120px] max-h-[350px] overflow-y-auto">
                 {archivedJobs.length === 0 ? (
                   <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
                     Ei arkistoituja kohteita.
@@ -400,7 +403,7 @@ export default function DemoFavoritesPage() {
               </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* STATS MODAL */}
@@ -431,7 +434,7 @@ export default function DemoFavoritesPage() {
             </div>
             <button
               onClick={() => setActiveStatFilter(null)}
-              className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -490,6 +493,6 @@ export default function DemoFavoritesPage() {
         app={selectedJob as any}
         isDemo={true}
       />
-    </main>
+    </div>
   );
 }

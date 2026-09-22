@@ -239,6 +239,15 @@ export default function ApplicationCard({
   };
 
   async function deleteApplication() {
+    if (isDemo) {
+      if (onDelete) {
+        onDelete();
+      } else {
+        toast.info("Hakemusten poistaminen ei ole käytössä demoversiossa.");
+      }
+      return;
+    }
+
     if (!confirmDelete) {
       setConfirmDelete(true);
       setTimeout(() => setConfirmDelete(false), 3000);
@@ -269,7 +278,7 @@ export default function ApplicationCard({
     if (loading || newStatus === app.status) return;
 
     if (isDemo) {
-      toast.info("Tilan vaihtaminen ei ole käytössä demotilassa.");
+      toast.info("Tilan vaihtaminen ei ole käytössä demoversiossa.");
       return;
     }
 
@@ -311,6 +320,13 @@ export default function ApplicationCard({
 
   async function saveApplication(e?: React.FormEvent) {
     if (e) e.preventDefault();
+
+    if (isDemo) {
+      toast.info("Hakemusten muokkaaminen ei ole käytössä demoversiossa.");
+      setEditingApplication(false);
+      return;
+    }
+
     if (loading) return;
     setLoading(true);
 
@@ -567,14 +583,14 @@ export default function ApplicationCard({
             <button
               onClick={saveApplication}
               disabled={loading}
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-xl bg-emerald-600 px-4 py-2 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 cursor-pointer"
             >
               💾 Tallenna
             </button>
 
             <button
               onClick={() => setEditingApplication(false)}
-              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 font-medium hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
             >
               Peruuta
             </button>
@@ -582,7 +598,7 @@ export default function ApplicationCard({
               onClick={deleteApplication}
               disabled={loading}
               aria-label="Poista hakemus"
-              className={`rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-medium text-white ${
+              className={`rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 font-medium text-white cursor-pointer ${
                 confirmDelete
                   ? "animate-pulse bg-red-500 text-black dark:text-white"
                   : "bg-red-400 hover:text-white hover:bg-red-500 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/40"
@@ -667,13 +683,18 @@ export default function ApplicationCard({
                 e.stopPropagation();
                 setOpen(true);
               }}
-              className="p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+              className="p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer"
               title="Avaa ilmoitus"
             >
               <Maximize2 size={18} strokeWidth={2} />
             </button>
           </div>
-          <ApplicationSheet open={open} onOpenChange={setOpen} app={app} />
+          <ApplicationSheet
+            open={open}
+            onOpenChange={setOpen}
+            app={app}
+            isDemo={isDemo}
+          />
         </div>
       )}
     </div>

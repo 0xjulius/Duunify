@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import DemoSidebar from "@/components/demo/DemoSidebar";
 import DemoBanner from "@/components/demo/DemoBanner";
 import StatsCard from "@/components/dashboard/StatsCard";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import ImpactRatingCard from "@/components/dashboard/ImpactRatingCard";
 import ConsistencyCard from "@/components/dashboard/ConsistencyCard";
 import LocationsCard from "@/components/dashboard/LocationsChart";
@@ -16,6 +15,7 @@ import UpcomingDeadlines from "@/components/dashboard/UpcomingDeadlines";
 import { DemoCompanyLogo } from "@/components/demo/DemoCompanyLogo";
 import GhostedCard from "@/components/dashboard/GhostedCard";
 import ApplicationDialog from "@/app/applications/ApplicationDialog";
+import DemoHeader from "@/components/demo/DemoHeader";
 import {
   Briefcase,
   Clock,
@@ -76,14 +76,14 @@ export default function DemoDashboardPage() {
     setMounted(true);
   }, []);
 
-  // ALUSTETAAN TILASTOT JA PROSENTIT HETI ALUSSA JÄRJESTYKSESSÄ[cite: 5]
+  // ALUSTETAAN TILASTOT JA PROSENTIT HETI ALUSSA JÄRJESTYKSESSÄ
   const stats = computeDemoStats();
   const locationStats = computeDemoLocationStats();
 
   const interviewPercentage =
     stats.total > 0 ? Math.round((stats.interviews / stats.total) * 100) : 0;
 
-  // Varmistetaan nollalla suojautuminen, jos stats.ghosted on undefined[cite: 5]
+  // Varmistetaan nollalla suojautuminen, jos stats.ghosted on undefined
   const ghostedCount = (stats as any).ghosted || 0;
   const ghostedPercentage =
     stats.total > 0 ? Math.round((ghostedCount / stats.total) * 100) : 0;
@@ -178,197 +178,210 @@ export default function DemoDashboardPage() {
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 dark:bg-slate-950 overflow-x-hidden bg-gradient-to-br from-violet-50 via-pink-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       <DemoSidebar />
 
-      <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-6 pb-24 lg:pb-10">
-        <ApplicationDialog
-          app={selectedApplication}
-          open={open}
-          onOpenChange={setOpen}
-          isDemo={isDemoClick || true}
+      {/* Oikean puolen pääalue */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Yläpalkki reunasta reunaan */}
+        <DemoHeader
+          userName="Maija Meikäläinen"
+          userEmail="maija.meikalainen@demo.fi"
         />
 
-        <DemoBanner />
+        {/* Varsinainen sisältöalue marginaaleilla */}
+        <main className="flex-1 flex flex-col p-4 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto gap-6 pb-24 lg:pb-10">
+          <ApplicationDialog
+            app={selectedApplication}
+            open={open}
+            onOpenChange={setOpen}
+            isDemo={isDemoClick || true}
+          />
+          <DemoBanner />
 
-        <header className="mb-8">
-          <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
-            {getGreeting()}
-            <span>Demokäyttäjä 👋</span>
-          </h1>
+          {/* OTSAKKEET JA PARANNETTU ASETTELU */}
+          <header className="mb-8 flex flex-col gap-6">
+            {/* YLÄRIVI: Tervetulotoivotus + PVM & Aika oikealla */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-800/80 pb-4">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span>{getGreeting()}</span>
+                <span>Demokäyttäjä 👋</span>
+              </h1>
 
-          {mounted && (
-            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-xl mb-6">
-              {new Date().toLocaleDateString("fi-FI", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}{" "}
-              • Klo {new Date().getHours()}:
-              {new Date().getMinutes().toString().padStart(2, "0")}
-            </p>
-          )}
-
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3.5 rounded-2xl shadow-md">
-              <LayoutDashboard className="h-10 w-10 text-white" />
+              {mounted && (
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  {new Date().toLocaleDateString("fi-FI", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}{" "}
+                  • Klo {new Date().getHours()}:
+                  {new Date().getMinutes().toString().padStart(2, "0")}
+                </span>
+              )}
             </div>
 
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Yleiskatsaus
-              </h2>
-              <p className="mt-1 text-slate-500 dark:text-slate-400 text-sm md:text-lg">
-                Työnhakusi yhdellä silmäyksellä
-              </p>
-            </div>
-          </div>
-        </header>
-
-        <div className="flex flex-col gap-6">
-          <section className="grid gap-6 grid-cols-12">
-            {/* YLÄRIVI: 3 KORTTIA (Mobiilissa 2 peräkkäin, työpöydällä 4 palstaa) */}
-            <div className="col-span-6 md:col-span-4">
-              <StatsCard
-                title="Hakemukset"
-                value={stats.total}
-                subtitle={<span>hakemuksia yhteensä</span>}
-                color="blue"
-                icon={<Briefcase className="h-6 w-6" />}
-                onClick={() => setActiveStatFilter("total")}
-              />
-            </div>
-
-            <div className="col-span-6 md:col-span-4">
-              <StatsCard
-                title="Vireillä olevat"
-                value={stats.pending}
-                subtitle={
-                  stats.pending > 0
-                    ? "Aktiiviset rekrytoinnit"
-                    : "Ei aktiivisia hakuja"
-                }
-                color="amber"
-                icon={<Clock className="h-6 w-6" />}
-                onClick={() => setActiveStatFilter("pending")}
-              />
-            </div>
-
-            <div className="col-span-12 md:col-span-4">
-              <GhostedCard
-                value={ghostedCount}
-                percentage={ghostedPercentage}
-                onClick={() => setActiveStatFilter("ghosted")}
-              />
-            </div>
-
-            {/* ALARIVI: SEURAAVAT 4 KORTTIA (Mobiilissa 2 peräkkäin, työpöydällä 3 palstaa) */}
-            <div className="col-span-6 md:col-span-3">
-              <StatsCard
-                title="Tallennetut"
-                value={stats.favorites}
-                subtitle={
-                  <span className="text-amber-600 dark:text-amber-400 font-medium">
-                    Katso suosikit
-                  </span>
-                }
-                color="amber"
-                icon={<Star className="h-6 w-6" />}
-                onClick={() => setActiveStatFilter("favorites")}
-              />
-            </div>
-
-            <div className="col-span-6 md:col-span-3">
-              <StatsCard
-                title="Haastattelut"
-                value={stats.interviews}
-                subtitle={`${interviewPercentage} % hakemuksista`}
-                color="violet"
-                icon={<Calendar className="h-6 w-6" />}
-                onClick={() => setActiveStatFilter("interviews")}
-              />
-            </div>
-
-            <div className="col-span-6 md:col-span-3">
-              <StatsCard
-                title="Tarjoukset"
-                value={stats.offers}
-                subtitle={
-                  stats.offers > 0
-                    ? "Upea saavutus! 🎉"
-                    : "Uusia ovia avautuu pian.."
-                }
-                color="green"
-                icon={<CheckCircle2 className="h-6 w-6" />}
-                onClick={() => setActiveStatFilter("offers")}
-              />
-            </div>
-
-            <div className="col-span-6 md:col-span-3">
-              <StatsCard
-                title="Hylätyt"
-                value={stats.rejected}
-                subtitle={
-                  stats.rejected === 0
-                    ? "Ei vielä hylkäyksiä!"
-                    : "Jatka hakemista!"
-                }
-                color="red"
-                icon={<XCircle className="h-6 w-6" />}
-                onClick={() => setActiveStatFilter("rejected")}
-              />
-            </div>
-          </section>
-
-          <section className="flex flex-col gap-6 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-3 flex flex-col gap-6">
-                <ImpactRatingCard
-                  pending={stats.pending}
-                  rejected={stats.rejected}
-                  favorites={stats.favorites}
-                />
-                <ConsistencyCard percentage={stats.consistency} />
+            {/* ALARIVI: Yleiskatsaus-otsikko ja ikoni */}
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-br from-indigo-500 to-violet-600 p-3 rounded-2xl text-white shadow-sm shrink-0">
+                <LayoutDashboard className="h-6 w-6" />
               </div>
-
-              <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <LocationsCard demoData={locationStats} />
-                <ApplicationsChart demoApplications={DEMO_APPLICATIONS} />
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                  Yleiskatsaus
+                </h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Työnhakusi yhdellä silmäyksellä
+                </p>
               </div>
             </div>
+          </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8">
-                <ApplicationTrendChart demoApplications={DEMO_APPLICATIONS} />
-              </div>
-              <div className="lg:col-span-4">
-                <ActivityHeatmap demoApplications={[]} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8">
-                <RecentApplications
-                  demoApps={DEMO_APPLICATIONS as any}
-                  onOpenApplication={(app, isDemo) => {
-                    setSelectedApplication(app);
-                    setIsDemoClick(!!isDemo);
-                    setOpen(true);
-                  }}
+          <div className="flex flex-col gap-6">
+            <section className="grid gap-6 grid-cols-12">
+              {/* YLÄRIVI: 3 KORTTIA */}
+              <div className="col-span-6 md:col-span-4">
+                <StatsCard
+                  title="Hakemukset"
+                  value={stats.total}
+                  subtitle={<span>hakemuksia yhteensä</span>}
+                  color="blue"
+                  icon={<Briefcase className="h-6 w-6" />}
+                  onClick={() => setActiveStatFilter("total")}
                 />
               </div>
-              <div className="lg:col-span-4 mb-10">
-                <UpcomingDeadlines
-                  onOpenApplication={(app) => {
-                    setSelectedApplication(app);
-                    setOpen(true);
-                  }}
-                  demoApps={
-                    DEMO_APPLICATIONS.filter((a) => a.valid_through) as any
+
+              <div className="col-span-6 md:col-span-4">
+                <StatsCard
+                  title="Vireillä olevat"
+                  value={stats.pending}
+                  subtitle={
+                    stats.pending > 0
+                      ? "Aktiiviset rekrytoinnit"
+                      : "Ei aktiivisia hakuja"
                   }
+                  color="amber"
+                  icon={<Clock className="h-6 w-6" />}
+                  onClick={() => setActiveStatFilter("pending")}
                 />
               </div>
-            </div>
-          </section>
-        </div>
-      </main>
+
+              <div className="col-span-12 md:col-span-4">
+                <GhostedCard
+                  value={ghostedCount}
+                  percentage={ghostedPercentage}
+                  onClick={() => setActiveStatFilter("ghosted")}
+                />
+              </div>
+
+              {/* ALARIVI: SEURAAVAT 4 KORTTIA */}
+              <div className="col-span-6 md:col-span-3">
+                <StatsCard
+                  title="Tallennetut"
+                  value={stats.favorites}
+                  subtitle={
+                    <span className="text-amber-600 dark:text-amber-400 font-medium">
+                      Katso suosikit
+                    </span>
+                  }
+                  color="amber"
+                  icon={<Star className="h-6 w-6" />}
+                  onClick={() => setActiveStatFilter("favorites")}
+                />
+              </div>
+
+              <div className="col-span-6 md:col-span-3">
+                <StatsCard
+                  title="Haastattelut"
+                  value={stats.interviews}
+                  subtitle={`${interviewPercentage} % hakemuksista`}
+                  color="violet"
+                  icon={<Calendar className="h-6 w-6" />}
+                  onClick={() => setActiveStatFilter("interviews")}
+                />
+              </div>
+
+              <div className="col-span-6 md:col-span-3">
+                <StatsCard
+                  title="Tarjoukset"
+                  value={stats.offers}
+                  subtitle={
+                    stats.offers > 0
+                      ? "Upea saavutus! 🎉"
+                      : "Uusia ovia avautuu pian.."
+                  }
+                  color="green"
+                  icon={<CheckCircle2 className="h-6 w-6" />}
+                  onClick={() => setActiveStatFilter("offers")}
+                />
+              </div>
+
+              <div className="col-span-6 md:col-span-3">
+                <StatsCard
+                  title="Hylätyt"
+                  value={stats.rejected}
+                  subtitle={
+                    stats.rejected === 0
+                      ? "Ei vielä hylkäyksiä!"
+                      : "Jatka hakemista!"
+                  }
+                  color="red"
+                  icon={<XCircle className="h-6 w-6" />}
+                  onClick={() => setActiveStatFilter("rejected")}
+                />
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-6 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="md:col-span-3 flex flex-col gap-6">
+                  <ImpactRatingCard
+                    pending={stats.pending}
+                    rejected={stats.rejected}
+                    favorites={stats.favorites}
+                  />
+                  <ConsistencyCard percentage={stats.consistency} />
+                </div>
+
+                <div className="md:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <LocationsCard demoData={locationStats} />
+                  <ApplicationsChart demoApplications={DEMO_APPLICATIONS} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8">
+                  <ApplicationTrendChart demoApplications={DEMO_APPLICATIONS} />
+                </div>
+                <div className="lg:col-span-4">
+                  <ActivityHeatmap demoApplications={[]} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8">
+                  <RecentApplications
+                    demoApps={DEMO_APPLICATIONS as any}
+                    onOpenApplication={(app, isDemo) => {
+                      setSelectedApplication(app);
+                      setIsDemoClick(!!isDemo);
+                      setOpen(true);
+                    }}
+                  />
+                </div>
+                <div className="lg:col-span-4 mb-10">
+                  <UpcomingDeadlines
+                    onOpenApplication={(app) => {
+                      setSelectedApplication(app);
+                      setOpen(true);
+                    }}
+                    demoApps={
+                      DEMO_APPLICATIONS.filter((a) => a.valid_through) as any
+                    }
+                  />
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
 
       {/* INTERAKTIIVINEN STATS MODAL METRIIKOILLE */}
       <div
