@@ -361,7 +361,8 @@ export default function LandingPage() {
               index={0}
               icon={<Sparkles size={20} />}
               title="Tekoälyavustaja saatekirjeisiin"
-              description="Anna pohjasaatekirjeesi tai taustatietosi — avustaja kohdentaa sen valitsemasi työpaikan vaatimuksiin."
+              description="Anna pohjasaatekirjeesi tai taustatietosi — avustaja kohdentaa sen valitsemasi työpaikan vaatimuksiin sekunneissa."
+              className="md:col-span-2 lg:col-span-3 bg-gradient-to-br from-indigo-100/80 via-indigo-50/40 to-white dark:from-indigo-900/40 dark:via-slate-900 dark:to-slate-900 border-indigo-200 dark:border-indigo-800"
             />
             <FeatureCard
               index={1}
@@ -833,11 +834,13 @@ function FeatureCard({
   title,
   description,
   index = 0,
+  className = "",
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   index?: number;
+  className?: string;
 }) {
   return (
     <motion.div
@@ -845,16 +848,16 @@ function FeatureCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.45, delay: (index % 3) * 0.08 }}
-      whileHover={{ y: -3 }}
-      className="p-6 rounded-2xl border border-slate-100 dark:border-slate-900 bg-transparent hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-sm transition-colors duration-200"
+      whileHover={{ y: -4, scale: 1.01 }}
+      className={`p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 bg-gradient-to-br from-indigo-50/60 via-white to-slate-50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900/80 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300 ${className}`}
     >
-      <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
+      <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 dark:bg-[#6D67F2]/20 text-[#6D67F2] flex items-center justify-center mb-4 border border-[#6D67F2]/10">
         {icon}
       </div>
-      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1.5">
+      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1.5 text-base">
         {title}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
         {description}
       </p>
     </motion.div>
