@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
@@ -31,13 +31,11 @@ import NavBar from "@/components/NavBar";
 
 // Korvataan Math.random() kiinteällä esimerkkidatalla (63 arvoa väliltä 0.0 - 1.0)
 const MOCK_INTENSITIES = [
-  0.78, 0.47, 0.44, 0.58, 0.25, 0.51, 0.81, 0.11, 0.84, 0.72,
-  0.93, 0.63, 0.07, 0.00, 0.35, 0.41, 0.59, 0.54, 0.86, 0.44,
-  0.87, 0.31, 0.71, 0.15, 0.43, 0.55, 0.02, 0.96, 0.04, 0.44,
-  0.87, 0.13, 0.93, 0.37, 0.95, 0.29, 0.99, 0.98, 0.61, 0.62,
-  0.58, 0.42, 0.70, 0.68, 0.26, 0.19, 0.27, 0.48, 0.36, 0.82,
-  0.48, 0.12, 0.65, 0.88, 0.21, 0.05, 0.74, 0.33, 0.52, 0.91,
-  0.18, 0.40, 0.77
+  0.78, 0.47, 0.44, 0.58, 0.25, 0.51, 0.81, 0.11, 0.84, 0.72, 0.93, 0.63, 0.07,
+  0.0, 0.35, 0.41, 0.59, 0.54, 0.86, 0.44, 0.87, 0.31, 0.71, 0.15, 0.43, 0.55,
+  0.02, 0.96, 0.04, 0.44, 0.87, 0.13, 0.93, 0.37, 0.95, 0.29, 0.99, 0.98, 0.61,
+  0.62, 0.58, 0.42, 0.7, 0.68, 0.26, 0.19, 0.27, 0.48, 0.36, 0.82, 0.48, 0.12,
+  0.65, 0.88, 0.21, 0.05, 0.74, 0.33, 0.52, 0.91, 0.18, 0.4, 0.77,
 ];
 
 // Yhteiset scroll-reveal -asetukset osioiden otsikoille (tyypitetty Variants-tyypillä)
@@ -74,8 +72,10 @@ export default function LandingPage() {
             backgroundImage:
               "linear-gradient(rgba(99,102,241,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.22) 1px, transparent 1px)",
             backgroundSize: "36px 36px",
-            maskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)",
-            WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%)",
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -93,7 +93,11 @@ export default function LandingPage() {
               <motion.span
                 className="w-1.5 h-1.5 rounded-full bg-[#6D67F2]"
                 animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
               />
               Nyt Duunitori ja Jobly -sivustojen tuki
             </span>
@@ -113,9 +117,7 @@ export default function LandingPage() {
             className="duunify-display mt-6 text-4xl md:text-6xl font-bold tracking-tight text-slate-900 dark:text-white max-w-3xl mx-auto"
           >
             Työnhaku, joka näyttää{" "}
-            <span className="text-[#6D67F2]">
-              missä oikeasti menet
-            </span>
+            <span className="text-[#6D67F2]">missä oikeasti menet</span>
           </motion.h1>
 
           <motion.p
@@ -267,7 +269,9 @@ export default function LandingPage() {
 
               <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">24</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    24
+                  </p>
                   <p className="text-xs text-slate-400">hakemusta yhteensä</p>
                 </div>
                 <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 px-2.5 py-1.5 rounded-lg">
@@ -302,7 +306,9 @@ export default function LandingPage() {
 
               <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  <span className="font-bold text-slate-800 dark:text-slate-200">48</span>{" "}
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    48
+                  </span>{" "}
                   aktiviteettia yhteensä
                 </p>
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
@@ -415,8 +421,11 @@ export default function LandingPage() {
               Uusi ominaisuus
             </div>
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
-              Yksi pohja.<br/>{" "}
-              <span className="text-[#6D67F2]">Jokainen saatekirje kohdillaan.</span>
+              Yksi pohja.
+              <br />{" "}
+              <span className="text-[#6D67F2]">
+                Jokainen saatekirje kohdillaan.
+              </span>
             </h2>
             <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
               Valitse tallentamasi työpaikka ja anna avustajalle oma
@@ -424,6 +433,26 @@ export default function LandingPage() {
               vertaa sitä taustaasi ja kohdentaa saatekirjeen — ilman että
               jokainen hakemus pitää kirjoittaa alusta.
             </p>
+
+            {/* YKSITYISYYS / ANONYMISOINTI -LAATIKKO */}
+            {/* YKSITYISYYS / ANONYMISOINTI -LAATIKKO */}
+            <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-4 py-2.5 rounded-2xl text-xs font-medium text-center">
+              <ShieldCheck
+                size={18}
+                className="text-emerald-500 shrink-0 inline-block"
+              />
+              <span>
+                <strong>Täysi yksityisyys:</strong> Anonymisoimme mahdolliset
+                henkilötietosi automaattisesti ennen tekoälyprosessointia.
+              </span>
+              <Link
+                href="/privacy"
+                className="inline-flex items-center gap-1 font-bold underline hover:opacity-80 transition ml-1 shrink-0"
+              >
+                Lue lisää
+                <ArrowRight size={12} />
+              </Link>
+            </div>
           </motion.div>
 
           <div className="grid lg:grid-cols-5 gap-6 items-start">
@@ -451,7 +480,10 @@ export default function LandingPage() {
                     </p>
                   </div>
                 </div>
-                <ChevronDown size={16} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                <ChevronDown
+                  size={16}
+                  className="text-slate-300 dark:text-slate-600 shrink-0"
+                />
               </div>
 
               {/* step 2: pohja */}
@@ -471,9 +503,21 @@ export default function LandingPage() {
                 Ilmoitus vs. taustasi
               </p>
               <div className="space-y-2.5 mb-5">
-                <MatchRow index={0} requirement="3+ vuotta kokemusta" match="4 vuotta full-stack-työtä" />
-                <MatchRow index={1} requirement="React & Node.js" match="React/Node.js viimeisimmässä roolissa" />
-                <MatchRow index={2} requirement="Asiakasprojektit" match="2v freelance-asiakastyötä" />
+                <MatchRow
+                  index={0}
+                  requirement="3+ vuotta kokemusta"
+                  match="4 vuotta full-stack-työtä"
+                />
+                <MatchRow
+                  index={1}
+                  requirement="React & Node.js"
+                  match="React/Node.js viimeisimmässä roolissa"
+                />
+                <MatchRow
+                  index={2}
+                  requirement="Asiakasprojektit"
+                  match="2v freelance-asiakastyötä"
+                />
               </div>
 
               <div className="h-px bg-slate-100 dark:bg-slate-800 mb-5" />
@@ -491,9 +535,8 @@ export default function LandingPage() {
               >
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic">
                   &ldquo;...Edellisessä roolissani rakensin React- ja
-                  Node.js-pohjaisia ratkaisuja suoraan asiakkaille, mikä
-                  vastaa hyvin hakemaanne Full Stack -kehittäjän
-                  profiiliin...&rdquo;
+                  Node.js-pohjaisia ratkaisuja suoraan asiakkaille, mikä vastaa
+                  hyvin hakemaanne Full Stack -kehittäjän profiiliin...&rdquo;
                 </p>
               </motion.div>
               <p className="mt-3 text-xs text-slate-400 flex items-center gap-1.5">
@@ -564,6 +607,15 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
           >
+            {/* LISÄTTY SARAKEOTSIKOT TÄHÄN */}
+            <div className="flex items-center justify-between px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs font-bold uppercase text-slate-400">
+              <span>Ominaisuus</span>
+              <div className="flex items-center gap-8 shrink-0">
+                <span className="w-16 text-center">Excel</span>
+                <span className="w-16 text-center text-[#6D67F2]">Duunify</span>
+              </div>
+            </div>
+
             <ComparisonRow
               index={0}
               label="Tekoälyn kohdentama saatekirje ilmoituksen perusteella"
@@ -619,7 +671,8 @@ export default function LandingPage() {
             className="text-center max-w-2xl mx-auto mb-16"
           >
             <h2 className="duunify-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-              Löydä. Tallenna. Seuraa.<br/>{" "}
+              Löydä. Tallenna. Seuraa.
+              <br />{" "}
               <span className="text-[#6D67F2]">Analysoi. Valmistele. Hae.</span>
             </h2>
             <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -708,16 +761,24 @@ export default function LandingPage() {
           <div className="relative inline-block mt-8">
             <motion.div
               className="absolute inset-0 rounded-2xl blur-xl"
-              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+              style={{
+                background: "linear-gradient(135deg, #6D67F2, #5750E0)",
+              }}
               animate={{ opacity: [0.35, 0.6, 0.35], scale: [1, 1.08, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
             <motion.button
               onClick={() => setShowLoginModal(true)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
               className="relative inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none"
-              style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+              style={{
+                background: "linear-gradient(135deg, #6D67F2, #5750E0)",
+              }}
             >
               Aloita ilmaiseksi
               <ArrowRight size={18} />
@@ -790,8 +851,12 @@ function FeatureCard({
       <div className="w-10 h-10 rounded-xl bg-[#6D67F2]/10 text-[#6D67F2] flex items-center justify-center mb-4">
         {icon}
       </div>
-      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1.5">{title}</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{description}</p>
+      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1.5">
+        {title}
+      </h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+        {description}
+      </p>
     </motion.div>
   );
 }
@@ -819,8 +884,12 @@ function StepCard({
       <span className="duunify-mono text-2xl font-bold text-[#6D67F2]/30">
         {number}
       </span>
-      <h3 className="font-bold text-slate-900 dark:text-slate-100 mt-3 mb-1.5">{title}</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{description}</p>
+      <h3 className="font-bold text-slate-900 dark:text-slate-100 mt-3 mb-1.5">
+        {title}
+      </h3>
+      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+        {description}
+      </p>
     </motion.div>
   );
 }
@@ -877,7 +946,9 @@ function AiPointRow({
         {icon}
       </div>
       <div>
-        <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">{title}</h4>
+        <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+          {title}
+        </h4>
         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
           {description}
         </p>
@@ -902,9 +973,13 @@ function LegendRow({
           className="w-2 h-2 rounded-full shrink-0"
           style={{ backgroundColor: color }}
         />
-        <span className="text-slate-600 dark:text-slate-400 font-medium">{label}</span>
+        <span className="text-slate-600 dark:text-slate-400 font-medium">
+          {label}
+        </span>
       </div>
-      <span className="font-bold text-slate-900 dark:text-slate-100">{value}</span>
+      <span className="font-bold text-slate-900 dark:text-slate-100">
+        {value}
+      </span>
     </div>
   );
 }
@@ -954,7 +1029,13 @@ function ComparisonRow({
 }
 
 // Logissa olleet väriavainten rajat täsmäävät nyt suoraan annettuihin arvoihin
-function ActivitySquare({ intensity, index = 0 }: { intensity: number; index?: number }) {
+function ActivitySquare({
+  intensity,
+  index = 0,
+}: {
+  intensity: number;
+  index?: number;
+}) {
   let baseColor = "bg-slate-150 dark:bg-slate-800"; // < 0.25 (Pohjaväri)
 
   if (intensity > 0.85) {
