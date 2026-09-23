@@ -245,7 +245,7 @@ export default function DemoSidebar() {
 
   // --- TYÖPÖYTÄ: supistettava sivupalkki ---
   const sidebarCollapsed = collapsed;
-  const isSettingsActive = pathname === "/settings";
+  const isSettingsActive = pathname === "/demo/demosettings";
 
   return (
     <aside
@@ -316,7 +316,7 @@ export default function DemoSidebar() {
         </button>
 
         <Link
-          href="#"
+          href="/demo/demosettings"
           title="Asetukset"
           className={`w-full flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"} px-4 py-3 rounded-xl transition ${
             isSettingsActive
