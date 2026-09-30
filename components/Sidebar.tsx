@@ -264,8 +264,8 @@ export default function Sidebar() {
       <div className="relative h-20 flex items-center px-5 border-b border-slate-200 dark:border-slate-700">
         {!sidebarCollapsed && (
           <div className="ml-3">
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-50">
-              Duunify
+            <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+              Duunify.
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Työhakemusten hallinta

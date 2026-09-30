@@ -769,7 +769,7 @@ export default function ApplicationDialog({
                 value="description"
                 className="focus-visible:outline-none focus-visible:ring-0"
               >
-                <div className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-base md:text-sm pt-1">
+                <div className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-base md:text-md pt-1">
                   {app.job_description || "Ei kuvausta saatavilla."}
                 </div>
               </TabsContent>
