@@ -1,4 +1,5 @@
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { fetchHistoryItems } from "@/lib/history";
 import HistoryClient from "@/components/history/HistoryClient";
 import { createClient } from "@/lib/supabase-server";
@@ -25,7 +26,8 @@ export default async function HistoryPage() {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        <main className="flex-1 p-6 md:p-8 mb-16">
+        <Header />
+        <main className="flex-1 p-6 md:p-8 mb-16 max-w-[1500px] w-full mx-auto">
           <HistoryClient items={items} />
         </main>
       </div>

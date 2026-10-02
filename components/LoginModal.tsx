@@ -25,6 +25,7 @@ export default function LoginModal({
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
@@ -38,8 +39,9 @@ export default function LoginModal({
     checks.length && checks.lowercase && checks.uppercase && checks.number;
 
   async function login() {
-    if (loading) return;
+    if (loading || isRedirecting) return;
     setLoading(true);
+    setIsRedirecting(false);
 
     try {
       const formData = new FormData();
@@ -61,12 +63,14 @@ export default function LoginModal({
         return;
       }
 
-      toast.success("Tervetuloa takaisin 👋");
-      onClose();
+      toast.success("Tervetuloa Duunifyyn! 👋");
+      setLoading(false);
 
       if (onSuccess) {
+        onClose();
         onSuccess();
       } else {
+        setIsRedirecting(true);
         router.refresh();
         router.push("/dashboard");
       }
@@ -78,11 +82,11 @@ export default function LoginModal({
   }
 
   async function register() {
-    if (loading) return;
+    if (loading || isRedirecting) return;
 
     if (!fullName.trim()) {
-    toast.error("Syötä koko nimesi.");
-    return;
+      toast.error("Syötä koko nimesi.");
+      return;
     }
     
     if (!meetsRequirements) {
@@ -98,6 +102,7 @@ export default function LoginModal({
     }
 
     setLoading(true);
+    setIsRedirecting(false);
 
     try {
       const formData = new FormData();
@@ -108,24 +113,26 @@ export default function LoginModal({
 
       const result = await registerAction(formData);
 
-      setLoading(false);
-
       if (result?.error) {
+        setLoading(false);
         toast.error(translateAuthError(result.error));
         return;
       }
 
       if (result?.fake || result?.data?.session) {
         toast.success("Tili luotu onnistuneesti! Tervetuloa 🎉");
-        onClose();
+        setLoading(false);
 
         if (onSuccess) {
+          onClose();
           onSuccess();
         } else {
+          setIsRedirecting(true);
           router.refresh();
           router.push("/dashboard");
         }
       } else {
+        setLoading(false);
         toast.info("Tarkista sähköpostisi vahvistaaksesi tilisi.");
       }
     } catch (err) {
@@ -226,8 +233,15 @@ export default function LoginModal({
 
             <div className="relative p-6 sm:p-8 md:p-12 flex flex-col justify-center">
               <Perforation side="left" />
+              
+              <div className="w-full max-w-sm mx-auto md:hidden mb-6 text-xl font-bold tracking-tight text-slate-900 dark:text-white hover:opacity-90 transition">
+                <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+                  Duunify.
+                </span>
+              </div>
+
               <FormShell
-                heading="Tervetuloa takaisin"
+                heading="Kirjautuminen."
                 sub="Kirjaudu sisään päästäksesi hallintapaneeliin."
               >
                 <GoogleButton
@@ -246,7 +260,7 @@ export default function LoginModal({
                   <TextField
                     label="Sähköpostiosoite"
                     type="email"
-                    placeholder="etunimi@yritys.fi"
+                    placeholder="Syötä sähköpostiosoitteesi.."
                     value={email}
                     onChange={setEmail}
                   />
@@ -261,13 +275,16 @@ export default function LoginModal({
                     label="Kirjaudu sisään"
                     onClick={login}
                     loading={loading}
+                    redirecting={isRedirecting}
                   />
                 </form>
-                <SwitchLine
-                  prompt="Eikö sinulla ole vielä tunnusta?"
-                  action="Luo tunnus"
-                  onClick={() => setMode("register")}
-                />
+                {!isRedirecting && (
+                  <SwitchLine
+                    prompt="Eikö sinulla ole vielä tunnusta?"
+                    action="Luo tunnus"
+                    onClick={() => setMode("register")}
+                  />
+                )}
               </FormShell>
             </div>
           </div>
@@ -279,6 +296,13 @@ export default function LoginModal({
           >
             <div className="relative p-6 sm:p-8 md:p-12 flex flex-col justify-center order-2 md:order-1">
               <Perforation side="right" />
+              
+              <div className="w-full max-w-sm mx-auto md:hidden mb-6 text-xl font-bold tracking-tight text-slate-900 dark:text-white hover:opacity-90 transition">
+                <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+                  Duunify.
+                </span>
+              </div>
+
               <FormShell
                 heading="Luo tunnus"
                 sub="Aloita ilmaiseksi — ei vaadi luottokorttia."
@@ -346,14 +370,17 @@ export default function LoginModal({
                     label="Luo tunnus"
                     onClick={register}
                     loading={loading}
+                    redirecting={isRedirecting}
                     disabled={!fullName.trim() || !acceptTerms || !meetsRequirements}
                   />
                 </form>
-                <SwitchLine
-                  prompt="Oliko sinulla sittenkin tunnus?"
-                  action="Siirry kirjautumiseen"
-                  onClick={() => setMode("login")}
-                />
+                {!isRedirecting && (
+                  <SwitchLine
+                    prompt="Oliko sinulla sittenkin tunnus?"
+                    action="Siirry kirjautumiseen"
+                    onClick={() => setMode("login")}
+                  />
+                )}
               </FormShell>
             </div>
 
@@ -373,7 +400,7 @@ export default function LoginModal({
   );
 }
 
-/* --- Apukomponentit ennallaan --- */
+/* --- Apukomponentit --- */
 
 function getPasswordStrength(password: string) {
   const checks = {
@@ -690,23 +717,43 @@ function PrimaryButton({
   label,
   onClick,
   loading,
+  redirecting,
   disabled = false,
 }: {
   label: string;
   onClick: () => void;
   loading: boolean;
+  redirecting?: boolean;
   disabled?: boolean;
 }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={loading || disabled}
-      type="submit"
-      className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
-    >
-      {loading ? "Odota..." : label}
-    </button>
+    <div className="w-full">
+      <button
+        onClick={onClick}
+        disabled={loading || redirecting || disabled}
+        type="submit"
+        className="w-full h-12 rounded-xl text-white font-bold text-[14px] transition-transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        style={{ background: "linear-gradient(135deg, #6D67F2, #5750E0)" }}
+      >
+        {redirecting ? (
+          "Ohjataan dashboardiin..."
+        ) : loading ? (
+          "Odota..."
+        ) : (
+          label
+        )}
+      </button>
+      {redirecting && (
+        <div className="text-center mt-3 text-[13px] text-slate-500 dark:text-slate-400">
+          <a 
+            href="/dashboard" 
+            className="text-[#6D67F2] hover:text-[#5750E0] hover:underline font-semibold"
+          >
+            Tai jatka tästä
+          </a>
+        </div>
+      )}
+    </div>
   );
 }
 

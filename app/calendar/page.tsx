@@ -1,4 +1,5 @@
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import CalendarClient from "@/components/calendar/CalendarClient";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
@@ -16,10 +17,9 @@ export default async function CalendarPage() {
     redirect("/login");
   }
 
-  // KORJAUS: Lisätty 'cv_url' hakuun, jotta kalenterista avautuva dialogi näkee liitteen
   const { data: applications, error } = await supabase
     .from("applications")
-    .select("id, company, job_title, valid_through, status, cv_url") // <-- cv_url lisätty tänne
+    .select("id, company, job_title, valid_through, status, cv_url")
     .eq("user_id", user.id);
 
   if (error) {
@@ -32,8 +32,10 @@ export default async function CalendarPage() {
         <Sidebar />
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0 mx-auto max-w-400">
-        <main className="flex-1 p-6 mb-6">
+      {/* Oikea puoli: Header ja sisältö pinossa */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-auto">
+        <Header />
+        <main className="flex-1 p-6 mb-6 max-w-[1500px] w-full mx-auto">
           <CalendarClient initialApplications={applications || []} />
         </main>
       </div>

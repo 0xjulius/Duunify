@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useModal } from "@/components/logout/ModalProvider";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import AdminCard from "@/components/AdminCard";
 
 import {
@@ -153,99 +153,131 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        {/* "Lisää"-arkki */}
-        {showMore && (
-          <div
-            className="fixed inset-0 z-50 flex items-end"
-            style={{ background: "rgba(13, 11, 38, 0.5)" }}
-            onClick={() => setShowMore(false)}
-          >
-            <div
-              className="w-full bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] border-t border-slate-200 dark:border-slate-700"
-              onClick={(e) => e.stopPropagation()}
+        {/* "Lisää toimintoja" -arkki animaatioilla */}
+        <AnimatePresence>
+          {showMore && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-end"
+              style={{ background: "rgba(13, 11, 38, 0.5)" }}
+              onClick={() => setShowMore(false)}
             >
-              <div className="flex items-center justify-between mb-4">
-                <p className="font-bold text-slate-900 dark:text-slate-50">
-                  Lisää
-                </p>
-                <button
-                  onClick={() => setShowMore(false)}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="space-y-1 mb-4">
-                <Link
-                  href="/settings#pro"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
-                  onClick={() => setShowMore(false)}
-                >
-                  <Sparkles size={18} />
-                  <span className="font-semibold text-sm">Duunify Pro</span>
-                </Link>
-
-                <button
-                  onClick={() => {
-                    toggleDarkMode();
-                    setShowMore(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
-                >
-                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                  <span className="text-sm font-medium">
-                    {isDarkMode ? "Kevyt tila" : "Tumma tila"}
-                  </span>
-                </button>
-
-                <Link
-                  href="/settings"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  onClick={() => setShowMore(false)}
-                >
-                  <Settings size={18} />
-                  <span className="text-sm font-medium">Asetukset</span>
-                </Link>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 mb-2">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar"
-                    className="w-[36px] h-[36px] rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <UserCircle2
-                    size={36}
-                    className="text-slate-400 dark:text-slate-500 shrink-0"
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-900 dark:text-slate-200 truncate text-sm">
-                    {displayName}
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="w-full bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] border-t border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <p className="font-bold text-slate-900 dark:text-slate-50 text-base">
+                    Lisää toimintoja
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {displayEmail}
-                  </p>
+                  <button
+                    onClick={() => setShowMore(false)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                {user && (
+
+                {/* Ylempi grid-osio: Suosikit ja Toimintaloki rinnakkain */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <Link
+                    href="/favorites"
+                    className="flex items-center gap-2.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <StarPlus size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span className="text-sm font-medium">Suosikit</span>
+                  </Link>
+
+                  <Link
+                    href="/history"
+                    className="flex items-center gap-2.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <SquareActivity size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span className="text-sm font-medium">Toimintaloki</span>
+                  </Link>
+                </div>
+
+                {/* Alemmat valinnat normaalisti listana */}
+                <div className="space-y-1 mb-4">
+                  <Link
+                    href="/settings#pro"
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <Sparkles size={18} />
+                    <span className="font-semibold text-sm">Duunify Pro</span>
+                  </Link>
+
                   <button
                     onClick={() => {
+                      toggleDarkMode();
                       setShowMore(false);
-                      showLogout(displayName);
                     }}
-                    title="Kirjaudu ulos"
-                    className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition shrink-0"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
                   >
-                    <LogOut size={18} />
+                    {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                    <span className="text-sm font-medium">
+                      {isDarkMode ? "Kevyt tila" : "Tumma tila"}
+                    </span>
                   </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <Settings size={18} />
+                    <span className="text-sm font-medium">Asetukset</span>
+                  </Link>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 mb-2">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar"
+                      className="w-[36px] h-[36px] rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <UserCircle2
+                      size={36}
+                      className="text-slate-400 dark:text-slate-500 shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900 dark:text-slate-200 truncate text-sm">
+                      {displayName}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {displayEmail}
+                    </p>
+                  </div>
+                  {user && (
+                    <button
+                      onClick={() => {
+                        setShowMore(false);
+                        showLogout(displayName);
+                      }}
+                      title="Kirjaudu ulos"
+                      className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition shrink-0"
+                    >
+                      <LogOut size={18} />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="h-16" />
       </>
@@ -297,10 +329,8 @@ export default function Sidebar() {
         ))}
       </nav>
 
-     {/* ALAPUOLENPAINIKKEET (Tumma tila, Asetukset & Pro) */}
+      {/* ALAPUOLENPAINIKKEET */}
       <div className="px-4 pb-4 flex flex-col gap-2">
-        
-        {/* Tumma tila (Tekstillä ja kytkimellä laajennettuna, pelkkä ikoni supistettuna) */}
         <button
           onClick={toggleDarkMode}
           title={isDarkMode ? "Kevyt tila" : "Tumma tila"}
@@ -310,8 +340,7 @@ export default function Sidebar() {
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             {!sidebarCollapsed && <span>Tumma tila</span>}
           </div>
-          
-          {/* Visuaalinen kytkin (näkyy vain kun sivupalkki on auki) */}
+
           {!sidebarCollapsed && (
             <div 
               className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ${
@@ -327,7 +356,6 @@ export default function Sidebar() {
           )}
         </button>
 
-        {/* Asetukset sivu */}
         <Link
           href="/settings"
           title="Asetukset"
@@ -341,8 +369,9 @@ export default function Sidebar() {
           {!sidebarCollapsed && <span>Asetukset</span>}
         </Link>
 
-       <AdminCard collapsed={collapsed} />
-</div>
+        <AdminCard collapsed={collapsed} />
+      </div>
+
       {/* USER & LOGOUT */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-700">
         <div

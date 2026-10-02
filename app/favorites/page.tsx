@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { CompanyLogo } from "@/components/applications/CompanyLogo";
 import {
   Bookmark,
@@ -196,18 +197,19 @@ export default function SavedJobsPage() {
     <main className="min-h-screen flex bg-slate-50 dark:bg-slate-950 transition-colors duration-300 text-slate-900 dark:text-slate-50">
       <Sidebar />
 
-      <div className="flex-1 overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1500px] mx-auto flex flex-col gap-6">
+      <div className="flex-1 overflow-auto flex flex-col">
+        <Header />
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1500px] mx-auto w-full flex flex-col gap-6">
           {/* HEADER */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-3">
-                <span className="bg-gradient-to-br from-indigo-500 to-violet-600 p-2.5 sm:p-3 rounded-xl shrink-0">
-                  <Bookmark className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold flex items-center gap-3">
+                <span className="bg-gradient-to-br from-indigo-200 to-violet-600 dark:from-indigo-500/20 dark:to-violet-600/20 p-3 rounded-xl">
+                  <Bookmark className="h-6 w-6 text-white dark:text-indigo-400" />
                 </span>
                 Tallennetut työpaikat
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1.5 text-xs sm:text-sm">
+              <p className="text-slate-500 dark:text-slate-400 mt-3 ml-2 sm:ml-5 md:ml-[37px] text-sm">
                 Työpaikat, jotka haluat laittaa talteen.
               </p>
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header"; // Varmista että polku vastaa projektisi Header-komponenttia
 import { Search, CheckCircle2, ChevronRight } from "lucide-react";
 
 import { StepIndicator } from "@/components/job-assistant/StepIndicator";
@@ -66,8 +67,11 @@ export default function JobAssistantPage() {
     <div className="flex min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        {/* YLÄPALKKI (HEADER) */}
+        <Header />
+
+        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* HEADER */}
           <JobAssistantHeader />
 
