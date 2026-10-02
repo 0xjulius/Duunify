@@ -188,12 +188,12 @@ export default function Sidebar() {
                 {/* Ylempi grid-osio: Suosikit ja Toimintaloki rinnakkain */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <Link
-                    href="/favorites"
+                    href="/calendar"
                     className="flex items-center gap-2.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition"
                     onClick={() => setShowMore(false)}
                   >
-                    <StarPlus size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
-                    <span className="text-sm font-medium">Suosikit</span>
+                    <Calendar size={18} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span className="text-sm font-medium">Kalenteri</span>
                   </Link>
 
                   <Link
