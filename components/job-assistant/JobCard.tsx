@@ -107,13 +107,13 @@ export function JobCard({ job, hasLogoFailed, onImageError }: JobCardProps) {
 
           {/* ACTION BUTTON */}
           <div className="flex items-center justify-end lg:justify-center shrink-0">
-            <div className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+            <span className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 group-hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold shadow-xs group-hover:shadow transition-all duration-200">
               Valitse
               <ChevronRight
                 size={18}
-                className="group-hover:translate-x-1 transition-transform"
+                className="group-hover:translate-x-0.5 transition-transform"
               />
-            </div>
+            </span>
           </div>
         </div>
 

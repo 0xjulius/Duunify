@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   LayoutDashboard,
@@ -82,13 +82,13 @@ export default function DemoSidebar() {
   const displayName = DEMO_USER.full_name;
   const displayEmail = DEMO_USER.email;
 
-  // --- MOBIILI: 2x2 tyylinen leijuva / kiinteä valikko alhaalla ---
+  // --- MOBIILI: kiinteä ala-navigaatio ja animoitu lisävalikko ---
   if (isMobile) {
     const primaryItems = NAV_ITEMS.slice(0, 4);
 
     return (
       <>
-        {/* Mobiilin alapalkki (2x2-ruudukon tyylinen tai kompakti) */}
+        {/* Mobiilin alapalkki */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700 pb-[env(safe-area-inset-bottom)]">
           <div className="grid grid-cols-5 h-16">
             {primaryItems.map((item) => {
@@ -105,7 +105,7 @@ export default function DemoSidebar() {
                 >
                   {active && (
                     <motion.div
-                      layoutId="active-nav-pill"
+                      layoutId="active-nav-pill-demo"
                       className="absolute inset-1 bg-indigo-100 dark:bg-indigo-500/10 rounded-2xl -z-10"
                       transition={{
                         type: "spring",
@@ -135,108 +135,130 @@ export default function DemoSidebar() {
           </div>
         </nav>
 
-        {/* "Lisää"-arkki */}
-        {showMore && (
-          <div
-            className="fixed inset-0 z-50 flex items-end"
-            style={{ background: "rgba(13, 11, 38, 0.5)" }}
-            onClick={() => setShowMore(false)}
-          >
-            <div
-              className="w-full bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] border-t border-slate-200 dark:border-slate-700"
-              onClick={(e) => e.stopPropagation()}
+        {/* Animoitu "Lisää"-arkki */}
+        <AnimatePresence>
+          {showMore && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-end"
+              style={{ background: "rgba(13, 11, 38, 0.5)" }}
+              onClick={() => setShowMore(false)}
             >
-              <div className="flex items-center justify-between mb-4">
-                <p className="font-bold text-slate-900 dark:text-slate-50">
-                  Lisää toimintoja
-                </p>
-                <button
-                  onClick={() => setShowMore(false)}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Muut navigointikohteet 2x2 tyylisesti tai listana */}
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {NAV_ITEMS.slice(4).map((item) => {
-                  const active = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 p-3 rounded-2xl border transition ${
-                        active
-                          ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 font-semibold"
-                          : "bg-slate-50 dark:bg-slate-800/50 border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300"
-                      }`}
-                      onClick={() => setShowMore(false)}
-                    >
-                      <item.icon size={20} className="shrink-0" />
-                      <span className="text-xs font-medium truncate">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-1 mb-4 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <Link
-                  href="#"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
-                  onClick={() => setShowMore(false)}
-                >
-                  <Sparkles size={18} />
-                  <span className="font-semibold text-sm">Duunify Pro</span>
-                </Link>
-
-                <button
-                  onClick={() => {
-                    toggleDarkMode();
-                    setShowMore(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
-                >
-                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                  <span className="text-sm font-medium">
-                    {isDarkMode ? "Kevyt tila" : "Tumma tila"}
-                  </span>
-                </button>
-
-                <Link
-                  href="#"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  onClick={() => setShowMore(false)}
-                >
-                  <Settings size={18} />
-                  <span className="text-sm font-medium">Asetukset</span>
-                </Link>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 mb-2">
-                <UserCircle2
-                  size={36}
-                  className="text-slate-400 dark:text-slate-500 shrink-0"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-slate-900 dark:text-slate-200 truncate text-sm">
-                    {displayName}
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="w-full bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] border-t border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <p className="font-bold text-slate-900 dark:text-slate-50 text-base">
+                    Lisää toimintoja
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {displayEmail}
-                  </p>
+                  <button
+                    onClick={() => setShowMore(false)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                <Link
-                  href="/"
-                  title="Poistu demosta"
-                  className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition shrink-0"
-                >
-                  <LogOut size={18} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+
+                {/* Erottuvat toimintanapit: Suosikit ja Toimintaloki */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {NAV_ITEMS.slice(4).map((item) => {
+                    const active = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-200 active:scale-95 ${
+                          active
+                            ? "bg-indigo-50 dark:bg-indigo-500/15 border-indigo-300 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-300 shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs"
+                        }`}
+                        onClick={() => setShowMore(false)}
+                      >
+                        <div
+                          className={`p-2 rounded-xl shrink-0 ${
+                            active
+                              ? "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+                              : "bg-white dark:bg-slate-700/80 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                          }`}
+                        >
+                          <item.icon size={18} />
+                        </div>
+                        <span className="text-xs font-semibold truncate">
+                          {item.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* Asetukset & tilavalinnat */}
+                <div className="space-y-1 mb-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <Link
+                    href="#"
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#EEF2FF] dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <Sparkles size={18} />
+                    <span className="font-semibold text-sm">Duunify Pro</span>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      toggleDarkMode();
+                      setShowMore(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-left"
+                  >
+                    {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                    <span className="text-sm font-medium">
+                      {isDarkMode ? "Kevyt tila" : "Tumma tila"}
+                    </span>
+                  </button>
+
+                  <Link
+                    href="#"
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    onClick={() => setShowMore(false)}
+                  >
+                    <Settings size={18} />
+                    <span className="text-sm font-medium">Asetukset</span>
+                  </Link>
+                </div>
+
+                {/* Käyttäjätiedot */}
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 mb-2">
+                  <UserCircle2
+                    size={36}
+                    className="text-slate-400 dark:text-slate-500 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900 dark:text-slate-200 truncate text-sm">
+                      {displayName}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {displayEmail}
+                    </p>
+                  </div>
+                  <Link
+                    href="/"
+                    title="Poistu demosta"
+                    className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition shrink-0"
+                  >
+                    <LogOut size={18} />
+                  </Link>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="h-16" />
       </>

@@ -65,10 +65,14 @@ export default function SettingsClient({
 
   // Asiakirjojen tilat
   const [cvDoc, setCvDoc] = useState<UserDocument | null>(null);
-  const [coverLetterDoc, setCoverLetterDoc] = useState<UserDocument | null>(null);
+  const [coverLetterDoc, setCoverLetterDoc] = useState<UserDocument | null>(
+    null,
+  );
   const [uploadingCv, setUploadingCv] = useState(false);
   const [uploadingLetter, setUploadingLetter] = useState(false);
-  const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(null);
+  const [deletingType, setDeletingType] = useState<"cv" | "letter" | null>(
+    null,
+  );
   const [viewingType, setViewingType] = useState<"cv" | "letter" | null>(null);
 
   // Ilmoitusasetusten tilat
@@ -96,7 +100,7 @@ export default function SettingsClient({
       const { data: profile } = await supabase
         .from("profiles")
         .select(
-          "cv_filename, cv_updated_at, letter_filename, letter_updated_at, notifications_enabled, email_notifications"
+          "cv_filename, cv_updated_at, letter_filename, letter_updated_at, notifications_enabled, email_notifications",
         )
         .eq("id", userId)
         .maybeSingle();
@@ -151,7 +155,7 @@ export default function SettingsClient({
   // Ilmoitusasetusten päivitys tietokantaan
   const handleToggleNotification = async (
     key: "notifications_enabled" | "email_notifications",
-    newValue: boolean
+    newValue: boolean,
   ) => {
     if (key === "notifications_enabled") setNotificationsEnabled(newValue);
     if (key === "email_notifications") setEmailNotifications(newValue);
@@ -190,7 +194,7 @@ export default function SettingsClient({
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "cv" | "letter"
+    type: "cv" | "letter",
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -199,7 +203,7 @@ export default function SettingsClient({
 
     if (file.size > MAX_FILE_SIZE) {
       alert(
-        `Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`
+        `Tiedosto on liian suuri (${(file.size / 1024).toFixed(0)} KB). Tiedoston maksimikoko on 250 KB.`,
       );
       e.target.value = "";
       return;
@@ -301,7 +305,7 @@ export default function SettingsClient({
       { email: email },
       {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      }
+      },
     );
 
     setVerifying(false);
@@ -367,8 +371,10 @@ export default function SettingsClient({
     // Tunnistetaan mitä kenttiä muutettiin
     const changedFields: string[] = [];
     if (trimmedFullName !== initialFullName) changedFields.push("nimi");
-    if (trimmedPhone !== (initialPhone || "")) changedFields.push("puhelinnumero");
-    if (trimmedLocation !== (initialLocation || "")) changedFields.push("sijainti");
+    if (trimmedPhone !== (initialPhone || ""))
+      changedFields.push("puhelinnumero");
+    if (trimmedLocation !== (initialLocation || ""))
+      changedFields.push("sijainti");
 
     // Rakennetaan viesti sen mukaan, mitä muutettiin
     const messageText =
@@ -596,7 +602,6 @@ export default function SettingsClient({
                   </div>
                 </div>
               </section>
-
               {/* ASIAKIRJAT */}
               <section
                 id="asiakirjat"
@@ -785,7 +790,6 @@ export default function SettingsClient({
                   </div>
                 </div>
               </section>
-
               {/* TILI */}
               <section
                 id="tili"
@@ -809,7 +813,7 @@ export default function SettingsClient({
                 ref={(el) => {
                   sectionRefs.current["ilmoitukset"] = el;
                 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors"
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm scroll-mt-8 transition-colors "
               >
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100">
@@ -829,12 +833,12 @@ export default function SettingsClient({
 
                 <div className="space-y-4">
                   {/* Sovelluksen sisäiset ilmoitukset */}
-                  <div className="flex justify-between items-center py-2">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <div className="flex justify-between items-center gap-4 py-2">
+                    <div className="pr-2">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         Sovelluksen sisäiset ilmoitukset
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                         Näytä ilmoitukset yläpalkin kellossa (esim.
                         haastattelukutsut ja tekoälytehtävät).
                       </p>
@@ -842,20 +846,21 @@ export default function SettingsClient({
 
                     <button
                       type="button"
+                      aria-label="Toggle sovelluksen sisäiset ilmoitukset"
                       onClick={() =>
                         handleToggleNotification(
                           "notifications_enabled",
-                          !notificationsEnabled
+                          !notificationsEnabled,
                         )
                       }
-                      className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 cursor-pointer ${
+                      className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 cursor-pointer shrink-0 ${
                         notificationsEnabled
                           ? "bg-indigo-600 dark:bg-indigo-500"
                           : "bg-slate-300 dark:bg-slate-700"
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-sm transition-transform duration-200 ${
+                        className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-xs transition-transform duration-200 ${
                           notificationsEnabled
                             ? "translate-x-5"
                             : "translate-x-0"
@@ -867,12 +872,12 @@ export default function SettingsClient({
                   <hr className="border-slate-100 dark:border-slate-800" />
 
                   {/* Sähköposti-ilmoitukset */}
-                  <div className="flex justify-between items-center py-2">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <div className="flex justify-between items-center gap-4 py-2 mb-16 md:mb-0">
+                    <div className="pr-2">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         Sähköposti-ilmoitukset
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                         Lähetä tärkeistä päivityksistä ja muistutuksista viesti
                         sähköpostiin.
                       </p>
@@ -880,20 +885,21 @@ export default function SettingsClient({
 
                     <button
                       type="button"
+                      aria-label="Toggle sähköposti-ilmoitukset"
                       onClick={() =>
                         handleToggleNotification(
                           "email_notifications",
-                          !emailNotifications
+                          !emailNotifications,
                         )
                       }
-                      className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 cursor-pointer ${
+                      className={`w-11 h-6 rounded-full relative p-0.5 transition-colors duration-200 cursor-pointer shrink-0 ${
                         emailNotifications
                           ? "bg-indigo-600 dark:bg-indigo-500"
                           : "bg-slate-300 dark:bg-slate-700"
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-sm transition-transform duration-200 ${
+                        className={`w-5 h-5 bg-white dark:bg-slate-100 rounded-full shadow-xs transition-transform duration-200 ${
                           emailNotifications ? "translate-x-5" : "translate-x-0"
                         }`}
                       />
